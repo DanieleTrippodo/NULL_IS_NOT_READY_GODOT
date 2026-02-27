@@ -32,3 +32,4 @@ enemy_bullet_scene = ExtResource("7_q34ae")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0265074, 0)
+shadow_enabled = true

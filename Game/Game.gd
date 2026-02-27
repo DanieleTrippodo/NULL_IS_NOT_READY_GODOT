@@ -26,9 +26,13 @@ const FLOOR_RAY_UP: float = 10.0
 const FLOOR_RAY_DOWN: float = 50.0
 const FLOOR_EPS: float = 0.05
 
+# Restart guard
+var restarting: bool = false
+
 func _ready() -> void:
 	rng.randomize()
 	Run.reset()
+	restarting = false
 
 	Signals.request_shoot.connect(_on_request_shoot)
 	Signals.request_pickup.connect(_on_request_pickup)
@@ -71,6 +75,9 @@ func _spawn_player() -> void:
 	player_root.add_child(player)
 
 func _spawn_wave() -> void:
+	if restarting:
+		return
+
 	if chaser_scene == null:
 		push_error("chaser_scene non assegnata in Main (inspector).")
 		return
@@ -106,7 +113,7 @@ func _spawn_wave() -> void:
 	var player := player_root.get_child(0) as Node3D
 	enemies_alive = 0
 
-	# composizione wave (no warning)
+	# composizione wave
 	var chasers: int = 2 + floori(float(Run.depth - 1) / 2.0)
 	chasers = min(max(chasers, 2), 6)
 
@@ -270,6 +277,8 @@ func _find_first_collision_shape(root: Node) -> CollisionShape3D:
 # INPUT / SHOOT / PICKUP
 # -------------------------
 func _on_request_shoot(origin: Vector3, direction: Vector3) -> void:
+	if restarting:
+		return
 	if Run.null_ready == false:
 		return
 	if null_projectile_scene == null:
@@ -292,6 +301,8 @@ func _on_request_shoot(origin: Vector3, direction: Vector3) -> void:
 		p.fire(origin, direction)
 
 func _on_request_pickup() -> void:
+	if restarting:
+		return
 	if null_instance == null:
 		return
 
@@ -308,6 +319,9 @@ func _on_request_pickup() -> void:
 	Signals.null_ready_changed.emit(true)
 
 func _on_enemy_killed(enemy: Node) -> void:
+	if restarting:
+		return
+
 	if is_instance_valid(enemy):
 		enemy.queue_free()
 
@@ -319,7 +333,6 @@ func _on_enemy_killed(enemy: Node) -> void:
 	if enemies_alive <= 0:
 		Run.depth += 1
 
-		# PERK random a fine wave
 		Run.grant_random_perk(rng)
 		Signals.perk_granted.emit(Run.last_perk_title, Run.last_perk_desc)
 
@@ -327,4 +340,12 @@ func _on_enemy_killed(enemy: Node) -> void:
 		_spawn_wave()
 
 func _on_player_died() -> void:
-	get_tree().reload_current_scene()
+	if restarting:
+		return
+	restarting = true
+
+	# reset immediato dello stato run
+	Run.reset()
+
+	# reload fuori dal physics step
+	get_tree().call_deferred("reload_current_scene")

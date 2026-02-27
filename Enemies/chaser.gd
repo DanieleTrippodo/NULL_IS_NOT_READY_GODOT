@@ -4,7 +4,7 @@ extends CharacterBody3D
 var target: Node3D = null
 
 const GRAVITY: float = 25.0
-const KILL_RADIUS: float = 1.0
+const KILL_RADIUS: float = 1.2 # fallback (solo X/Z)
 
 func set_target(t: Node3D) -> void:
 	target = t
@@ -13,6 +13,7 @@ func _physics_process(delta: float) -> void:
 	if target == null:
 		return
 
+	# movimento verso player (solo X/Z)
 	var dir := (target.global_position - global_position)
 	dir.y = 0.0
 	dir = dir.normalized()
@@ -28,7 +29,15 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 
-	# kill solo in X/Z
+	# ✅ Kill affidabile: se ho colliso con il player
+	for i in range(get_slide_collision_count()):
+		var col := get_slide_collision(i)
+		var other := col.get_collider()
+		if other is Node and (other as Node).is_in_group("player"):
+			Signals.player_died.emit()
+			return
+
+	# Fallback (se per qualche motivo non collidono ma sono “incollati”)
 	var dx := target.global_position.x - global_position.x
 	var dz := target.global_position.z - global_position.z
 	if (dx * dx + dz * dz) <= (KILL_RADIUS * KILL_RADIUS):

@@ -8,12 +8,25 @@ var yaw: float = 0.0
 var pitch: float = 0.0
 
 const GRAVITY: float = 20.0
+
 var has_fly_down: bool = false
+var has_dash: bool = false
+
+# Dash (perk)
+var dash_cd: float = 0.0
+var dash_time_left: float = 0.0
+var dash_vel: Vector3 = Vector3.ZERO
+
+const DASH_DURATION: float = 0.12
+const DASH_COOLDOWN: float = 0.9
+const DASH_STRENGTH: float = 14.0
 
 func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	set_process_unhandled_input(true)
+
 	has_fly_down = InputMap.has_action("fly_down")
+	has_dash = InputMap.has_action("dash")
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
@@ -27,14 +40,18 @@ func _unhandled_input(event: InputEvent) -> void:
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 
 	if event.is_action_pressed("shoot"):
-		var origin := camera.global_transform.origin
-		var dir := -camera.global_transform.basis.z
+		var origin: Vector3 = camera.global_transform.origin
+		var dir: Vector3 = -camera.global_transform.basis.z
 		Signals.request_shoot.emit(origin, dir)
 
 	if event.is_action_pressed("interact"):
 		Signals.request_pickup.emit()
 
 func _physics_process(delta: float) -> void:
+	# dash timers
+	dash_cd = max(dash_cd - delta, 0.0)
+	dash_time_left = max(dash_time_left - delta, 0.0)
+
 	# input movimento
 	var input_dir := Vector3.ZERO
 	if Input.is_action_pressed("move_forward"):
@@ -59,6 +76,19 @@ func _physics_process(delta: float) -> void:
 	velocity.x = dir.x * speed
 	velocity.z = dir.z * speed
 
+	# DASH (solo se sbloccato e azione esiste)
+	if Run.dash_enabled and has_dash and dash_cd <= 0.0 and Input.is_action_just_pressed("dash"):
+		var fwd: Vector3 = -global_transform.basis.z
+		fwd.y = 0.0
+		fwd = fwd.normalized()
+		dash_vel = fwd * DASH_STRENGTH
+		dash_time_left = DASH_DURATION
+		dash_cd = DASH_COOLDOWN
+
+	if dash_time_left > 0.0:
+		velocity.x += dash_vel.x
+		velocity.z += dash_vel.z
+
 	# flight / gravity / jump
 	var flying: bool = Run.flight_time_left > 0.0
 
@@ -71,10 +101,8 @@ func _physics_process(delta: float) -> void:
 		elif has_fly_down and Input.is_action_pressed("fly_down"):
 			vy = -Run.jump_velocity
 		velocity.y = vy
-
 	else:
 		if is_on_floor():
-			# salto sbloccato: qui NON verrà sovrascritto
 			if Run.jump_enabled and Input.is_action_just_pressed("jump"):
 				velocity.y = Run.jump_velocity
 			else:
