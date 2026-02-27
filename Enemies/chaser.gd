@@ -3,10 +3,13 @@ extends CharacterBody3D
 
 var target: Node3D = null
 
+const GRAVITY: float = 25.0
+const KILL_RADIUS: float = 1.0
+
 func set_target(t: Node3D) -> void:
 	target = t
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	if target == null:
 		return
 
@@ -14,11 +17,19 @@ func _physics_process(_delta: float) -> void:
 	dir.y = 0.0
 	dir = dir.normalized()
 
-	var speed := Constants.CHASER_SPEED
-	velocity.x = dir.x * speed
-	velocity.z = dir.z * speed
+	velocity.x = dir.x * Constants.CHASER_SPEED
+	velocity.z = dir.z * Constants.CHASER_SPEED
+
+	# gravità stabile
+	if not is_on_floor():
+		velocity.y -= GRAVITY * delta
+	else:
+		velocity.y = -1.0
+
 	move_and_slide()
 
-	# MVP: contatto = morte
-	if global_position.distance_to(target.global_position) <= 1.0:
+	# kill solo in X/Z
+	var dx := target.global_position.x - global_position.x
+	var dz := target.global_position.z - global_position.z
+	if (dx * dx + dz * dz) <= (KILL_RADIUS * KILL_RADIUS):
 		Signals.player_died.emit()

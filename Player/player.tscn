@@ -5,7 +5,7 @@
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_hvfyp"]
 
 [node name="Player" type="CharacterBody3D" groups=["player"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 script = ExtResource("1_l8h54")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]

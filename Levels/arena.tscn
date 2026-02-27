@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://bnyo3nlk88hp8" path="res://Levels/arena.gd" id="1_avk14"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_dfuk3"]
+size = Vector3(24, 1, 24)
 
 [sub_resource type="BoxMesh" id="BoxMesh_avk14"]
 size = Vector3(24, 1, 24)
@@ -13,7 +14,7 @@ script = ExtResource("1_avk14")
 [node name="Floor" type="StaticBody3D" parent="."]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
-transform = Transform3D(24, 0, 0, 0, 1, 0, 0, 0, 24, 0, -0.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
 shape = SubResource("BoxShape3D_dfuk3")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
@@ -30,3 +31,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, -8)
 
 [node name="Spawn_3" type="Marker3D" parent="SpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8)
+
+[node name="PlayerSpawn" type="Marker3D" parent="SpawnPoints"]
