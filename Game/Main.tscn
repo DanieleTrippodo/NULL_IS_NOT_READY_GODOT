@@ -1,0 +1,34 @@
+[gd_scene load_steps=9 format=3 uid="uid://bgwcyyqw3ssa1"]
+
+[ext_resource type="Script" uid="uid://pfb6mfm6lhf8" path="res://Game/Game.gd" id="1_wd0a0"]
+[ext_resource type="PackedScene" uid="uid://8w3pg480ojvn" path="res://Levels/arena.tscn" id="2_lv82p"]
+[ext_resource type="PackedScene" uid="uid://c8uc2jlabtxn5" path="res://Player/player.tscn" id="3_w1egk"]
+[ext_resource type="PackedScene" uid="uid://dmowmk14plofq" path="res://Weapons/null_projectile.tscn" id="4_rchnd"]
+[ext_resource type="PackedScene" uid="uid://cagjhpfgva4b6" path="res://Enemies/chaser.tscn" id="5_rl4yr"]
+[ext_resource type="PackedScene" uid="uid://dcwn63iuwth1h" path="res://Enemies/turret.tscn" id="6_3xx61"]
+[ext_resource type="PackedScene" uid="uid://bhkaynd3qjg8j" path="res://UI/hud.tscn" id="6_g5pn2"]
+[ext_resource type="PackedScene" uid="uid://d2t46kkawn2qv" path="res://Enemies/enemy_bullet.tscn" id="7_q34ae"]
+
+[node name="Node" type="Node"]
+script = ExtResource("1_wd0a0")
+arena_scene = ExtResource("2_lv82p")
+player_scene = ExtResource("3_w1egk")
+null_projectile_scene = ExtResource("4_rchnd")
+chaser_scene = ExtResource("5_rl4yr")
+turret_scene = ExtResource("6_3xx61")
+enemy_bullet_scene = ExtResource("7_q34ae")
+
+[node name="World" type="Node3D" parent="."]
+
+[node name="ArenaRoot" type="Node3D" parent="World"]
+
+[node name="PlayerRoot" type="Node3D" parent="World"]
+
+[node name="EnemiesRoot" type="Node3D" parent="World"]
+
+[node name="UIRoot" type="CanvasLayer" parent="."]
+
+[node name="HUD" parent="UIRoot" instance=ExtResource("6_g5pn2")]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0265074, 0)

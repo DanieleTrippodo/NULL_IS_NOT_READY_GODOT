@@ -1,0 +1,25 @@
+[gd_scene load_steps=5 format=3 uid="uid://dmowmk14plofq"]
+
+[ext_resource type="Script" uid="uid://bu4dwpp8rbce3" path="res://Weapons/null_projectile.gd" id="1_5yk5j"]
+[ext_resource type="Texture2D" uid="uid://cmsats04s85yv" path="res://icon.svg" id="2_5n203"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_f0lqa"]
+radius = 0.25
+
+[sub_resource type="SphereMesh" id="SphereMesh_f0lqa"]
+
+[node name="NullProjectile" type="Area3D"]
+script = ExtResource("1_5yk5j")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_f0lqa")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.22, 0, 0, 0, 0.22, 0, 0, 0, 0.22, 0, 0, 0)
+mesh = SubResource("SphereMesh_f0lqa")
+
+[node name="PickupIndicator" type="Sprite3D" parent="."]
+transform = Transform3D(0.265, 0, 0, 0, 0.265, 0, 0, 0, 0.265, 0, 0.37998307, 0)
+visible = false
+billboard = 1
+texture = ExtResource("2_5n203")

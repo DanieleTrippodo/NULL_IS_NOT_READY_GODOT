@@ -1,0 +1,26 @@
+[gd_scene load_steps=2 format=3 uid="uid://bhkaynd3qjg8j"]
+
+[ext_resource type="Script" uid="uid://dt46fcsmdc2co" path="res://UI/hud.gd" id="1_ne75i"]
+
+[node name="HUD" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_ne75i")
+
+[node name="StatusLabel" type="Label" parent="."]
+layout_mode = 1
+offset_right = 40.0
+offset_bottom = 23.0
+text = "NULL: READY"
+
+[node name="DepthLabel" type="Label" parent="."]
+layout_mode = 1
+offset_top = 20.0
+offset_right = 70.0
+offset_bottom = 43.0
+text = "DEPTH: 1"
