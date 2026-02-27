@@ -71,3 +71,18 @@ autowrap_mode = 1
 [node name="PerkTimer" type="Timer" parent="."]
 wait_time = 2.5
 one_shot = true
+
+[node name="FadeRect" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0)
+
+[node name="FadeAnim" type="AnimationPlayer" parent="FadeRect"]
+
+[connection signal="timeout" from="PerkTimer" to="." method="_on_perk_timer_timeout"]
