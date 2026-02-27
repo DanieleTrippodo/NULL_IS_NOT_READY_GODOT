@@ -21,7 +21,7 @@ var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
 const PLAYER_SAFE_RADIUS: float = 4.0
 
-# raycast floor
+# Floor snap
 const FLOOR_RAY_UP: float = 10.0
 const FLOOR_RAY_DOWN: float = 50.0
 const FLOOR_EPS: float = 0.05
@@ -87,7 +87,7 @@ func _spawn_wave() -> void:
 	for c: Node in enemies_root.get_children():
 		c.queue_free()
 
-	# spawn points
+	# spawn points (Marker3D)
 	var spawns: Array[Marker3D] = []
 	if arena_instance.has_method("get_spawn_points"):
 		var pts: Array = arena_instance.get_spawn_points()
@@ -95,7 +95,7 @@ func _spawn_wave() -> void:
 			if s is Marker3D and (s as Marker3D).name != "PlayerSpawn":
 				spawns.append(s as Marker3D)
 
-	# fallback se non ci sono marker
+	# fallback
 	if spawns.is_empty():
 		spawns.append(_make_temp_marker(Vector3(-8, 0, -8)))
 		spawns.append(_make_temp_marker(Vector3( 8, 0, -8)))
@@ -118,7 +118,7 @@ func _spawn_wave() -> void:
 
 	var used_indices: Array[int] = []
 
-	# spawn chasers
+	# --- Chasers ---
 	for i: int in range(chasers):
 		var e := chaser_scene.instantiate() as Node3D
 		if e == null:
@@ -133,7 +133,7 @@ func _spawn_wave() -> void:
 		if e.has_method("set_target"):
 			e.set_target(player)
 
-	# spawn turrets
+	# --- Turrets ---
 	for j: int in range(turrets):
 		var t := turret_scene.instantiate() as Node3D
 		if t == null:
@@ -149,6 +149,14 @@ func _spawn_wave() -> void:
 			t.set_target(player)
 		if t.has_method("set_bullet_scene"):
 			t.set_bullet_scene(enemy_bullet_scene)
+
+		# Applica perk: turrets più lenti
+		if t.has_method("set_fire_interval"):
+			var base_interval: float = 1.6
+			var v: Variant = t.get("fire_interval")
+			if v != null:
+				base_interval = float(v)
+			t.set_fire_interval(base_interval * Run.turret_interval_mult)
 
 	# spawn player safe (dopo i nemici)
 	_place_player_safe(player, spawns)
@@ -166,7 +174,6 @@ func _pick_spawn_index(max_count: int, used: Array[int]) -> int:
 	return rng.randi_range(0, max_count - 1)
 
 func _place_player_safe(player: Node3D, spawns: Array[Marker3D]) -> void:
-	# prova PlayerSpawn se esiste
 	var ps := arena_instance.get_node_or_null("SpawnPoints/PlayerSpawn") as Marker3D
 	if ps != null and _is_position_safe(ps.global_position):
 		_place_body_on_floor(player, ps.global_position)
@@ -228,7 +235,6 @@ func _raycast_floor_y(pos: Vector3) -> float:
 func _compute_body_floor_offset_y(body: Node3D) -> float:
 	var cs: CollisionShape3D = _find_first_collision_shape(body)
 	if cs == null or cs.shape == null:
-		# fallback ragionevole
 		return 1.0 + FLOOR_EPS
 
 	var half_height: float = 0.5
@@ -247,11 +253,8 @@ func _compute_body_floor_offset_y(body: Node3D) -> float:
 		var cyl := shape as CylinderShape3D
 		half_height = cyl.height * 0.5
 
-	# posizione della collision shape in coordinate locali del body (anche se annidata)
 	var cs_y_in_body: float = body.to_local(cs.global_position).y
 	var bottom_local: float = cs_y_in_body - half_height
-
-	# vogliamo che bottom_local arrivi a 0 (pavimento)
 	return -bottom_local + FLOOR_EPS
 
 func _find_first_collision_shape(root: Node) -> CollisionShape3D:
@@ -294,7 +297,7 @@ func _on_request_pickup() -> void:
 
 	var player := player_root.get_child(0) as Node3D
 	var dist: float = player.global_position.distance_to(null_instance.global_position)
-	if dist > 2.0:
+	if dist > Run.pickup_radius:
 		return
 
 	if null_instance.has_method("pickup"):
@@ -315,6 +318,11 @@ func _on_enemy_killed(enemy: Node) -> void:
 
 	if enemies_alive <= 0:
 		Run.depth += 1
+
+		# PERK random a fine wave
+		Run.grant_random_perk(rng)
+		Signals.perk_granted.emit(Run.last_perk_title, Run.last_perk_desc)
+
 		Signals.depth_changed.emit(Run.depth)
 		_spawn_wave()
 

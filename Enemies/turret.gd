@@ -13,6 +13,9 @@ func set_target(t: Node3D) -> void:
 func set_bullet_scene(ps: PackedScene) -> void:
 	bullet_scene = ps
 
+func set_fire_interval(v: float) -> void:
+	fire_interval = v
+
 func _physics_process(delta: float) -> void:
 	if target == null or bullet_scene == null:
 		return
