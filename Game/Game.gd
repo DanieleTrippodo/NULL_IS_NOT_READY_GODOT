@@ -36,9 +36,9 @@ const FLOOR_EPS: float = 0.05
 const FADE_TIME: float = 0.25
 const WAVE_FREEZE_TIME: float = 0.35
 
-
 func _ready() -> void:
 	rng.randomize()
+	Engine.time_scale = 1.0
 
 	Run.reset()
 	restarting = false
@@ -46,6 +46,10 @@ func _ready() -> void:
 
 	Signals.request_shoot.connect(_on_request_shoot)
 	Signals.request_pickup.connect(_on_request_pickup)
+	Signals.request_pull_to_hand.connect(_on_request_pull_to_hand)
+	Signals.request_swap.connect(_on_request_swap)
+	Signals.null_dropped.connect(_on_null_dropped)
+
 	Signals.enemy_killed.connect(_on_enemy_killed)
 	Signals.player_died.connect(_on_player_died)
 
@@ -57,32 +61,38 @@ func _ready() -> void:
 
 	call_deferred("_wave_transition_first")
 
-
 func _physics_process(_delta: float) -> void:
 	if restarting or wave_transitioning:
+		if Engine.time_scale != 1.0:
+			Engine.time_scale = 1.0
 		return
 
-	# Perk: magnet pickup (auto-raccoglie il NULL quando è a terra e sei vicino)
+	# cleanup ref proiettile (se si è auto-distrutto dopo una kill)
+	if null_instance != null and not is_instance_valid(null_instance):
+		null_instance = null
+
+	# Perk: slowmo mentre il NULL è droppato
+	if Run.slowmo_recovery and Run.null_dropped:
+		Engine.time_scale = Run.slowmo_scale
+	else:
+		Engine.time_scale = 1.0
+
+	# Perk: magnet pickup
 	if not Run.pickup_magnet:
 		return
-
 	if null_instance == null or not is_instance_valid(null_instance):
 		return
 
-	# Attiva solo quando il proiettile è DROPPED: nel tuo NullProjectile questo coincide
-	# con PickupIndicator visibile.
 	var ind := null_instance.get_node_or_null("PickupIndicator")
 	if ind == null or not (ind is Sprite3D) or not (ind as Sprite3D).visible:
 		return
 
 	_on_request_pickup()
 
-
 func _wave_transition_first() -> void:
 	await _freeze_and_fade(true)
 	_spawn_wave()
 	await _freeze_and_fade(false)
-
 
 func _spawn_arena() -> void:
 	_free_children(arena_root)
@@ -98,7 +108,6 @@ func _spawn_arena() -> void:
 
 	arena_root.add_child(a)
 	arena_instance = a as Node3D
-
 
 func _spawn_player() -> void:
 	_free_children(player_root)
@@ -117,7 +126,6 @@ func _spawn_player() -> void:
 	var player := p as Node3D
 	var spawn_pos := _get_player_spawn_pos()
 	player.global_position = _place_body_on_floor(player, spawn_pos)
-
 
 func _spawn_wave() -> void:
 	if restarting:
@@ -178,7 +186,6 @@ func _spawn_wave() -> void:
 	if player != null:
 		_place_player_safe(player, spawns)
 
-
 func _spawn_enemy(scene: PackedScene, desired_pos: Vector3) -> Node3D:
 	if scene == null:
 		return null
@@ -190,15 +197,12 @@ func _spawn_enemy(scene: PackedScene, desired_pos: Vector3) -> Node3D:
 	var body := n as Node3D
 	enemies_root.add_child(body)
 
-	# Se il mondo è in freeze (fade/transition), blocca anche i nuovi nemici appena spawnati.
 	body.set_physics_process(not world_frozen)
 
-	# Evita spawn con compenetrazione (soprattutto quando i nemici > spawnpoints).
 	var final_pos := _pick_enemy_spawn_position(body, desired_pos)
 	body.global_position = final_pos
 
 	return body
-
 
 func _on_request_shoot(origin: Vector3, direction: Vector3, size_mult: float) -> void:
 	if restarting or wave_transitioning:
@@ -210,6 +214,7 @@ func _on_request_shoot(origin: Vector3, direction: Vector3, size_mult: float) ->
 		return
 
 	Run.null_ready = false
+	Run.null_dropped = false
 	Signals.null_ready_changed.emit(false)
 
 	var p := null_projectile_scene.instantiate()
@@ -228,7 +233,6 @@ func _on_request_shoot(origin: Vector3, direction: Vector3, size_mult: float) ->
 		proj.global_position = origin
 		proj.scale = Vector3.ONE * maxf(0.25, size_mult)
 
-
 func _on_request_pickup() -> void:
 	if restarting or wave_transitioning:
 		return
@@ -240,7 +244,6 @@ func _on_request_pickup() -> void:
 		return
 
 	var radius: float = float(Run.pickup_radius)
-
 	if player.global_position.distance_to(null_instance.global_position) > radius:
 		return
 
@@ -251,8 +254,90 @@ func _on_request_pickup() -> void:
 
 	null_instance = null
 	Run.null_ready = true
+	Run.null_dropped = false
 	Signals.null_ready_changed.emit(true)
 
+func _is_null_dropped() -> bool:
+	if null_instance == null or not is_instance_valid(null_instance):
+		return false
+	if null_instance.has_method("is_dropped"):
+		return bool(null_instance.call("is_dropped"))
+
+	var ind := null_instance.get_node_or_null("PickupIndicator")
+	return ind is Sprite3D and (ind as Sprite3D).visible
+
+func _on_request_pull_to_hand() -> void:
+	if restarting or wave_transitioning:
+		return
+	if not Run.pull_to_hand:
+		return
+	if not _is_null_dropped():
+		return
+
+	var player := _get_player()
+	if player == null:
+		return
+
+	if player.global_position.distance_to(null_instance.global_position) > Run.pull_max_distance:
+		return
+
+	if null_instance.has_method("pickup"):
+		null_instance.call("pickup")
+	else:
+		null_instance.queue_free()
+
+	null_instance = null
+	Run.null_ready = true
+	Run.null_dropped = false
+	Signals.null_ready_changed.emit(true)
+
+func _on_request_swap() -> void:
+	if restarting or wave_transitioning:
+		return
+	if not Run.swap_with_null:
+		return
+	if Run.swap_cd_left > 0.0:
+		return
+	if not _is_null_dropped():
+		return
+
+	var player := _get_player()
+	if player == null:
+		return
+
+	var ppos := player.global_position
+	var npos := null_instance.global_position
+
+	if ppos.distance_to(npos) > Run.swap_max_distance:
+		return
+
+	player.global_position = _place_body_on_floor(player, npos)
+
+	var floor_y := _raycast_floor_y(ppos, player)
+	null_instance.global_position = Vector3(ppos.x, floor_y + 0.10, ppos.z)
+
+	Run.swap_cd_left = Run.swap_cooldown
+
+func _on_null_dropped(pos: Vector3) -> void:
+	if not Run.drop_shockwave:
+		return
+
+	for e in enemies_root.get_children():
+		if not (e is Node3D):
+			continue
+		var n := e as Node3D
+		if not n.has_method("add_knockback"):
+			continue
+
+		var v := (n.global_position - pos)
+		v.y = 0.0
+		var d := v.length()
+		if d <= 0.001 or d > Run.shockwave_radius:
+			continue
+
+		var t: float = clampf(d / Run.shockwave_radius, 0.0, 1.0)
+		var s: float = lerpf(Run.shockwave_strength, 0.0, t)
+		n.call("add_knockback", v.normalized() * s)
 
 func _on_enemy_killed(enemy: Node) -> void:
 	if restarting or wave_transitioning:
@@ -263,10 +348,10 @@ func _on_enemy_killed(enemy: Node) -> void:
 
 	enemies_alive -= 1
 
-	Run.null_ready = true
-	Signals.null_ready_changed.emit(true)
-
 	if enemies_alive <= 0:
+		# con PIERCE il proiettile può essere ancora in volo → lo recuperiamo
+		_force_null_return()
+
 		Run.depth += 1
 		Signals.depth_changed.emit(Run.depth)
 
@@ -275,6 +360,17 @@ func _on_enemy_killed(enemy: Node) -> void:
 
 		call_deferred("_wave_transition")
 
+func _force_null_return() -> void:
+	if null_instance != null and is_instance_valid(null_instance):
+		if null_instance.has_method("pickup"):
+			null_instance.call("pickup")
+		else:
+			null_instance.queue_free()
+		null_instance = null
+
+	Run.null_ready = true
+	Run.null_dropped = false
+	Signals.null_ready_changed.emit(true)
 
 func _wave_transition() -> void:
 	if restarting or wave_transitioning:
@@ -286,7 +382,6 @@ func _wave_transition() -> void:
 	await _freeze_and_fade(false)
 
 	wave_transitioning = false
-
 
 func _freeze_and_fade(to_black: bool) -> void:
 	_set_world_frozen(true)
@@ -300,7 +395,6 @@ func _freeze_and_fade(to_black: bool) -> void:
 			await hud.fade_in(FADE_TIME)
 		_set_world_frozen(false)
 
-
 func _set_world_frozen(v: bool) -> void:
 	world_frozen = v
 
@@ -312,14 +406,15 @@ func _set_world_frozen(v: bool) -> void:
 		if e is Node:
 			(e as Node).set_physics_process(not v)
 
-
 func _on_player_died() -> void:
 	if restarting:
 		return
 	restarting = true
+	Engine.time_scale = 1.0
 	Run.reset()
 	get_tree().call_deferred("reload_current_scene")
 
+# --- resto invariato (spawnpoints / floor helpers / free children) ---
 
 func _get_enemy_spawns() -> Array[Node3D]:
 	var out: Array[Node3D] = []
@@ -335,7 +430,6 @@ func _get_enemy_spawns() -> Array[Node3D]:
 			out.append(c as Node3D)
 	return out
 
-
 func _get_player_spawn_pos() -> Vector3:
 	if arena_instance == null:
 		return Vector3.ZERO
@@ -343,7 +437,6 @@ func _get_player_spawn_pos() -> Vector3:
 	if n is Node3D:
 		return (n as Node3D).global_position
 	return Vector3.ZERO
-
 
 func _pick_spawn_index(max_count: int, used: Array[int]) -> int:
 	if max_count <= 0:
@@ -354,7 +447,6 @@ func _pick_spawn_index(max_count: int, used: Array[int]) -> int:
 			return r
 	return rng.randi_range(0, max_count - 1)
 
-
 func _place_player_safe(player: Node3D, spawns: Array[Node3D]) -> void:
 	var candidates := spawns.duplicate()
 	candidates.shuffle()
@@ -363,7 +455,6 @@ func _place_player_safe(player: Node3D, spawns: Array[Node3D]) -> void:
 		if _is_position_safe(m.global_position):
 			player.global_position = _place_body_on_floor(player, m.global_position)
 			return
-
 
 func _is_position_safe(pos: Vector3) -> bool:
 	var r2 := PLAYER_SAFE_RADIUS * PLAYER_SAFE_RADIUS
@@ -377,9 +468,6 @@ func _is_position_safe(pos: Vector3) -> bool:
 	return true
 
 func _pick_enemy_spawn_position(body: Node3D, desired_pos: Vector3) -> Vector3:
-	# Se ci sono pochi spawnpoint rispetto al numero di nemici, capita di spawnare sovrapposti.
-	# Questo può “sparare” un nemico verso l’alto per risoluzione collisioni.
-	# Qui jitteriamo la posizione e riproviamo finché troviamo spazio.
 	var player := _get_player()
 
 	for _i in range(24):
@@ -399,9 +487,7 @@ func _pick_enemy_spawn_position(body: Node3D, desired_pos: Vector3) -> Vector3:
 
 		return placed
 
-	# fallback
 	return _place_body_on_floor(body, desired_pos)
-
 
 func _is_enemy_spawn_clear(pos: Vector3, exclude: Node3D, min_radius: float) -> bool:
 	var r2 := min_radius * min_radius
@@ -416,24 +502,20 @@ func _is_enemy_spawn_clear(pos: Vector3, exclude: Node3D, min_radius: float) -> 
 				return false
 	return true
 
-
 func _get_player() -> Node3D:
 	if player_root.get_child_count() <= 0:
 		return null
 	return player_root.get_child(0) as Node3D
-
 
 func _make_temp_marker(p: Vector3) -> Node3D:
 	var m := Node3D.new()
 	m.global_position = p
 	return m
 
-
 func _place_body_on_floor(body: Node3D, desired_pos: Vector3) -> Vector3:
 	var floor_y: float = _raycast_floor_y(desired_pos, body)
 	var offset_y: float = _compute_body_floor_offset_y(body)
 	return Vector3(desired_pos.x, floor_y + offset_y, desired_pos.z)
-
 
 func _raycast_floor_y(pos: Vector3, exclude_body: Node3D) -> float:
 	var vp := get_viewport()
@@ -461,7 +543,6 @@ func _raycast_floor_y(pos: Vector3, exclude_body: Node3D) -> float:
 		return (hit["position"] as Vector3).y
 	return pos.y
 
-
 func _compute_body_floor_offset_y(body: Node3D) -> float:
 	var cs: CollisionShape3D = _find_first_collision_shape(body)
 	if cs == null or cs.shape == null:
@@ -487,7 +568,6 @@ func _compute_body_floor_offset_y(body: Node3D) -> float:
 	var bottom_local: float = cs_y_in_body - half_height
 	return -bottom_local + FLOOR_EPS
 
-
 func _find_first_collision_shape(root: Node) -> CollisionShape3D:
 	for c in root.get_children():
 		if c is CollisionShape3D:
@@ -496,7 +576,6 @@ func _find_first_collision_shape(root: Node) -> CollisionShape3D:
 		if found != null:
 			return found
 	return null
-
 
 func _free_children(n: Node) -> void:
 	for c in n.get_children():

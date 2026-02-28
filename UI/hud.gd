@@ -11,6 +11,9 @@ extends Control
 
 @onready var fade_rect: ColorRect = $FadeRect
 
+# Se non esiste in hud.tscn, resta null e non crasha
+@onready var survival_overlay: ColorRect = get_node_or_null("SurvivalOverlay") as ColorRect
+
 # ------------------------------------------------------------
 # STATUS ICON (READY / NOT READY)
 # ------------------------------------------------------------
@@ -65,12 +68,31 @@ var _player_cache: CharacterBody3D
 var base_crosshair_size: Vector2 = Vector2(32, 32)
 var not_ready_size: Vector2 = Vector2(22, 22)
 
+# ------------------------------------------------------------
+# SURVIVAL OVERLAY + GLITCH
+# ------------------------------------------------------------
+@export_range(0.0, 1.0, 0.01) var survival_overlay_intensity: float = 0.65
+@export var survival_glitch_enabled: bool = true
+@export_range(0.0, 12.0, 0.1) var survival_glitch_px: float = 3.0
+@export_range(0.0, 60.0, 1.0) var survival_glitch_hz: float = 24.0
+
+var _survival_active: bool = false
+var _glitch_t: float = 0.0
+var _rng := RandomNumberGenerator.new()
+
+var _status_base_pos: Vector2
+var _cross_base_pos: Vector2
+
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	Signals.null_ready_changed.connect(_on_null_ready_changed)
 	Signals.depth_changed.connect(_on_depth_changed)
 	Signals.perk_granted.connect(_on_perk_granted)
+
+	# se esiste nel tuo Signals.gd
+	if Signals.has_signal("survival_mode_changed"):
+		Signals.survival_mode_changed.connect(_on_survival_mode_changed)
 
 	var cb := Callable(self, "_on_perk_timer_timeout")
 	if not perk_timer.timeout.is_connected(cb):
@@ -81,6 +103,8 @@ func _ready() -> void:
 	# fade init
 	fade_rect.visible = false
 	_set_fade_alpha(0.0)
+
+	_rng.randomize()
 
 	# init dopo 1 frame (pivot/size corretti)
 	call_deferred("_post_ready_init")
@@ -99,9 +123,25 @@ func _post_ready_init() -> void:
 	hand.pivot_offset = hand.size * 0.5
 	_hand_has_base = true
 
+	# Salva pos base per glitch
+	_status_base_pos = status_icon.position
+	_cross_base_pos = crosshair_tex.position
+
+	# Survival overlay init: deve partire SPENTO sempre
+	if survival_overlay != null:
+		survival_overlay.visible = true
+		_set_survival_overlay_alpha(0.0)
+
 	_update_all()
 
 func _process(delta: float) -> void:
+	_update_hand_bob(delta)
+	_update_survival_glitch(delta)
+
+# -------------------------
+# HAND BOB
+# -------------------------
+func _update_hand_bob(delta: float) -> void:
 	if not hand_bob_enabled or not _hand_has_base:
 		return
 
@@ -164,6 +204,9 @@ func _is_player_walking() -> bool:
 
 	return true
 
+# -------------------------
+# STATUS ICON LAYOUT
+# -------------------------
 func _apply_status_icon_layout() -> void:
 	var sz := status_rect_size
 
@@ -230,6 +273,55 @@ func _on_perk_granted(title: String, description: String) -> void:
 func _on_perk_timer_timeout() -> void:
 	perk_label.visible = false
 
+# -------------------------
+# SURVIVAL OVERLAY + GLITCH
+# -------------------------
+func _set_survival_overlay_alpha(a: float) -> void:
+	if survival_overlay == null:
+		return
+
+	# 1) Overlay senza shader: usa alpha del color
+	var c := survival_overlay.color
+	c.a = a
+	survival_overlay.color = c
+
+	# 2) Overlay con ShaderMaterial (vignette.gdshader): setta anche uniform "intensity"
+	var mat := survival_overlay.material
+	if mat is ShaderMaterial:
+		(mat as ShaderMaterial).set_shader_parameter("intensity", a)
+
+func _on_survival_mode_changed(active: bool) -> void:
+	_survival_active = active
+	_glitch_t = 0.0
+
+	if not active:
+		_set_survival_overlay_alpha(0.0)
+		status_icon.position = _status_base_pos
+		crosshair_tex.position = _cross_base_pos
+		return
+
+	_set_survival_overlay_alpha(survival_overlay_intensity)
+
+func _update_survival_glitch(delta: float) -> void:
+	if not _survival_active or not survival_glitch_enabled:
+		return
+
+	_glitch_t += delta
+	var step: float = 1.0 / maxf(1.0, survival_glitch_hz)
+	if _glitch_t < step:
+		return
+	_glitch_t = 0.0
+
+	var ox := _rng.randf_range(-survival_glitch_px, survival_glitch_px)
+	var oy := _rng.randf_range(-survival_glitch_px, survival_glitch_px)
+
+	# micro “desync” tra indicatori per feel glitch
+	status_icon.position = _status_base_pos + Vector2(ox, oy)
+	crosshair_tex.position = _cross_base_pos + Vector2(-ox, oy)
+
+# -------------------------
+# FADE
+# -------------------------
 func _set_fade_alpha(a: float) -> void:
 	var c := fade_rect.color
 	c.a = a

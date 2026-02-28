@@ -12,45 +12,61 @@ var traveled: float = 0.0
 var t: float = 0.0
 
 var bounces_left: int = 0
+var pierce_left: int = 0
 var size_mult: float = 1.0
+
+var _recent_hit: Dictionary = {} # instance_id -> seconds_left
+const RECENT_HIT_TIME: float = 0.07
 
 const MIN_SEGMENT_LEN: float = 0.12
 const MAX_SUBSTEPS: int = 10
 const HIT_NUDGE: float = 0.05
 
+func is_dropped() -> bool:
+	return state == State.DROPPED
 
 func fire(origin: Vector3, direction: Vector3, size_mult_in: float = 1.0) -> void:
 	var dir: Vector3 = direction.normalized()
 
-	# scala il proiettile (hitbox inclusa) per i colpi caricati
+	# In survival: ignora charge/size perk (ma tu già invii size_mult=1 dal player)
 	size_mult = max(0.25, size_mult_in)
 	scale = Vector3.ONE * size_mult
 
-	# spawn un po' più avanti (soprattutto se è grande) per evitare colpi "a bruciapelo" strani
 	global_position = origin + dir * (0.6 + 0.25 * size_mult)
 
-	# perk: speed
-	velocity = dir * (Constants.NULL_SPEED * Run.null_speed_mult)
+	# In survival: perk ignorati
+	var spd_mult := 1.0 if Run.survival_mode else Run.null_speed_mult
+	velocity = dir * (Constants.NULL_SPEED * spd_mult)
 
 	state = State.FIRED
 	traveled = 0.0
 	t = 0.0
 
-	# perk: bounces
-	bounces_left = Run.null_bounces
+	bounces_left = 0 if Run.survival_mode else Run.null_bounces
 
 	pickup_indicator.visible = false
 
+	var range_mult := 1.0 if Run.survival_mode else Run.null_range_mult
+	if traveled >= (Constants.NULL_MAX_DISTANCE * range_mult):
+		_drop()
 
 func _physics_process(delta: float) -> void:
 	t += delta
+
+	if not _recent_hit.is_empty():
+		var keys := _recent_hit.keys()
+		for k in keys:
+			_recent_hit[k] = float(_recent_hit[k]) - delta
+			if float(_recent_hit[k]) <= 0.0:
+				_recent_hit.erase(k)
 
 	if state == State.DROPPED:
 		pickup_indicator.position.y = 0.7 + sin(t * 6.0) * 0.08
 		return
 
-	# kill immediato se spawna/finisce già dentro un enemy
-	if _try_kill_at(global_position):
+	_apply_homing(delta)
+
+	if _try_hit_enemy_at(global_position):
 		return
 
 	var step: Vector3 = velocity * delta
@@ -67,7 +83,6 @@ func _physics_process(delta: float) -> void:
 		var from_pos: Vector3 = global_position
 		var to_pos: Vector3 = from_pos + seg
 
-		# raycast per muri/ostacoli (gestisce bounce/drop sul mondo)
 		var query := PhysicsRayQueryParameters3D.create(from_pos, to_pos)
 		query.exclude = [get_rid()]
 		query.collide_with_areas = false
@@ -82,15 +97,13 @@ func _physics_process(delta: float) -> void:
 			traveled += from_pos.distance_to(hit_pos)
 			global_position = hit_pos
 
-			# enemy kill (hit diretto col ray)
 			var enemy_node: Node = _find_enemy_node(collider)
 			if enemy_node != null:
-				Signals.enemy_killed.emit(enemy_node)
-				Signals.null_ready_changed.emit(true)
-				queue_free()
-				return
+				if _handle_enemy_hit(enemy_node):
+					return
+				global_position = hit_pos + velocity.normalized() * HIT_NUDGE
+				continue
 
-			# bounce (solo su non-enemy)
 			if bounces_left > 0:
 				bounces_left -= 1
 				velocity = velocity.bounce(hit_n)
@@ -100,37 +113,73 @@ func _physics_process(delta: float) -> void:
 			_drop()
 			return
 
-		# nessun muro col ray: avanza…
 		global_position = to_pos
 		traveled += seg.length()
 
-		# …e qui fai il vero "hitbox check" (spessore reale del proiettile)
-		if _try_kill_at(global_position):
+		if _try_hit_enemy_at(global_position):
 			return
 
-	# perk: range
 	if traveled >= (Constants.NULL_MAX_DISTANCE * Run.null_range_mult):
 		_drop()
 
+func _apply_homing(delta: float) -> void:
+	if not Run.homing_nudge:
+		return
+
+	var speed := velocity.length()
+	if speed <= 0.00001:
+		return
+
+	var current_dir := velocity / speed
+	var target := _find_nearest_enemy()
+	if target == null:
+		return
+
+	var to := (target.global_position - global_position)
+	if to.length_squared() <= 0.00001:
+		return
+	var desired_dir := to.normalized()
+
+	var dotv: float = clampf(current_dir.dot(desired_dir), -1.0, 1.0)
+	var angle := acos(dotv)
+	var max_angle := deg_to_rad(Run.homing_max_angle_deg)
+	if angle > max_angle:
+		return
+
+	var tturn: float = clampf(Run.homing_turn_speed * delta, 0.0, 1.0)
+	var new_dir := current_dir.slerp(desired_dir, tturn).normalized()
+	velocity = new_dir * speed
+
+func _find_nearest_enemy() -> Node3D:
+	var best: Node3D = null
+	var best_d2 := INF
+
+	for n in get_tree().get_nodes_in_group("enemy"):
+		if not (n is Node3D):
+			continue
+		var e := n as Node3D
+		var iid := e.get_instance_id()
+		if _recent_hit.has(iid):
+			continue
+		var d2 := e.global_position.distance_squared_to(global_position)
+		if d2 < best_d2:
+			best_d2 = d2
+			best = e
+
+	return best
 
 func _compute_substeps(step_len: float) -> int:
-	# Substeps basati (in modo semplice) sul raggio della SphereShape e sulla scala:
-	# così riduci i “pass-through” ad alta velocità e l’hit rispecchia quello che vedi.
 	var base_r: float = 0.25
 	if collision_shape != null and collision_shape.shape is SphereShape3D:
 		base_r = (collision_shape.shape as SphereShape3D).radius
 
-	var world_scale_x: float = 1.0
-	# scala globale uniforme (il proiettile è uniforme)
-	world_scale_x = global_transform.basis.get_scale().x
-
+	var world_scale_x: float = global_transform.basis.get_scale().x
 	var r: float = max(0.05, base_r * world_scale_x)
 	var seg_len: float = max(MIN_SEGMENT_LEN, r * 0.75)
 
 	return clampi(ceili(step_len / seg_len), 1, MAX_SUBSTEPS)
 
-
-func _try_kill_at(pos: Vector3) -> bool:
+func _try_hit_enemy_at(pos: Vector3) -> bool:
 	if collision_shape == null or collision_shape.shape == null:
 		return false
 
@@ -156,13 +205,35 @@ func _try_kill_at(pos: Vector3) -> bool:
 		var collider: Object = (h as Dictionary).get("collider", null)
 		var enemy_node: Node = _find_enemy_node(collider)
 		if enemy_node != null:
-			Signals.enemy_killed.emit(enemy_node)
-			Signals.null_ready_changed.emit(true)
-			queue_free()
-			return true
+			if _handle_enemy_hit(enemy_node):
+				return true
+			global_position += velocity.normalized() * HIT_NUDGE
+			return false
 
 	return false
 
+func _handle_enemy_hit(enemy_node: Node) -> bool:
+	if enemy_node == null:
+		return false
+
+	var iid := enemy_node.get_instance_id()
+	if _recent_hit.has(iid):
+		return false
+
+	_recent_hit[iid] = RECENT_HIT_TIME
+	Signals.enemy_killed.emit(enemy_node)
+
+	# se durante il segnale qualcuno ha già chiamato pickup()/queue_free(), fermati.
+	if is_queued_for_deletion():
+		return true
+
+	if pierce_left > 0:
+		pierce_left -= 1
+		return false
+
+	Signals.null_ready_changed.emit(true)
+	queue_free()
+	return true
 
 func _find_enemy_node(collider: Object) -> Node:
 	if collider == null or not (collider is Node):
@@ -175,7 +246,6 @@ func _find_enemy_node(collider: Object) -> Node:
 		n = n.get_parent()
 	return null
 
-
 func _drop() -> void:
 	state = State.DROPPED
 	velocity = Vector3.ZERO
@@ -184,8 +254,8 @@ func _drop() -> void:
 	pickup_indicator.visible = true
 	pickup_indicator.position.y = 0.7
 
+	Signals.null_dropped.emit(global_position)
 	Signals.null_ready_changed.emit(false)
-
 
 func pickup() -> void:
 	pickup_indicator.visible = false

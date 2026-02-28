@@ -14,7 +14,6 @@ func _physics_process(delta: float) -> void:
 	var step: Vector3 = velocity * delta
 	var to_pos: Vector3 = from_pos + step
 
-	# Sweep raycast (collide con bodies): evita tunneling
 	var space := get_world_3d().direct_space_state
 	var query := PhysicsRayQueryParameters3D.create(from_pos, to_pos)
 	query.exclude = [self]
@@ -25,11 +24,11 @@ func _physics_process(delta: float) -> void:
 	if hit.size() > 0:
 		var collider: Object = hit.get("collider", null)
 		if collider is Node and (collider as Node).is_in_group("player"):
-			Signals.player_died.emit()
+			# Knockback: away-from-enemy == direzione del proiettile
+			Signals.player_hit.emit(velocity.normalized())
 			queue_free()
 			return
 
-		# se colpisce altro (pavimento/muro), distruggi la bullet
 		queue_free()
 		return
 
