@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://dmowmk14plofq"]
+[gd_scene load_steps=7 format=3 uid="uid://dmowmk14plofq"]
 
 [ext_resource type="Script" uid="uid://bu4dwpp8rbce3" path="res://Weapons/null_projectile.gd" id="1_5yk5j"]
 [ext_resource type="Texture2D" uid="uid://du6e75dm7sq1k" path="res://UI/PickUp.png" id="2_5n203"]
@@ -7,6 +7,31 @@
 radius = 0.25
 
 [sub_resource type="SphereMesh" id="SphereMesh_f0lqa"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5n203"]
+render_priority = 1
+transparency = 1
+shading_mode = 0
+grow = true
+grow_amount = 0.091
+stencil_mode = 3
+stencil_flags = 1
+stencil_compare = 5
+metadata/_stencil_owned = true
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_13oe7"]
+next_pass = SubResource("StandardMaterial3D_5n203")
+shading_mode = 0
+diffuse_mode = 3
+specular_mode = 1
+disable_ambient_light = true
+disable_fog = true
+disable_specular_occlusion = true
+albedo_color = Color(0, 0, 0, 1)
+stencil_mode = 1
+stencil_flags = 2
+stencil_color = Color(1, 1, 1, 1)
+stencil_outline_thickness = 0.091
 
 [node name="NullProjectile" type="Area3D"]
 script = ExtResource("1_5yk5j")
@@ -17,6 +42,7 @@ shape = SubResource("SphereShape3D_f0lqa")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 transform = Transform3D(0.22, 0, 0, 0, 0.22, 0, 0, 0, 0.22, 0, 0, 0)
 mesh = SubResource("SphereMesh_f0lqa")
+surface_material_override/0 = SubResource("StandardMaterial3D_13oe7")
 
 [node name="PickupIndicator" type="Sprite3D" parent="."]
 transform = Transform3D(0.085, 0, 0, 0, 0.085, 0, 0, 0, 0.085, 0, 0.7492037, 0)

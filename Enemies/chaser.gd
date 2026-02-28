@@ -4,7 +4,7 @@ extends CharacterBody3D
 var target: Node3D = null
 
 const GRAVITY: float = 25.0
-const KILL_RADIUS: float = 1.2 # fallback (solo X/Z)
+const KILL_RADIUS: float = 1.2 # fallback distanza
 
 func set_target(t: Node3D) -> void:
 	target = t
@@ -37,8 +37,6 @@ func _physics_process(delta: float) -> void:
 			Signals.player_died.emit()
 			return
 
-	# Fallback (se per qualche motivo non collidono ma sono “incollati”)
-	var dx := target.global_position.x - global_position.x
-	var dz := target.global_position.z - global_position.z
-	if (dx * dx + dz * dz) <= (KILL_RADIUS * KILL_RADIUS):
+	# Fallback: usa distanza 3D (evita kill se il chaser viene sparato in aria)
+	if global_position.distance_to(target.global_position) <= KILL_RADIUS:
 		Signals.player_died.emit()
