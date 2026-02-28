@@ -1,6 +1,7 @@
-[gd_scene load_steps=4 format=3 uid="uid://8w3pg480ojvn"]
+[gd_scene load_steps=6 format=3 uid="uid://8w3pg480ojvn"]
 
 [ext_resource type="Script" uid="uid://bnyo3nlk88hp8" path="res://Levels/arena.gd" id="1_avk14"]
+[ext_resource type="Texture2D" uid="uid://b0yc6digipfue" path="res://Levels/Floor.jpg" id="2_3iomx"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_dfuk3"]
 size = Vector3(24, 1, 24)
@@ -8,10 +9,15 @@ size = Vector3(24, 1, 24)
 [sub_resource type="BoxMesh" id="BoxMesh_avk14"]
 size = Vector3(24, 1, 24)
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_mnyru"]
+albedo_texture = ExtResource("2_3iomx")
+uv1_scale = Vector3(64, 64, 64)
+
 [node name="Arena" type="Node3D"]
 script = ExtResource("1_avk14")
 
 [node name="Floor" type="StaticBody3D" parent="."]
+transform = Transform3D(2.545, 0, 0, 0, 2.545, 0, 0, 0, 2.545, 0, 0, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
@@ -20,6 +26,7 @@ shape = SubResource("BoxShape3D_dfuk3")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
 mesh = SubResource("BoxMesh_avk14")
+surface_material_override/0 = SubResource("StandardMaterial3D_mnyru")
 
 [node name="SpawnPoints" type="Node3D" parent="."]
 

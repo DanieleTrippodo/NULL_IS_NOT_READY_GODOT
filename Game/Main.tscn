@@ -31,5 +31,5 @@ enemy_bullet_scene = ExtResource("7_q34ae")
 [node name="HUD" parent="UIRoot" instance=ExtResource("6_g5pn2")]
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0265074, 0)
-shadow_enabled = true
+transform = Transform3D(1, 0, 0, 0, 0.02476363, 0.99969333, 0, -0.99969333, 0.02476363, 0, 2.0265074, 0)
+directional_shadow_mode = 0

@@ -30,6 +30,8 @@ func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	set_process_unhandled_input(true)
 	set_process(true)
+	
+	add_to_group("player")
 
 	_cam_base_pos = camera.position
 	_shake_rng.randomize()
