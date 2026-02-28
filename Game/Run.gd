@@ -4,168 +4,186 @@ extends Node
 var depth: int = 1
 var null_ready: bool = true
 
-# --- PLAYER stats ---
-var move_speed_mult: float = 1.0
-var air_speed_mult: float = 1.0
-
+# Perks (stato run)
+var null_bounces: int = 0
 var jump_enabled: bool = false
-var jump_velocity: float = 9.5   # salto più alto di default
-
-# volo (secondi rimanenti)
+var jump_velocity: float = 7.0
 var flight_time_left: float = 0.0
 
-# dash
-var dash_enabled: bool = false
-
-# --- PICKUP ---
+var pickup_magnet: bool = false
 var pickup_radius: float = 2.0
 
-# --- NULL stats ---
-var null_bounces: int = 0
+var move_speed_mult: float = 1.0
+var air_speed_mult: float = 1.0
+var turret_interval_mult: float = 1.0
 var null_speed_mult: float = 1.0
 var null_range_mult: float = 1.0
+var dash_enabled: bool = false
 
-# --- ENEMIES ---
-var turret_interval_mult: float = 1.0
+# Charge shot perk
+var charge_shot_enabled: bool = false
+var charge_shot_seconds: float = 3.0
+var charge_shot_scale: float = 1.5
+var charge_shake_strength: float = 0.05
 
-# UI
+# Perk feedback
 var last_perk_title: String = ""
 var last_perk_desc: String = ""
 
-# pool
 var perk_pool: Array[String] = [
+	"NULL_BOUNCE",
 	"JUMP_UNLOCK",
 	"JUMP_POWER",
 	"LONG_JUMP",
 	"FLIGHT_BURST",
-	"SPRINT",
 	"MAGNET_PICKUP",
-	"NULL_BOUNCE",
+	"SPRINT",
+	"SLOW_TURRETS",
 	"NULL_SPEED",
 	"NULL_RANGE",
-	"SLOW_TURRETS",
 	"DASH_UNLOCK",
+	"CHARGE_SHOT"
 ]
 
 func reset() -> void:
 	depth = 1
 	null_ready = true
 
-	move_speed_mult = 1.0
-	air_speed_mult = 1.0
+	null_bounces = 0
 
 	jump_enabled = false
-	jump_velocity = 9.5
-
+	# un po' più alto di default
+	jump_velocity = 8.0
 	flight_time_left = 0.0
-	dash_enabled = false
 
+	pickup_magnet = false
 	pickup_radius = 2.0
 
-	null_bounces = 0
+	move_speed_mult = 1.0
+	air_speed_mult = 1.0
+	turret_interval_mult = 1.0
 	null_speed_mult = 1.0
 	null_range_mult = 1.0
+	dash_enabled = false
 
-	turret_interval_mult = 1.0
+	charge_shot_enabled = false
+	charge_shot_seconds = 3.0
+	charge_shot_scale = 1.5
+	charge_shake_strength = 0.05
 
 	last_perk_title = ""
 	last_perk_desc = ""
 
-func grant_random_perk(rng: RandomNumberGenerator) -> void:
-	for _i in range(30):
-		var id: String = perk_pool[rng.randi_range(0, perk_pool.size() - 1)]
+func grant_random_perk(rng: RandomNumberGenerator) -> bool:
+	var available := []
+	for id in perk_pool:
 		if _can_take(id):
-			_apply(id)
-			return
-	_apply("NULL_BOUNCE")
+			available.append(id)
+
+	if available.is_empty():
+		return false
+
+	var pick: String = available[rng.randi_range(0, available.size() - 1)]
+	_apply(pick)
+	return true
 
 func _can_take(id: String) -> bool:
 	match id:
-		# perk che dipendono dal salto
-		"JUMP_POWER", "LONG_JUMP", "FLIGHT_BURST":
-			return jump_enabled
 		"JUMP_UNLOCK":
 			return not jump_enabled
-
 		"DASH_UNLOCK":
 			return not dash_enabled
+		"CHARGE_SHOT":
+			return not charge_shot_enabled
 
 		"NULL_BOUNCE":
-			return null_bounces < 3
+			return null_bounces < 1
 
-		"SPRINT":
-			return move_speed_mult < 2.0
+		# dipendono dal salto: disponibili solo se jump_enabled
+		"LONG_JUMP":
+			return jump_enabled and air_speed_mult < 2.0
+		"JUMP_POWER":
+			return jump_enabled and jump_velocity < 12.0
+
+		"FLIGHT_BURST":
+			return true
 
 		"MAGNET_PICKUP":
-			return pickup_radius < 6.0
+			return not pickup_magnet
 
-		"NULL_SPEED":
-			return null_speed_mult < 2.0
-		"NULL_RANGE":
-			return null_range_mult < 2.5
+		"SPRINT":
+			return move_speed_mult < 1.5
 
 		"SLOW_TURRETS":
-			return turret_interval_mult < 2.0
+			return turret_interval_mult > 0.7
+
+		"NULL_SPEED":
+			return null_speed_mult < 1.8
+
+		"NULL_RANGE":
+			return null_range_mult < 1.8
+
 		_:
 			return true
 
 func _apply(id: String) -> void:
 	match id:
+		"NULL_BOUNCE":
+			null_bounces = 1
+			last_perk_title = "NULL BOUNCE"
+			last_perk_desc = "Il NULL rimbalza 1 volta."
+
 		"JUMP_UNLOCK":
 			jump_enabled = true
-			last_perk_title = "JUMP"
-			last_perk_desc = "Ora puoi saltare."
+			last_perk_title = "JUMP UNLOCK"
+			last_perk_desc = "Ora puoi saltare (Space)."
 
 		"JUMP_POWER":
-			jump_velocity = min(jump_velocity + 1.0, 12.0)
-			last_perk_title = "HIGH JUMP"
-			last_perk_desc = "Salto più alto (+1)."
+			jump_velocity = min(jump_velocity + 2.0, 12.0)
+			last_perk_title = "HIGHER JUMP"
+			last_perk_desc = "Salto più alto."
 
 		"LONG_JUMP":
-			air_speed_mult = min(air_speed_mult + 0.25, 2.0)
+			air_speed_mult = min(air_speed_mult + 0.5, 2.0)
 			last_perk_title = "LONG JUMP"
-			last_perk_desc = "Controllo/velocità in aria +25%."
+			last_perk_desc = "Più controllo/velocità in aria."
 
 		"FLIGHT_BURST":
-			flight_time_left += 5.0
-			last_perk_title = "FLIGHT +5s"
-			last_perk_desc = "Volo per 5 secondi (si somma)."
-
-		"SPRINT":
-			move_speed_mult = min(move_speed_mult + 0.15, 2.0)
-			last_perk_title = "SPRINT +15%"
-			last_perk_desc = "Movimento più veloce."
+			flight_time_left = 5.0
+			last_perk_title = "FLIGHT (5s)"
+			last_perk_desc = "Vola per 5 secondi (Space)."
 
 		"MAGNET_PICKUP":
-			pickup_radius = min(pickup_radius + 1.0, 6.0)
-			last_perk_title = "MAGNET +1m"
-			last_perk_desc = "Pickup più facile (raggio +1m)."
+			pickup_magnet = true
+			last_perk_title = "MAGNET"
+			last_perk_desc = "Pickup automatico del NULL vicino."
 
-		"NULL_BOUNCE":
-			null_bounces = min(null_bounces + 1, 3)
-			last_perk_title = "BOUNCE +1"
-			last_perk_desc = "Null rimbalza +1 volta."
-
-		"NULL_SPEED":
-			null_speed_mult = min(null_speed_mult + 0.15, 2.0)
-			last_perk_title = "NULL SPEED +15%"
-			last_perk_desc = "Proiettile più veloce."
-
-		"NULL_RANGE":
-			null_range_mult = min(null_range_mult + 0.25, 2.5)
-			last_perk_title = "NULL RANGE +25%"
-			last_perk_desc = "Proiettile vola più lontano."
+		"SPRINT":
+			move_speed_mult = min(move_speed_mult + 0.15, 1.5)
+			last_perk_title = "SPEED UP"
+			last_perk_desc = "Velocità movimento +15%."
 
 		"SLOW_TURRETS":
-			turret_interval_mult = min(turret_interval_mult + 0.15, 2.0)
+			turret_interval_mult = max(turret_interval_mult - 0.1, 0.7)
 			last_perk_title = "SLOW TURRETS"
-			last_perk_desc = "Turret più lenti."
+			last_perk_desc = "Turret sparano più lentamente."
+
+		"NULL_SPEED":
+			null_speed_mult = min(null_speed_mult + 0.2, 1.8)
+			last_perk_title = "NULL SPEED"
+			last_perk_desc = "Il NULL vola più veloce."
+
+		"NULL_RANGE":
+			null_range_mult = min(null_range_mult + 0.2, 1.8)
+			last_perk_title = "NULL RANGE"
+			last_perk_desc = "Il NULL va più lontano."
 
 		"DASH_UNLOCK":
 			dash_enabled = true
-			last_perk_title = "DASH"
-			last_perk_desc = "Scatto con Shift."
+			last_perk_title = "DASH UNLOCK"
+			last_perk_desc = "Scatto rapido con Shift."
 
-		_:
-			last_perk_title = "UNKNOWN"
-			last_perk_desc = "Perk non definito."
+		"CHARGE_SHOT":
+			charge_shot_enabled = true
+			last_perk_title = "CHARGE SHOT"
+			last_perk_desc = "Tieni premuto per 3s, rilascia per un NULL +50% più grande."

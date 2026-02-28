@@ -1,11 +1,16 @@
-[gd_scene load_steps=3 format=3 uid="uid://c8uc2jlabtxn5"]
+[gd_scene load_steps=4 format=3 uid="uid://c8uc2jlabtxn5"]
 
 [ext_resource type="Script" uid="uid://dhtpslx53p3b5" path="res://Player/player.gd" id="1_l8h54"]
+[ext_resource type="Texture2D" uid="uid://dyjbapkskxgrw" path="res://Player/Body.png" id="2_4ntmi"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_hvfyp"]
 
 [node name="Player" type="CharacterBody3D" groups=["player"]]
 script = ExtResource("1_l8h54")
+
+[node name="Sprite3D" type="Sprite3D" parent="."]
+transform = Transform3D(0.035, 0, 0, 0, -1.5298985e-09, 0.035, 0, -0.035, -1.5298985e-09, 0, -0.42730194, -0.37083784)
+texture = ExtResource("2_4ntmi")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 shape = SubResource("CapsuleShape3D_hvfyp")

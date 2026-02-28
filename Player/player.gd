@@ -4,6 +4,11 @@ extends CharacterBody3D
 @onready var head: Node3D = $Head
 @onready var camera: Camera3D = $Head/Camera
 
+var _charging: bool = false
+var _charge_time: float = 0.0
+var _cam_base_pos: Vector3
+var _shake_rng := RandomNumberGenerator.new()
+
 var yaw: float = 0.0
 var pitch: float = 0.0
 
@@ -24,9 +29,26 @@ const DASH_STRENGTH: float = 14.0
 func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	set_process_unhandled_input(true)
+	set_process(true)
+
+	_cam_base_pos = camera.position
+	_shake_rng.randomize()
 
 	has_fly_down = InputMap.has_action("fly_down")
 	has_dash = InputMap.has_action("dash")
+
+func _process(delta: float) -> void:
+	# camera shake mentre carichi il colpo
+	if Run.charge_shot_enabled and _charging:
+		_charge_time += delta
+		var s := Run.charge_shake_strength
+		camera.position = _cam_base_pos + Vector3(
+			_shake_rng.randf_range(-s, s),
+			_shake_rng.randf_range(-s, s),
+			_shake_rng.randf_range(-s, s)
+		)
+	else:
+		camera.position = _cam_base_pos
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
@@ -39,10 +61,27 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 
-	if event.is_action_pressed("shoot"):
-		var origin: Vector3 = camera.global_transform.origin
-		var dir: Vector3 = -camera.global_transform.basis.z
-		Signals.request_shoot.emit(origin, dir)
+	# Shoot / Charge shot
+	if Run.charge_shot_enabled:
+		if event.is_action_pressed("shoot"):
+			# inizia a caricare solo se puoi sparare
+			if Run.null_ready:
+				_charging = true
+				_charge_time = 0.0
+		elif event.is_action_released("shoot"):
+			if _charging:
+				_charging = false
+				var origin: Vector3 = camera.global_transform.origin
+				var dir: Vector3 = -camera.global_transform.basis.z
+				var size_mult := 1.0
+				if _charge_time >= Run.charge_shot_seconds:
+					size_mult = Run.charge_shot_scale
+				Signals.request_shoot.emit(origin, dir, size_mult)
+	else:
+		if event.is_action_pressed("shoot"):
+			var origin: Vector3 = camera.global_transform.origin
+			var dir: Vector3 = -camera.global_transform.basis.z
+			Signals.request_shoot.emit(origin, dir, 1.0)
 
 	if event.is_action_pressed("interact"):
 		Signals.request_pickup.emit()

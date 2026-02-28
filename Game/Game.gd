@@ -8,373 +8,444 @@ extends Node
 @export var turret_scene: PackedScene
 @export var enemy_bullet_scene: PackedScene
 
+@onready var world: Node3D = $World
 @onready var arena_root: Node3D = $World/ArenaRoot
 @onready var player_root: Node3D = $World/PlayerRoot
 @onready var enemies_root: Node3D = $World/EnemiesRoot
 @onready var hud: Node = $UIRoot/HUD
 
+var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+
 var arena_instance: Node3D = null
 var null_instance: Node3D = null
 var enemies_alive: int = 0
 
-var rng: RandomNumberGenerator = RandomNumberGenerator.new()
-
-const PLAYER_SAFE_RADIUS: float = 4.0
-const FLOOR_RAY_UP: float = 10.0
-const FLOOR_RAY_DOWN: float = 50.0
-const FLOOR_EPS: float = 0.05
-
 var restarting: bool = false
 var wave_transitioning: bool = false
 
+const PLAYER_SAFE_RADIUS: float = 4.0
+
+const FLOOR_RAY_UP: float = 10.0
+const FLOOR_RAY_DOWN: float = 80.0
+const FLOOR_EPS: float = 0.05
+
+const FADE_TIME: float = 0.25
+const WAVE_FREEZE_TIME: float = 0.35
+
 
 func _ready() -> void:
-	rng.randomize()
-	Run.reset()
-	restarting = false
-	wave_transitioning = false
+    rng.randomize()
 
-	Signals.request_shoot.connect(_on_request_shoot)
-	Signals.request_pickup.connect(_on_request_pickup)
-	Signals.enemy_killed.connect(_on_enemy_killed)
-	Signals.player_died.connect(_on_player_died)
+    Run.reset()
+    restarting = false
+    wave_transitioning = false
 
-	_spawn_arena()
-	_spawn_player()
-	_spawn_wave()
+    Signals.request_shoot.connect(_on_request_shoot)
+    Signals.request_pickup.connect(_on_request_pickup)
+    Signals.enemy_killed.connect(_on_enemy_killed)
+    Signals.player_died.connect(_on_player_died)
+
+    _spawn_arena()
+    _spawn_player()
+
+    Signals.depth_changed.emit(Run.depth)
+    Signals.null_ready_changed.emit(Run.null_ready)
+
+    call_deferred("_wave_transition_first")
 
 
-# -------------------------
-# Spawn helpers
-# -------------------------
+func _physics_process(_delta: float) -> void:
+    if restarting or wave_transitioning:
+        return
+
+    # Perk: magnet pickup (auto-raccoglie il NULL quando è a terra e sei vicino)
+    if not Run.pickup_magnet:
+        return
+
+    if null_instance == null or not is_instance_valid(null_instance):
+        return
+
+    # Attiva solo quando il proiettile è DROPPED: nel tuo NullProjectile questo coincide
+    # con PickupIndicator visibile.
+    var ind := null_instance.get_node_or_null("PickupIndicator")
+    if ind == null or not (ind is Sprite3D) or not (ind as Sprite3D).visible:
+        return
+
+    _on_request_pickup()
+
+
+func _wave_transition_first() -> void:
+    await _freeze_and_fade(true)
+    _spawn_wave()
+    await _freeze_and_fade(false)
+
+
 func _spawn_arena() -> void:
-	if arena_scene == null:
-		push_error("arena_scene non assegnata in Main (inspector).")
-		return
+    _free_children(arena_root)
 
-	for c in arena_root.get_children():
-		c.queue_free()
+    if arena_scene == null:
+        push_error("arena_scene non assegnata.")
+        return
 
-	var a := arena_scene.instantiate() as Node3D
-	if a == null:
-		push_error("Arena non è un Node3D.")
-		return
+    var a := arena_scene.instantiate()
+    if not (a is Node3D):
+        push_error("arena_scene deve istanziare un Node3D.")
+        return
 
-	arena_root.add_child(a)
-	arena_instance = a
+    arena_root.add_child(a)
+    arena_instance = a as Node3D
 
 
 func _spawn_player() -> void:
-	if player_scene == null:
-		push_error("player_scene non assegnata in Main (inspector).")
-		return
+    _free_children(player_root)
 
-	for c in player_root.get_children():
-		c.queue_free()
+    if player_scene == null:
+        push_error("player_scene non assegnata.")
+        return
 
-	var p := player_scene.instantiate() as Node3D
-	if p == null:
-		push_error("Player non è un Node3D.")
-		return
+    var p := player_scene.instantiate()
+    if not (p is Node3D):
+        push_error("player_scene deve istanziare un Node3D.")
+        return
 
-	player_root.add_child(p)
+    player_root.add_child(p)
+
+    var player := p as Node3D
+    var spawn_pos := _get_player_spawn_pos()
+    player.global_position = _place_body_on_floor(player, spawn_pos)
 
 
 func _spawn_wave() -> void:
-	if restarting:
-		return
+    if restarting:
+        return
 
-	if chaser_scene == null or turret_scene == null or enemy_bullet_scene == null:
-		push_error("Scene nemici non assegnate (chaser/turret/enemy_bullet).")
-		return
-	if arena_instance == null:
-		return
+    _free_children(enemies_root)
+    enemies_alive = 0
 
-	# pulizia nemici vecchi
-	for c in enemies_root.get_children():
-		c.queue_free()
+    if arena_instance == null:
+        return
 
-	# spawn points
-	var spawns: Array[Marker3D] = []
-	if arena_instance.has_method("get_spawn_points"):
-		for s in arena_instance.get_spawn_points():
-			if s is Marker3D and s.name != "PlayerSpawn":
-				spawns.append(s)
+    var spawns: Array[Node3D] = _get_enemy_spawns()
+    if spawns.is_empty():
+        spawns.append(_make_temp_marker(Vector3(-8, 0, -8)))
+        spawns.append(_make_temp_marker(Vector3(8, 0, -8)))
+        spawns.append(_make_temp_marker(Vector3(0, 0, 8)))
 
-	if spawns.is_empty():
-		spawns.append(_make_temp_marker(Vector3(-8, 0, -8)))
-		spawns.append(_make_temp_marker(Vector3( 8, 0, -8)))
-		spawns.append(_make_temp_marker(Vector3( 0, 0,  8)))
+    spawns.shuffle()
 
-	spawns.shuffle()
+    var d: int = Run.depth
+    var chasers: int = clampi(2 + floori(float(d - 1) / 2.0), 2, 6)
+    var turrets: int = clampi(floori(float(d) / 3.0), 0, 3)
+    if chasers + turrets <= 0:
+        chasers = 1
 
-	var player := player_root.get_child(0) as Node3D
-	enemies_alive = 0
+    var player := _get_player()
+    var used: Array[int] = []
 
-	# composizione wave
-	var chasers: int = 2 + floori(float(Run.depth - 1) / 2.0)
-	chasers = min(max(chasers, 2), 6)
+    for i in range(chasers):
+        var idx := _pick_spawn_index(spawns.size(), used)
+        used.append(idx)
 
-	var turrets: int = floori(float(Run.depth) / 3.0)
-	turrets = min(max(turrets, 0), 3)
+        var e := _spawn_enemy(chaser_scene, spawns[idx].global_position)
+        if e != null and player != null and e.has_method("set_target"):
+            e.call("set_target", player)
 
-	if chasers + turrets <= 0:
-		chasers = 1
+    for j in range(turrets):
+        var idx2 := _pick_spawn_index(spawns.size(), used)
+        used.append(idx2)
 
-	var used: Array[int] = []
+        var t := _spawn_enemy(turret_scene, spawns[idx2].global_position)
+        if t != null and player != null:
+            if t.has_method("set_target"):
+                t.call("set_target", player)
 
-	# chasers
-	for i in range(chasers):
-		var e := chaser_scene.instantiate() as Node3D
-		if e == null:
-			continue
-		enemies_root.add_child(e)
-		enemies_alive += 1
+            if enemy_bullet_scene != null and t.has_method("set_bullet_scene"):
+                t.call("set_bullet_scene", enemy_bullet_scene)
 
-		var idx := _pick_spawn_index(spawns.size(), used)
-		_place_body_on_floor(e, spawns[idx].global_position)
+            if t.has_method("set_fire_interval"):
+                var base_interval: float = 1.6
+                var v: Variant = t.get("fire_interval")
+                if typeof(v) != TYPE_NIL:
+                    base_interval = float(v)
+                t.call("set_fire_interval", base_interval * Run.turret_interval_mult)
 
-		if e.has_method("set_target"):
-			e.set_target(player)
+    enemies_alive = chasers + turrets
 
-	# turrets
-	for j in range(turrets):
-		var t := turret_scene.instantiate() as Node3D
-		if t == null:
-			continue
-		enemies_root.add_child(t)
-		enemies_alive += 1
-
-		var idx2 := _pick_spawn_index(spawns.size(), used)
-		_place_body_on_floor(t, spawns[idx2].global_position)
-
-		if t.has_method("set_target"):
-			t.set_target(player)
-		if t.has_method("set_bullet_scene"):
-			t.set_bullet_scene(enemy_bullet_scene)
-
-		# perk: turrets più lenti
-		if t.has_method("set_fire_interval"):
-			var base_interval: float = 1.6
-			var v: Variant = t.get("fire_interval")
-			if v != null:
-				base_interval = float(v)
-			t.set_fire_interval(base_interval * Run.turret_interval_mult)
-
-	_place_player_safe(player, spawns)
+    if player != null:
+        _place_player_safe(player, spawns)
 
 
-func _pick_spawn_index(max_count: int, used: Array[int]) -> int:
-	if max_count <= 0:
-		return 0
-	for _k in range(20):
-		var idx: int = rng.randi_range(0, max_count - 1)
-		if not used.has(idx):
-			used.append(idx)
-			return idx
-	return rng.randi_range(0, max_count - 1)
+func _spawn_enemy(scene: PackedScene, desired_pos: Vector3) -> Node3D:
+    if scene == null:
+        return null
+
+    var n := scene.instantiate()
+    if not (n is Node3D):
+        return null
+
+    var body := n as Node3D
+    enemies_root.add_child(body)
+
+    body.global_position = _place_body_on_floor(body, desired_pos)
+    return body
 
 
-func _place_player_safe(player: Node3D, spawns: Array[Marker3D]) -> void:
-	var ps := arena_instance.get_node_or_null("SpawnPoints/PlayerSpawn") as Marker3D
-	if ps != null and _is_position_safe(ps.global_position):
-		_place_body_on_floor(player, ps.global_position)
-		return
+func _on_request_shoot(origin: Vector3, direction: Vector3, size_mult: float) -> void:
+    if restarting or wave_transitioning:
+        return
+    if Run.null_ready == false:
+        return
+    if null_projectile_scene == null:
+        push_error("null_projectile_scene non assegnata.")
+        return
 
-	var candidates := spawns.duplicate()
-	candidates.shuffle()
-	for m in candidates:
-		if _is_position_safe(m.global_position):
-			_place_body_on_floor(player, m.global_position)
-			return
+    Run.null_ready = false
+    Signals.null_ready_changed.emit(false)
 
-	_place_body_on_floor(player, Vector3(0, 0, 0))
+    var p := null_projectile_scene.instantiate()
+    if not (p is Node3D):
+        Run.null_ready = true
+        Signals.null_ready_changed.emit(true)
+        return
 
+    var proj := p as Node3D
+    world.add_child(proj)
+    null_instance = proj
 
-func _is_position_safe(pos: Vector3) -> bool:
-	var r2 := PLAYER_SAFE_RADIUS * PLAYER_SAFE_RADIUS
-	for e in enemies_root.get_children():
-		if e is Node3D:
-			var ep := (e as Node3D).global_position
-			var dx := ep.x - pos.x
-			var dz := ep.z - pos.z
-			if (dx * dx + dz * dz) < r2:
-				return false
-	return true
-
-
-func _make_temp_marker(p: Vector3) -> Marker3D:
-	var m := Marker3D.new()
-	m.global_position = p
-	return m
-
-
-# -------------------------
-# Floor snap (anti-jitter)
-# -------------------------
-func _place_body_on_floor(body: Node3D, desired_pos: Vector3) -> void:
-	var floor_y := _raycast_floor_y(desired_pos)
-	var offset_y := _compute_body_floor_offset_y(body)
-	body.global_position = Vector3(desired_pos.x, floor_y + offset_y, desired_pos.z)
-
-
-func _raycast_floor_y(pos: Vector3) -> float:
-	var from_pos := pos + Vector3(0, FLOOR_RAY_UP, 0)
-	var to_pos := pos - Vector3(0, FLOOR_RAY_DOWN, 0)
-
-	var world := get_viewport().get_world_3d()
-	if world == null:
-		return pos.y
-
-	var space := world.direct_space_state
-	var query := PhysicsRayQueryParameters3D.create(from_pos, to_pos)
-	query.collide_with_areas = false
-	query.collide_with_bodies = true
-
-	var hit := space.intersect_ray(query)
-	if hit.size() > 0 and hit.has("position"):
-		return (hit["position"] as Vector3).y
-	return pos.y
-
-
-func _compute_body_floor_offset_y(body: Node3D) -> float:
-	var cs := _find_first_collision_shape(body)
-	if cs == null or cs.shape == null:
-		return 1.0 + FLOOR_EPS
-
-	var half_h: float = 0.5
-	var shape := cs.shape
-
-	if shape is CapsuleShape3D:
-		var cap := shape as CapsuleShape3D
-		half_h = (cap.height * 0.5) + cap.radius
-	elif shape is BoxShape3D:
-		var box := shape as BoxShape3D
-		half_h = box.size.y * 0.5
-	elif shape is SphereShape3D:
-		var sph := shape as SphereShape3D
-		half_h = sph.radius
-	elif shape is CylinderShape3D:
-		var cyl := shape as CylinderShape3D
-		half_h = cyl.height * 0.5
-
-	var cs_y_in_body := body.to_local(cs.global_position).y
-	var bottom_local := cs_y_in_body - half_h
-	return -bottom_local + FLOOR_EPS
-
-
-func _find_first_collision_shape(root: Node) -> CollisionShape3D:
-	for c in root.get_children():
-		if c is CollisionShape3D:
-			return c
-		var found := _find_first_collision_shape(c)
-		if found != null:
-			return found
-	return null
-
-
-# -------------------------
-# Input / Shoot / Pickup
-# -------------------------
-func _on_request_shoot(origin: Vector3, direction: Vector3) -> void:
-	if restarting or wave_transitioning:
-		return
-	if Run.null_ready == false:
-		return
-
-	Run.null_ready = false
-	Signals.null_ready_changed.emit(false)
-
-	var p := null_projectile_scene.instantiate() as Node3D
-	null_instance = p
-	$World.add_child(p)
-
-	if p.has_method("fire"):
-		p.fire(origin, direction)
+    if proj.has_method("fire"):
+        proj.call("fire", origin, direction, size_mult)
+    else:
+        proj.global_position = origin
+        proj.scale = Vector3.ONE * maxf(0.25, size_mult)
 
 
 func _on_request_pickup() -> void:
-	if restarting or wave_transitioning:
-		return
-	if null_instance == null:
-		return
+    if restarting or wave_transitioning:
+        return
+    if null_instance == null or not is_instance_valid(null_instance):
+        return
 
-	var player := player_root.get_child(0) as Node3D
-	if player.global_position.distance_to(null_instance.global_position) > Run.pickup_radius:
-		return
+    var player := _get_player()
+    if player == null:
+        return
 
-	if null_instance.has_method("pickup"):
-		null_instance.pickup()
+    var radius: float = float(Run.pickup_radius)
 
-	null_instance = null
-	Run.null_ready = true
-	Signals.null_ready_changed.emit(true)
+    if player.global_position.distance_to(null_instance.global_position) > radius:
+        return
+
+    if null_instance.has_method("pickup"):
+        null_instance.call("pickup")
+    else:
+        null_instance.queue_free()
+
+    null_instance = null
+    Run.null_ready = true
+    Signals.null_ready_changed.emit(true)
 
 
 func _on_enemy_killed(enemy: Node) -> void:
-	if restarting or wave_transitioning:
-		return
+    if restarting or wave_transitioning:
+        return
 
-	if is_instance_valid(enemy):
-		enemy.queue_free()
+    if is_instance_valid(enemy):
+        enemy.queue_free()
 
-	enemies_alive -= 1
+    enemies_alive -= 1
 
-	Run.null_ready = true
-	Signals.null_ready_changed.emit(true)
+    Run.null_ready = true
+    Signals.null_ready_changed.emit(true)
 
-	if enemies_alive <= 0:
-		Run.depth += 1
-		Run.grant_random_perk(rng)
-		Signals.perk_granted.emit(Run.last_perk_title, Run.last_perk_desc)
-		Signals.depth_changed.emit(Run.depth)
+    if enemies_alive <= 0:
+        Run.depth += 1
+        Signals.depth_changed.emit(Run.depth)
 
-		call_deferred("_wave_transition")
+        Run.grant_random_perk(rng)
+        Signals.perk_granted.emit(Run.last_perk_title, Run.last_perk_desc)
+
+        call_deferred("_wave_transition")
 
 
 func _wave_transition() -> void:
-	if restarting or wave_transitioning:
-		return
+    if restarting or wave_transitioning:
+        return
+    wave_transitioning = true
 
-	wave_transitioning = true
+    await _freeze_and_fade(true)
+    _spawn_wave()
+    await _freeze_and_fade(false)
 
-	# freeze
-	if player_root.get_child_count() > 0:
-		player_root.get_child(0).set_physics_process(false)
-	for e in enemies_root.get_children():
-		e.set_physics_process(false)
+    wave_transitioning = false
 
-	await get_tree().create_timer(0.25).timeout
 
-	# fade to black
-	if hud != null and hud.has_method("fade_out"):
-		await hud.fade_out(0.25)
+func _freeze_and_fade(to_black: bool) -> void:
+    _set_world_frozen(true)
 
-	# spawn in nero
-	_spawn_wave()
+    if to_black:
+        if hud != null and hud.has_method("fade_out"):
+            await hud.fade_out(FADE_TIME)
+        await get_tree().create_timer(WAVE_FREEZE_TIME).timeout
+    else:
+        if hud != null and hud.has_method("fade_in"):
+            await hud.fade_in(FADE_TIME)
+        _set_world_frozen(false)
 
-	# congela anche i nuovi nemici appena spawnati
-	if player_root.get_child_count() > 0:
-		player_root.get_child(0).set_physics_process(false)
-	for e2 in enemies_root.get_children():
-		e2.set_physics_process(false)
 
-	# fade back
-	if hud != null and hud.has_method("fade_in"):
-		await hud.fade_in(0.25)
+func _set_world_frozen(v: bool) -> void:
+    var player := _get_player()
+    if player != null:
+        player.set_physics_process(not v)
 
-	# unfreeze
-	if player_root.get_child_count() > 0:
-		player_root.get_child(0).set_physics_process(true)
-	for e3 in enemies_root.get_children():
-		e3.set_physics_process(true)
-
-	wave_transitioning = false
+    for e in enemies_root.get_children():
+        if e is Node:
+            (e as Node).set_physics_process(not v)
 
 
 func _on_player_died() -> void:
-	if restarting:
-		return
-	restarting = true
-	Run.reset()
-	get_tree().call_deferred("reload_current_scene")
+    if restarting:
+        return
+    restarting = true
+    Run.reset()
+    get_tree().call_deferred("reload_current_scene")
+
+
+func _get_enemy_spawns() -> Array[Node3D]:
+    var out: Array[Node3D] = []
+    if arena_instance == null:
+        return out
+
+    var sp := arena_instance.get_node_or_null("SpawnPoints")
+    if sp == null:
+        return out
+
+    for c in sp.get_children():
+        if c is Node3D and (c as Node3D).name != "PlayerSpawn":
+            out.append(c as Node3D)
+    return out
+
+
+func _get_player_spawn_pos() -> Vector3:
+    if arena_instance == null:
+        return Vector3.ZERO
+    var n := arena_instance.get_node_or_null("SpawnPoints/PlayerSpawn")
+    if n is Node3D:
+        return (n as Node3D).global_position
+    return Vector3.ZERO
+
+
+func _pick_spawn_index(max_count: int, used: Array[int]) -> int:
+    if max_count <= 0:
+        return 0
+    for _i in range(64):
+        var r := rng.randi_range(0, max_count - 1)
+        if not used.has(r):
+            return r
+    return rng.randi_range(0, max_count - 1)
+
+
+func _place_player_safe(player: Node3D, spawns: Array[Node3D]) -> void:
+    var candidates := spawns.duplicate()
+    candidates.shuffle()
+
+    for m in candidates:
+        if _is_position_safe(m.global_position):
+            player.global_position = _place_body_on_floor(player, m.global_position)
+            return
+
+
+func _is_position_safe(pos: Vector3) -> bool:
+    var r2 := PLAYER_SAFE_RADIUS * PLAYER_SAFE_RADIUS
+    for e in enemies_root.get_children():
+        if e is Node3D:
+            var ep := (e as Node3D).global_position
+            var dx := ep.x - pos.x
+            var dz := ep.z - pos.z
+            if (dx * dx + dz * dz) < r2:
+                return false
+    return true
+
+
+func _get_player() -> Node3D:
+    if player_root.get_child_count() <= 0:
+        return null
+    return player_root.get_child(0) as Node3D
+
+
+func _make_temp_marker(p: Vector3) -> Node3D:
+    var m := Node3D.new()
+    m.global_position = p
+    return m
+
+
+func _place_body_on_floor(body: Node3D, desired_pos: Vector3) -> Vector3:
+    var floor_y: float = _raycast_floor_y(desired_pos, body)
+    var offset_y: float = _compute_body_floor_offset_y(body)
+    return Vector3(desired_pos.x, floor_y + offset_y, desired_pos.z)
+
+
+func _raycast_floor_y(pos: Vector3, exclude_body: Node3D) -> float:
+    var vp := get_viewport()
+    if vp == null:
+        return pos.y
+
+    var w: World3D = vp.get_world_3d()
+    if w == null:
+        return pos.y
+
+    var space: PhysicsDirectSpaceState3D = w.direct_space_state
+
+    var from_pos: Vector3 = pos + Vector3(0, FLOOR_RAY_UP, 0)
+    var to_pos: Vector3 = pos - Vector3(0, FLOOR_RAY_DOWN, 0)
+
+    var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(from_pos, to_pos)
+    query.collide_with_areas = false
+    query.collide_with_bodies = true
+
+    if exclude_body != null and exclude_body is CollisionObject3D:
+        query.exclude = [(exclude_body as CollisionObject3D).get_rid()]
+
+    var hit: Dictionary = space.intersect_ray(query)
+    if not hit.is_empty() and hit.has("position"):
+        return (hit["position"] as Vector3).y
+    return pos.y
+
+
+func _compute_body_floor_offset_y(body: Node3D) -> float:
+    var cs: CollisionShape3D = _find_first_collision_shape(body)
+    if cs == null or cs.shape == null:
+        return 1.0 + FLOOR_EPS
+
+    var half_height: float = 0.5
+    var sh: Shape3D = cs.shape
+
+    if sh is CapsuleShape3D:
+        var cap := sh as CapsuleShape3D
+        half_height = (cap.height * 0.5) + cap.radius
+    elif sh is BoxShape3D:
+        var box := sh as BoxShape3D
+        half_height = box.size.y * 0.5
+    elif sh is SphereShape3D:
+        var sph := sh as SphereShape3D
+        half_height = sph.radius
+    elif sh is CylinderShape3D:
+        var cyl := sh as CylinderShape3D
+        half_height = cyl.height * 0.5
+
+    var cs_y_in_body: float = body.to_local(cs.global_position).y
+    var bottom_local: float = cs_y_in_body - half_height
+    return -bottom_local + FLOOR_EPS
+
+
+func _find_first_collision_shape(root: Node) -> CollisionShape3D:
+    for c in root.get_children():
+        if c is CollisionShape3D:
+            return c as CollisionShape3D
+        var found := _find_first_collision_shape(c)
+        if found != null:
+            return found
+    return null
+
+
+func _free_children(n: Node) -> void:
+    for c in n.get_children():
+        c.queue_free()
