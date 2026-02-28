@@ -10,6 +10,12 @@ enum PState { NORMAL, KNOCKBACK, DOWNED }
 
 @export var knockback_strength: float = 200.0
 @export var knockback_lift: float = 90.0
+@export var knockback_speed: float = 22.0
+@export var knockback_drag_air: float = 6.0
+@export var knockback_drag_ground: float = 10.0
+@export var knockback_max_step: float = 6.0 # metri/secondo * delta clamp, per evitare scatti
+
+
 @export var downed_cam_offset_y: float = -0.75
 @export var knockback_min_time: float = 0.10
 @export var downed_invuln_seconds: float = 0.5
@@ -214,18 +220,31 @@ func _physics_normal(delta: float) -> void:
 	move_and_slide()
 
 func _physics_knockback(delta: float) -> void:
-	# niente input, solo fisica + gravità
+	# drag diverso in aria / a terra
+	var drag := knockback_drag_air
 	if is_on_floor():
-		# frena un po' sul pavimento
-		velocity.x = lerp(velocity.x, 0.0, 10.0 * delta)
-		velocity.z = lerp(velocity.z, 0.0, 10.0 * delta)
+		drag = knockback_drag_ground
+
+	# smorza gradualmente (no snap)
+	velocity.x = move_toward(velocity.x, 0.0, drag * delta)
+	velocity.z = move_toward(velocity.z, 0.0, drag * delta)
+
+	# gravità
+	if is_on_floor():
 		velocity.y = -1.0
 	else:
 		velocity.y -= GRAVITY * delta
 
+	# clamp: evita “teletrasporto” se delta è alto
+	var h := Vector2(velocity.x, velocity.z)
+	var max_h: float = knockback_max_step / maxf(delta, 0.001)
+	if h.length() > max_h:
+		h = h.normalized() * max_h
+		velocity.x = h.x
+		velocity.z = h.y
+
 	move_and_slide()
 
-	# entra in DOWNED solo dopo atterraggio + un minimo tempo (evita trigger immediato)
 	if is_on_floor() and _knock_t >= knockback_min_time:
 		_enter_downed()
 
@@ -264,8 +283,10 @@ func _on_player_hit(knockback_dir: Vector3) -> void:
 		dir = -global_transform.basis.z
 	dir = dir.normalized()
 
-	velocity = dir * knockback_strength
-	velocity.y = knockback_lift
+	# somma alla velocità attuale (più naturale)
+	velocity.x += dir.x * knockback_speed
+	velocity.z += dir.z * knockback_speed
+	velocity.y = max(velocity.y, knockback_lift)
 
 func _enter_downed() -> void:
 	_set_body_downed(true)
