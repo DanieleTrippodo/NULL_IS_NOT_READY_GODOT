@@ -15,11 +15,13 @@ downed_invuln_seconds = 0.8
 
 [node name="Body" type="Sprite3D" parent="."]
 transform = Transform3D(0.035, 0, 0, 0, -1.5298985e-09, 0.035, 0, -0.035, -1.5298985e-09, 0, -0.42730194, -0.37083784)
+visible = false
 texture_filter = 4
 texture = ExtResource("2_4ntmi")
 
 [node name="Body_Down" type="Sprite3D" parent="."]
-transform = Transform3D(0.135, 0, 0, 0, 0.135, 0, 0, 0, 0.135, -0.25140172, -0.66381145, -0.3018834)
+transform = Transform3D(0.135, 0, 0, 0, 0.135, 0, 0, 0, 0.135, -0.19245908, -0.66381145, -0.3018834)
+visible = false
 billboard = 1
 texture_filter = 0
 texture = ExtResource("3_btcbx")

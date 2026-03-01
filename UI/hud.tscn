@@ -29,11 +29,11 @@ walk_speed_reference = 13.0
 
 [node name="Hand" type="TextureRect" parent="."]
 layout_mode = 1
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
+anchors_preset = -1
+anchor_left = 0.9470486
+anchor_top = 1.0771605
+anchor_right = 0.9320023
+anchor_bottom = 1.048611
 offset_left = -414.0
 offset_top = -482.0
 offset_right = 7.333374
@@ -41,8 +41,7 @@ offset_bottom = 150.0
 grow_horizontal = 0
 grow_vertical = 0
 texture = ExtResource("3_2o5uh")
-expand_mode = 5
-stretch_mode = 6
+expand_mode = 1
 metadata/_edit_use_anchors_ = true
 
 [node name="StatusIcon" type="TextureRect" parent="."]
