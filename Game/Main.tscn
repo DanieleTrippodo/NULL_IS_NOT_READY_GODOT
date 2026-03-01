@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://bgwcyyqw3ssa1"]
+[gd_scene load_steps=12 format=3 uid="uid://bgwcyyqw3ssa1"]
 
 [ext_resource type="Script" uid="uid://pfb6mfm6lhf8" path="res://Game/Game.gd" id="1_wd0a0"]
 [ext_resource type="PackedScene" uid="uid://8w3pg480ojvn" path="res://Levels/arena.tscn" id="2_lv82p"]
@@ -7,7 +7,14 @@
 [ext_resource type="PackedScene" uid="uid://cagjhpfgva4b6" path="res://Enemies/chaser.tscn" id="5_rl4yr"]
 [ext_resource type="PackedScene" uid="uid://dcwn63iuwth1h" path="res://Enemies/turret.tscn" id="6_3xx61"]
 [ext_resource type="PackedScene" uid="uid://bhkaynd3qjg8j" path="res://UI/hud.tscn" id="6_g5pn2"]
+[ext_resource type="PackedScene" uid="uid://bivvuwcjgan2n" path="res://Enemies/spike.tscn" id="7_f77hp"]
 [ext_resource type="PackedScene" uid="uid://d2t46kkawn2qv" path="res://Enemies/enemy_bullet.tscn" id="7_q34ae"]
+[ext_resource type="PackedScene" uid="uid://ce0g720tmhwp6" path="res://Enemies/exception.tscn" id="8_6o7ua"]
+
+[sub_resource type="Environment" id="Environment_3xx61"]
+background_mode = 1
+ambient_light_source = 2
+ambient_light_color = Color(0.98234254, 0.9823423, 0.9823424, 1)
 
 [node name="Node" type="Node"]
 script = ExtResource("1_wd0a0")
@@ -16,6 +23,8 @@ player_scene = ExtResource("3_w1egk")
 null_projectile_scene = ExtResource("4_rchnd")
 chaser_scene = ExtResource("5_rl4yr")
 turret_scene = ExtResource("6_3xx61")
+spike_scene = ExtResource("7_f77hp")
+exception_scene = ExtResource("8_6o7ua")
 enemy_bullet_scene = ExtResource("7_q34ae")
 
 [node name="World" type="Node3D" parent="."]
@@ -33,3 +42,6 @@ enemy_bullet_scene = ExtResource("7_q34ae")
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.02476363, 0.99969333, 0, -0.99969333, 0.02476363, 0, 2.0265074, 0)
 directional_shadow_mode = 0
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_3xx61")

@@ -1,0 +1,16 @@
+[gd_scene load_steps=4 format=3 uid="uid://ce0g720tmhwp6"]
+
+[ext_resource type="Script" uid="uid://bs8uo2exjsdcj" path="res://Enemies/exception.gd" id="1_ogleo"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_pfkvt"]
+
+[sub_resource type="PrismMesh" id="PrismMesh_ogleo"]
+
+[node name="Exception" type="CharacterBody3D" groups=["enemy"]]
+script = ExtResource("1_ogleo")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape3D_pfkvt")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("PrismMesh_ogleo")

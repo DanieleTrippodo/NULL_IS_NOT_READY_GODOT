@@ -8,16 +8,20 @@
 
 [node name="Player" type="CharacterBody3D" groups=["player"]]
 script = ExtResource("1_l8h54")
+knockback_lift = 120.0
 knockback_speed = 60.0
-downed_cam_offset_y = -0.85
+downed_cam_offset_y = -0.95
+downed_invuln_seconds = 0.8
 
 [node name="Body" type="Sprite3D" parent="."]
 transform = Transform3D(0.035, 0, 0, 0, -1.5298985e-09, 0.035, 0, -0.035, -1.5298985e-09, 0, -0.42730194, -0.37083784)
+texture_filter = 4
 texture = ExtResource("2_4ntmi")
 
 [node name="Body_Down" type="Sprite3D" parent="."]
 transform = Transform3D(0.135, 0, 0, 0, 0.135, 0, 0, 0, 0.135, -0.25140172, -0.66381145, -0.3018834)
 billboard = 1
+texture_filter = 0
 texture = ExtResource("3_btcbx")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]

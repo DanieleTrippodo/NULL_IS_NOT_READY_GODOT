@@ -6,6 +6,8 @@ extends Node
 @export var null_projectile_scene: PackedScene
 @export var chaser_scene: PackedScene
 @export var turret_scene: PackedScene
+@export var spike_scene: PackedScene
+@export var exception_scene: PackedScene
 @export var enemy_bullet_scene: PackedScene
 
 @onready var world: Node3D = $World
@@ -146,10 +148,21 @@ func _spawn_wave() -> void:
 	spawns.shuffle()
 
 	var d: int = Run.depth
-	var chasers: int = clampi(2 + floori(float(d - 1) / 2.0), 2, 6)
+
+	# Totale “budget” crescente ma controllato
+	var total: int = clampi(2 + d, 2, 10)
+
 	var turrets: int = clampi(floori(float(d) / 3.0), 0, 3)
-	if chasers + turrets <= 0:
-		chasers = 1
+	var spikes: int = clampi(floori(float(d) / 2.0), 0, 4)
+
+	# Elite rara: da depth 4 in poi, chance crescente fino a ~45%
+	var exceptions: int = 0
+	if d >= 4:
+		var p_elite := clampf(0.12 + float(d - 4) * 0.03, 0.0, 0.45)
+		if rng.randf() < p_elite:
+			exceptions = 1
+
+	var chasers: int = max(1, total - turrets - spikes - exceptions)
 
 	var player := _get_player()
 	var used: Array[int] = []
@@ -181,7 +194,23 @@ func _spawn_wave() -> void:
 					base_interval = float(v)
 				t.call("set_fire_interval", base_interval * Run.turret_interval_mult)
 
-	enemies_alive = chasers + turrets
+	for k in range(spikes):
+		var idx3 := _pick_spawn_index(spawns.size(), used)
+		used.append(idx3)
+
+		var s := _spawn_enemy(spike_scene, spawns[idx3].global_position)
+		if s != null and player != null and s.has_method("set_target"):
+			s.call("set_target", player)
+
+	for m in range(exceptions):
+		var idx4 := _pick_spawn_index(spawns.size(), used)
+		used.append(idx4)
+
+		var ex := _spawn_enemy(exception_scene, spawns[idx4].global_position)
+		if ex != null and player != null and ex.has_method("set_target"):
+			ex.call("set_target", player)
+
+	enemies_alive = chasers + turrets + spikes + exceptions
 
 	if player != null:
 		_place_player_safe(player, spawns)

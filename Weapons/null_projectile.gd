@@ -14,6 +14,7 @@ var t: float = 0.0
 var bounces_left: int = 0
 var pierce_left: int = 0
 var size_mult: float = 1.0
+var range_mult: float = 1.0
 
 var _recent_hit: Dictionary = {} # instance_id -> seconds_left
 const RECENT_HIT_TIME: float = 0.07
@@ -43,12 +44,10 @@ func fire(origin: Vector3, direction: Vector3, size_mult_in: float = 1.0) -> voi
 	t = 0.0
 
 	bounces_left = 0 if Run.survival_mode else Run.null_bounces
+	pierce_left = 0 if Run.survival_mode else Run.null_pierce
+	range_mult = 1.0 if Run.survival_mode else Run.null_range_mult
 
 	pickup_indicator.visible = false
-
-	var range_mult := 1.0 if Run.survival_mode else Run.null_range_mult
-	if traveled >= (Constants.NULL_MAX_DISTANCE * range_mult):
-		_drop()
 
 func _physics_process(delta: float) -> void:
 	t += delta
@@ -119,7 +118,7 @@ func _physics_process(delta: float) -> void:
 		if _try_hit_enemy_at(global_position):
 			return
 
-	if traveled >= (Constants.NULL_MAX_DISTANCE * Run.null_range_mult):
+	if traveled >= (Constants.NULL_MAX_DISTANCE * range_mult):
 		_drop()
 
 func _apply_homing(delta: float) -> void:
