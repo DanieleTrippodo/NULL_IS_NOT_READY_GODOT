@@ -132,4 +132,9 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0, 0, 0, 0)
 
+[node name="MoneyLabel" type="Label" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
 [connection signal="timeout" from="PerkTimer" to="." method="_on_perk_timer_timeout"]

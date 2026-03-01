@@ -1,6 +1,15 @@
 # res://Game/Run.gd
 extends Node
 
+var money: int = 0
+
+# Per gestire cambio scena Shop <-> Arena senza resettare la run
+var returning_from_shop: bool = false
+var spawn_player_random: bool = false
+
+# Offerte generate per questa visita allo shop
+var shop_offers: Array = []  # array di Dictionary
+
 var depth: int = 1
 var null_ready: bool = true
 var null_dropped: bool = false # true solo quando il NULL è a terra (DROPPED)
@@ -120,7 +129,29 @@ func _on_null_ready_changed(is_ready: bool) -> void:
 func _on_null_dropped(_pos: Vector3) -> void:
 	null_dropped = true
 
+func add_money(v: int) -> void:
+	money += max(0, v)
+	if Signals.has_signal("money_changed"):
+		Signals.money_changed.emit(money)
+
+func spend_money(v: int) -> bool:
+	if v <= 0:
+		return true
+	if money < v:
+		return false
+	money -= v
+	if Signals.has_signal("money_changed"):
+		Signals.money_changed.emit(money)
+	return true
+
+
 func reset() -> void:
+	
+	money = 0
+	returning_from_shop = false
+	spawn_player_random = false
+	shop_offers.clear()
+	
 	survival_mode = false
 	depth = 1
 	null_ready = true

@@ -4,6 +4,7 @@ extends Control
 @onready var hand: TextureRect = $Hand
 @onready var status_icon: TextureRect = $StatusIcon
 @onready var depth_label: Label = $DepthLabel
+@onready var money_label: Label = get_node_or_null("MoneyLabel") as Label
 @onready var crosshair_tex: TextureRect = $Crosshair/CrosshairTex
 
 @onready var perk_label: Label = $PerkLabel
@@ -88,6 +89,10 @@ func _ready() -> void:
 
 	Signals.null_ready_changed.connect(_on_null_ready_changed)
 	Signals.depth_changed.connect(_on_depth_changed)
+
+	if Signals.has_signal("money_changed"):
+		Signals.money_changed.connect(_on_money_changed)
+
 	Signals.perk_granted.connect(_on_perk_granted)
 
 	# se esiste nel tuo Signals.gd
@@ -229,6 +234,8 @@ func _update_all() -> void:
 	_last_ready = Run.null_ready # evita pop all'avvio
 	_on_null_ready_changed(Run.null_ready)
 	_on_depth_changed(Run.depth)
+	if Signals.has_signal("money_changed"):
+		_on_money_changed(Run.money)
 
 func _on_null_ready_changed(is_ready: bool) -> void:
 	var just_became_ready := is_ready and not _last_ready
@@ -263,6 +270,11 @@ func _play_ready_pop() -> void:
 
 func _on_depth_changed(d: int) -> void:
 	depth_label.text = "DEPTH: %d" % d
+
+func _on_money_changed(m: int) -> void:
+	if money_label == null:
+		return
+	money_label.text = "CUBES: %d" % m
 
 func _on_perk_granted(title: String, description: String) -> void:
 	perk_label.text = "%s\n%s" % [title, description]

@@ -1,6 +1,8 @@
 # res://Game/Signals.gd
 extends Node
 
+signal money_changed(money: int)
+
 # Requests (input -> Game)
 signal request_shoot(origin: Vector3, direction: Vector3, size_mult: float)
 signal request_pickup

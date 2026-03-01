@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://bgwcyyqw3ssa1"]
+[gd_scene load_steps=14 format=3 uid="uid://bgwcyyqw3ssa1"]
 
 [ext_resource type="Script" uid="uid://pfb6mfm6lhf8" path="res://Game/Game.gd" id="1_wd0a0"]
 [ext_resource type="PackedScene" uid="uid://8w3pg480ojvn" path="res://Levels/arena.tscn" id="2_lv82p"]
@@ -10,6 +10,8 @@
 [ext_resource type="PackedScene" uid="uid://bivvuwcjgan2n" path="res://Enemies/spike.tscn" id="7_f77hp"]
 [ext_resource type="PackedScene" uid="uid://d2t46kkawn2qv" path="res://Enemies/enemy_bullet.tscn" id="7_q34ae"]
 [ext_resource type="PackedScene" uid="uid://ce0g720tmhwp6" path="res://Enemies/exception.tscn" id="8_6o7ua"]
+[ext_resource type="PackedScene" uid="uid://ff6up5cjcaym" path="res://Pickups/money_cube.tscn" id="10_x253o"]
+[ext_resource type="PackedScene" uid="uid://gshswk7putnj" path="res://Interactables/shop_portal.tscn" id="11_krex0"]
 
 [sub_resource type="Environment" id="Environment_3xx61"]
 background_mode = 1
@@ -26,6 +28,11 @@ turret_scene = ExtResource("6_3xx61")
 spike_scene = ExtResource("7_f77hp")
 exception_scene = ExtResource("8_6o7ua")
 enemy_bullet_scene = ExtResource("7_q34ae")
+money_cube_scene = ExtResource("10_x253o")
+shop_portal_scene = ExtResource("11_krex0")
+money_max = 11
+money_spawn_radius = 5.0
+magnet_radius = 3.0
 
 [node name="World" type="Node3D" parent="."]
 

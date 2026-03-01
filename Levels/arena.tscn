@@ -1,7 +1,8 @@
-[gd_scene load_steps=6 format=3 uid="uid://8w3pg480ojvn"]
+[gd_scene load_steps=7 format=3 uid="uid://8w3pg480ojvn"]
 
 [ext_resource type="Script" uid="uid://bnyo3nlk88hp8" path="res://Levels/arena.gd" id="1_avk14"]
 [ext_resource type="Texture2D" uid="uid://b0yc6digipfue" path="res://Levels/Floor.jpg" id="2_3iomx"]
+[ext_resource type="PackedScene" uid="uid://bma8hhlddfbkd" path="res://Interactables/wave_start_button.tscn" id="2_mnyru"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_dfuk3"]
 size = Vector3(24, 1, 24)
@@ -23,6 +24,9 @@ stencil_outline_thickness = 0.057
 
 [node name="Arena" type="Node3D"]
 script = ExtResource("1_avk14")
+
+[node name="WaveStartButton" parent="." instance=ExtResource("2_mnyru")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.46497726, -25.8998)
 
 [node name="Floor" type="StaticBody3D" parent="."]
 transform = Transform3D(2.545, 0, 0, 0, 2.545, 0, 0, 0, 2.545, 0, 0, 0)

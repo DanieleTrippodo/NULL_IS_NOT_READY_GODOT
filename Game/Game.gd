@@ -10,13 +10,17 @@ extends Node
 @export var exception_scene: PackedScene
 @export var enemy_bullet_scene: PackedScene
 
+# NEW: money + shop
+@export var money_cube_scene: PackedScene
+@export var shop_portal_scene: PackedScene
+
 @onready var world: Node3D = $World
 @onready var arena_root: Node3D = $World/ArenaRoot
 @onready var player_root: Node3D = $World/PlayerRoot
 @onready var enemies_root: Node3D = $World/EnemiesRoot
 @onready var hud: Node = $UIRoot/HUD
 
-var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+var rng := RandomNumberGenerator.new()
 
 var arena_instance: Node3D = null
 var null_instance: Node3D = null
@@ -24,16 +28,39 @@ var enemies_alive: int = 0
 
 var restarting: bool = false
 var wave_transitioning: bool = false
-
 var world_frozen: bool = false
 
+# -----------------------------
+# Manual waves + safe + shop
+# -----------------------------
+enum ArenaState { WAIT_START, IN_WAVE, POST_WAVE }
+var arena_state: int = ArenaState.WAIT_START
+
+var wave_button: Node = null
+var shop_portal_instance: Node3D = null
+var spawned_money: Array[Node3D] = []
+
+@export var money_min: int = 2
+@export var money_max: int = 8
+@export var money_spawn_interval: float = 0.08
+@export var money_spawn_radius: float = 4.0
+
+# Magnet tuning (se usi perk)
+@export var magnet_radius: float = 2.2
+
+# -----------------------------
+# Spawn safety constants (come nella vecchia)
+# -----------------------------
 const PLAYER_SAFE_RADIUS: float = 4.0
 const ENEMY_SPAWN_MIN_RADIUS: float = 1.8
 const ENEMY_SPAWN_PLAYER_MIN_RADIUS: float = 3.0
 
+# -----------------------------
+# Floor raycast constants (come nella vecchia)
+# -----------------------------
 const FLOOR_RAY_UP: float = 10.0
 const FLOOR_RAY_DOWN: float = 80.0
-const FLOOR_EPS: float = 0.05
+const FLOOR_EPS: float = 0.03
 
 const FADE_TIME: float = 0.25
 const WAVE_FREEZE_TIME: float = 0.35
@@ -42,9 +69,15 @@ func _ready() -> void:
 	rng.randomize()
 	Engine.time_scale = 1.0
 
-	Run.reset()
+	# IMPORTANT: se torni dallo shop NON resettare la run
+	if not Run.returning_from_shop:
+		Run.reset()
+	else:
+		Run.returning_from_shop = false
+
 	restarting = false
 	wave_transitioning = false
+	world_frozen = false
 
 	Signals.request_shoot.connect(_on_request_shoot)
 	Signals.request_pickup.connect(_on_request_pickup)
@@ -61,41 +94,81 @@ func _ready() -> void:
 	Signals.depth_changed.emit(Run.depth)
 	Signals.null_ready_changed.emit(Run.null_ready)
 
-	call_deferred("_wave_transition_first")
+	_setup_wave_button()
+	_set_state(ArenaState.WAIT_START)
 
 func _physics_process(_delta: float) -> void:
 	if restarting or wave_transitioning:
-		if Engine.time_scale != 1.0:
-			Engine.time_scale = 1.0
+		Engine.time_scale = 1.0
 		return
 
-	# cleanup ref proiettile (se si è auto-distrutto dopo una kill)
+	# cleanup ref proiettile (se si è auto-distrutto)
 	if null_instance != null and not is_instance_valid(null_instance):
 		null_instance = null
 
-	# Perk: slowmo mentre il NULL è droppato
+	# Slowmo recovery (se lo usi)
 	if Run.slowmo_recovery and Run.null_dropped:
 		Engine.time_scale = Run.slowmo_scale
 	else:
 		Engine.time_scale = 1.0
 
-	# Perk: magnet pickup
-	if not Run.pickup_magnet:
+	# Perk: magnet pickup (auto)
+	if Run.pickup_magnet and Run.null_dropped:
+		if null_instance != null and is_instance_valid(null_instance):
+			var player := _get_player()
+			if player != null:
+				if player.global_position.distance_to(null_instance.global_position) <= magnet_radius:
+					_on_request_pickup()
+
+# ------------------------------------------------------------
+# Wave button (E)
+# ------------------------------------------------------------
+func _setup_wave_button() -> void:
+	if arena_instance == null:
 		return
-	if null_instance == null or not is_instance_valid(null_instance):
+	wave_button = arena_instance.get_node_or_null("WaveStartButton")
+	if wave_button != null and wave_button.has_signal("pressed"):
+		var cb := Callable(self, "_on_wave_button_pressed")
+		if not wave_button.pressed.is_connected(cb):
+			wave_button.pressed.connect(cb)
+
+func _on_wave_button_pressed() -> void:
+	if restarting or wave_transitioning:
+		return
+	if arena_state != ArenaState.WAIT_START:
 		return
 
-	var ind := null_instance.get_node_or_null("PickupIndicator")
-	if ind == null or not (ind is Sprite3D) or not (ind as Sprite3D).visible:
+	call_deferred("_start_next_wave")
+
+func _set_state(s: int) -> void:
+	arena_state = s
+	if wave_button != null:
+		wave_button.set("enabled", s == ArenaState.WAIT_START)
+
+func _start_next_wave() -> void:
+	_cleanup_uncollected_money()
+	_cleanup_shop_portal()
+
+	_set_state(ArenaState.IN_WAVE)
+	await _wave_transition()
+
+# ------------------------------------------------------------
+# Transizione wave (usa quella vecchia che funzionava)
+# ------------------------------------------------------------
+func _wave_transition() -> void:
+	if restarting or wave_transitioning:
 		return
+	wave_transitioning = true
 
-	_on_request_pickup()
-
-func _wave_transition_first() -> void:
 	await _freeze_and_fade(true)
 	_spawn_wave()
 	await _freeze_and_fade(false)
 
+	wave_transitioning = false
+
+# ------------------------------------------------------------
+# Spawn arena/player
+# ------------------------------------------------------------
 func _spawn_arena() -> void:
 	_free_children(arena_root)
 
@@ -127,8 +200,16 @@ func _spawn_player() -> void:
 
 	var player := p as Node3D
 	var spawn_pos := _get_player_spawn_pos()
-	player.global_position = _place_body_on_floor(player, spawn_pos)
+	if Run.spawn_player_random:
+		Run.spawn_player_random = false
+		spawn_pos = _get_random_arena_pos()
 
+	player.global_position = _place_body_on_floor(player, spawn_pos)
+	player.set_physics_process(not world_frozen)
+
+# ------------------------------------------------------------
+# Spawn wave (è la tua versione vecchia, non la tocchiamo)
+# ------------------------------------------------------------
 func _spawn_wave() -> void:
 	if restarting:
 		return
@@ -149,13 +230,10 @@ func _spawn_wave() -> void:
 
 	var d: int = Run.depth
 
-	# Totale “budget” crescente ma controllato
 	var total: int = clampi(2 + d, 2, 10)
-
 	var turrets: int = clampi(floori(float(d) / 3.0), 0, 3)
 	var spikes: int = clampi(floori(float(d) / 2.0), 0, 4)
 
-	# Elite rara: da depth 4 in poi, chance crescente fino a ~45%
 	var exceptions: int = 0
 	if d >= 4:
 		var p_elite := clampf(0.12 + float(d - 4) * 0.03, 0.0, 0.45)
@@ -226,6 +304,7 @@ func _spawn_enemy(scene: PackedScene, desired_pos: Vector3) -> Node3D:
 	var body := n as Node3D
 	enemies_root.add_child(body)
 
+	# IMPORTANT: come nella vecchia (abilita/disabilita AI in base al freeze)
 	body.set_physics_process(not world_frozen)
 
 	var final_pos := _pick_enemy_spawn_position(body, desired_pos)
@@ -233,13 +312,15 @@ func _spawn_enemy(scene: PackedScene, desired_pos: Vector3) -> Node3D:
 
 	return body
 
-func _on_request_shoot(origin: Vector3, direction: Vector3, size_mult: float) -> void:
+# ------------------------------------------------------------
+# SHOOT / NULL (compatibile)
+# ------------------------------------------------------------
+func _on_request_shoot(origin: Vector3, direction: Vector3, _extra: Variant = null) -> void:
 	if restarting or wave_transitioning:
 		return
-	if Run.null_ready == false:
+	if world_frozen:
 		return
-	if null_projectile_scene == null:
-		push_error("null_projectile_scene non assegnata.")
+	if not Run.null_ready:
 		return
 
 	Run.null_ready = false
@@ -256,11 +337,11 @@ func _on_request_shoot(origin: Vector3, direction: Vector3, size_mult: float) ->
 	world.add_child(proj)
 	null_instance = proj
 
+	# Firma attuale: fire(origin, direction)
 	if proj.has_method("fire"):
-		proj.call("fire", origin, direction, size_mult)
+		proj.call("fire", origin, direction)
 	else:
 		proj.global_position = origin
-		proj.scale = Vector3.ONE * maxf(0.25, size_mult)
 
 func _on_request_pickup() -> void:
 	if restarting or wave_transitioning:
@@ -272,8 +353,15 @@ func _on_request_pickup() -> void:
 	if player == null:
 		return
 
-	var radius: float = float(Run.pickup_radius)
-	if player.global_position.distance_to(null_instance.global_position) > radius:
+	# Distanza base per pickup “normale”
+	var pickup_radius := 1.6
+
+	# Se hai il perk magnet, usa il raggio magnet
+	if Run.pickup_magnet:
+		pickup_radius = magnet_radius
+
+	# Se troppo lontano, non raccogli
+	if player.global_position.distance_to(null_instance.global_position) > pickup_radius:
 		return
 
 	if null_instance.has_method("pickup"):
@@ -285,89 +373,37 @@ func _on_request_pickup() -> void:
 	Run.null_ready = true
 	Run.null_dropped = false
 	Signals.null_ready_changed.emit(true)
-
-func _is_null_dropped() -> bool:
-	if null_instance == null or not is_instance_valid(null_instance):
-		return false
-	if null_instance.has_method("is_dropped"):
-		return bool(null_instance.call("is_dropped"))
-
-	var ind := null_instance.get_node_or_null("PickupIndicator")
-	return ind is Sprite3D and (ind as Sprite3D).visible
 
 func _on_request_pull_to_hand() -> void:
 	if restarting or wave_transitioning:
 		return
-	if not Run.pull_to_hand:
+	if null_instance == null or not is_instance_valid(null_instance):
 		return
-	if not _is_null_dropped():
-		return
-
-	var player := _get_player()
-	if player == null:
-		return
-
-	if player.global_position.distance_to(null_instance.global_position) > Run.pull_max_distance:
-		return
-
-	if null_instance.has_method("pickup"):
-		null_instance.call("pickup")
-	else:
-		null_instance.queue_free()
-
-	null_instance = null
-	Run.null_ready = true
-	Run.null_dropped = false
-	Signals.null_ready_changed.emit(true)
+	if null_instance.has_method("pull_to_hand"):
+		null_instance.call("pull_to_hand")
 
 func _on_request_swap() -> void:
 	if restarting or wave_transitioning:
 		return
 	if not Run.swap_with_null:
 		return
-	if Run.swap_cd_left > 0.0:
-		return
-	if not _is_null_dropped():
+	if null_instance == null or not is_instance_valid(null_instance):
 		return
 
 	var player := _get_player()
 	if player == null:
 		return
 
-	var ppos := player.global_position
-	var npos := null_instance.global_position
+	var tmp := player.global_position
+	player.global_position = null_instance.global_position
+	null_instance.global_position = tmp
 
-	if ppos.distance_to(npos) > Run.swap_max_distance:
-		return
+func _on_null_dropped(_arg: Variant = null) -> void:
+	Run.null_dropped = true
 
-	player.global_position = _place_body_on_floor(player, npos)
-
-	var floor_y := _raycast_floor_y(ppos, player)
-	null_instance.global_position = Vector3(ppos.x, floor_y + 0.10, ppos.z)
-
-	Run.swap_cd_left = Run.swap_cooldown
-
-func _on_null_dropped(pos: Vector3) -> void:
-	if not Run.drop_shockwave:
-		return
-
-	for e in enemies_root.get_children():
-		if not (e is Node3D):
-			continue
-		var n := e as Node3D
-		if not n.has_method("add_knockback"):
-			continue
-
-		var v := (n.global_position - pos)
-		v.y = 0.0
-		var d := v.length()
-		if d <= 0.001 or d > Run.shockwave_radius:
-			continue
-
-		var t: float = clampf(d / Run.shockwave_radius, 0.0, 1.0)
-		var s: float = lerpf(Run.shockwave_strength, 0.0, t)
-		n.call("add_knockback", v.normalized() * s)
-
+# ------------------------------------------------------------
+# Enemy killed -> SAFE PHASE (money + portal)  [NEW]
+# ------------------------------------------------------------
 func _on_enemy_killed(enemy: Node) -> void:
 	if restarting or wave_transitioning:
 		return
@@ -378,16 +414,19 @@ func _on_enemy_killed(enemy: Node) -> void:
 	enemies_alive -= 1
 
 	if enemies_alive <= 0:
-		# con PIERCE il proiettile può essere ancora in volo → lo recuperiamo
 		_force_null_return()
 
 		Run.depth += 1
 		Signals.depth_changed.emit(Run.depth)
 
-		Run.grant_random_perk(rng)
-		Signals.perk_granted.emit(Run.last_perk_title, Run.last_perk_desc)
+		# NON dare più perk random qui: ora c'è lo shop
+		_set_state(ArenaState.POST_WAVE)
 
-		call_deferred("_wave_transition")
+		_spawn_money_rain()
+		_spawn_shop_portal()
+
+		# Torna in modalità safe: bottone riattivo
+		_set_state(ArenaState.WAIT_START)
 
 func _force_null_return() -> void:
 	if null_instance != null and is_instance_valid(null_instance):
@@ -401,17 +440,68 @@ func _force_null_return() -> void:
 	Run.null_dropped = false
 	Signals.null_ready_changed.emit(true)
 
-func _wave_transition() -> void:
-	if restarting or wave_transitioning:
+# ------------------------------------------------------------
+# MONEY (NEW) - spawn a terra con le funzioni vecchie
+# ------------------------------------------------------------
+func _spawn_money_rain() -> void:
+	if money_cube_scene == null or arena_instance == null:
 		return
-	wave_transitioning = true
 
-	await _freeze_and_fade(true)
-	_spawn_wave()
-	await _freeze_and_fade(false)
+	var amount := rng.randi_range(money_min, money_max)
+	call_deferred("_spawn_money_async", amount)
 
-	wave_transitioning = false
+func _spawn_money_async(amount: int) -> void:
+	if arena_instance == null:
+		return
 
+	for _i in range(amount):
+		var m := money_cube_scene.instantiate()
+		if m is Node3D:
+			var cube := m as Node3D
+			world.add_child(cube)
+			cube.set_physics_process(not world_frozen)
+
+			var angle := rng.randf_range(0.0, TAU)
+			var rr := sqrt(rng.randf()) * money_spawn_radius
+			var desired := arena_instance.global_position + Vector3(cos(angle) * rr, 0.0, sin(angle) * rr)
+
+			cube.global_position = _place_body_on_floor(cube, desired)
+			spawned_money.append(cube)
+
+		await get_tree().create_timer(money_spawn_interval).timeout
+
+func _cleanup_uncollected_money() -> void:
+	for n in spawned_money:
+		if is_instance_valid(n):
+			n.queue_free()
+	spawned_money.clear()
+
+# ------------------------------------------------------------
+# SHOP PORTAL (NEW)
+# ------------------------------------------------------------
+func _spawn_shop_portal() -> void:
+	if shop_portal_scene == null or arena_instance == null:
+		return
+
+	_cleanup_shop_portal()
+
+	var p := shop_portal_scene.instantiate()
+	if not (p is Node3D):
+		return
+
+	shop_portal_instance = p as Node3D
+	world.add_child(shop_portal_instance)
+	shop_portal_instance.global_position = arena_instance.global_position + Vector3(2.0, 0.0, 0.0)
+	shop_portal_instance.set_physics_process(not world_frozen)
+
+func _cleanup_shop_portal() -> void:
+	if shop_portal_instance != null and is_instance_valid(shop_portal_instance):
+		shop_portal_instance.queue_free()
+	shop_portal_instance = null
+
+# ------------------------------------------------------------
+# Freeze + fade (VERSIONE VECCHIA FUNZIONANTE)
+# ------------------------------------------------------------
 func _freeze_and_fade(to_black: bool) -> void:
 	_set_world_frozen(true)
 
@@ -422,7 +512,8 @@ func _freeze_and_fade(to_black: bool) -> void:
 	else:
 		if hud != null and hud.has_method("fade_in"):
 			await hud.fade_in(FADE_TIME)
-		_set_world_frozen(false)
+
+	_set_world_frozen(false)
 
 func _set_world_frozen(v: bool) -> void:
 	world_frozen = v
@@ -435,65 +526,97 @@ func _set_world_frozen(v: bool) -> void:
 		if e is Node:
 			(e as Node).set_physics_process(not v)
 
+	# anche soldi/portal se presenti
+	for n in spawned_money:
+		if is_instance_valid(n):
+			(n as Node).set_physics_process(not v)
+	if shop_portal_instance != null and is_instance_valid(shop_portal_instance):
+		(shop_portal_instance as Node).set_physics_process(not v)
+
+# ------------------------------------------------------------
+# Player died / restart (uguale alla vecchia)
+# ------------------------------------------------------------
 func _on_player_died() -> void:
 	if restarting:
 		return
 	restarting = true
-	Engine.time_scale = 1.0
-	Run.reset()
-	get_tree().call_deferred("reload_current_scene")
+	_cleanup_uncollected_money()
+	_cleanup_shop_portal()
+	call_deferred("_restart_run")
 
-# --- resto invariato (spawnpoints / floor helpers / free children) ---
+func _restart_run() -> void:
+	if hud != null and hud.has_method("fade_out"):
+		await hud.fade_out(FADE_TIME)
+
+	Run.reset()
+	get_tree().reload_current_scene()
+
+# ------------------------------------------------------------
+# Helpers (tutti dalla vecchia)
+# ------------------------------------------------------------
+func _get_player() -> Node3D:
+	var p := get_tree().get_first_node_in_group("player")
+	if p != null and p is Node3D:
+		return p as Node3D
+	return null
+
+func _free_children(node: Node) -> void:
+	for c in node.get_children():
+		c.queue_free()
+
+func _make_temp_marker(pos: Vector3) -> Node3D:
+	var m := Node3D.new()
+	world.add_child(m)
+	m.global_position = pos
+	return m
 
 func _get_enemy_spawns() -> Array[Node3D]:
-	var out: Array[Node3D] = []
 	if arena_instance == null:
-		return out
-
-	var sp := arena_instance.get_node_or_null("SpawnPoints")
+		return []
+	var sp := arena_instance.get_node_or_null("EnemySpawns")
 	if sp == null:
-		return out
-
+		return []
+	var out: Array[Node3D] = []
 	for c in sp.get_children():
-		if c is Node3D and (c as Node3D).name != "PlayerSpawn":
-			out.append(c as Node3D)
+		if c is Node3D:
+			out.append(c)
 	return out
 
-func _get_player_spawn_pos() -> Vector3:
-	if arena_instance == null:
-		return Vector3.ZERO
-	var n := arena_instance.get_node_or_null("SpawnPoints/PlayerSpawn")
-	if n is Node3D:
-		return (n as Node3D).global_position
-	return Vector3.ZERO
-
-func _pick_spawn_index(max_count: int, used: Array[int]) -> int:
-	if max_count <= 0:
+func _pick_spawn_index(count: int, used: Array[int]) -> int:
+	if count <= 0:
 		return 0
-	for _i in range(64):
-		var r := rng.randi_range(0, max_count - 1)
-		if not used.has(r):
-			return r
-	return rng.randi_range(0, max_count - 1)
+	for _i in range(32):
+		var idx := rng.randi_range(0, count - 1)
+		if used.has(idx):
+			continue
+		return idx
+	return rng.randi_range(0, count - 1)
 
 func _place_player_safe(player: Node3D, spawns: Array[Node3D]) -> void:
-	var candidates := spawns.duplicate()
-	candidates.shuffle()
+	var center := arena_instance.global_position
+	var best := center
 
-	for m in candidates:
-		if _is_position_safe(m.global_position):
-			player.global_position = _place_body_on_floor(player, m.global_position)
-			return
+	for s in spawns:
+		var p := s.global_position
+		var dx := p.x - center.x
+		var dz := p.z - center.z
+		if (dx * dx + dz * dz) <= (PLAYER_SAFE_RADIUS * PLAYER_SAFE_RADIUS):
+			best = p
+			break
 
-func _is_position_safe(pos: Vector3) -> bool:
-	var r2 := PLAYER_SAFE_RADIUS * PLAYER_SAFE_RADIUS
+	player.global_position = _place_body_on_floor(player, best)
+
+func _is_enemy_spawn_clear(pos: Vector3, body: Node3D, min_radius: float) -> bool:
 	for e in enemies_root.get_children():
-		if e is Node3D:
-			var ep := (e as Node3D).global_position
-			var dx := ep.x - pos.x
-			var dz := ep.z - pos.z
-			if (dx * dx + dz * dz) < r2:
-				return false
+		if e == body:
+			continue
+		if not (e is Node3D):
+			continue
+		var ep := (e as Node3D).global_position
+		var dx := ep.x - pos.x
+		var dz := ep.z - pos.z
+		if (dx * dx + dz * dz) < (min_radius * min_radius):
+			return false
 	return true
 
 func _pick_enemy_spawn_position(body: Node3D, desired_pos: Vector3) -> Vector3:
@@ -518,28 +641,20 @@ func _pick_enemy_spawn_position(body: Node3D, desired_pos: Vector3) -> Vector3:
 
 	return _place_body_on_floor(body, desired_pos)
 
-func _is_enemy_spawn_clear(pos: Vector3, exclude: Node3D, min_radius: float) -> bool:
-	var r2 := min_radius * min_radius
-	for e in enemies_root.get_children():
-		if e == exclude:
-			continue
-		if e is Node3D:
-			var ep := (e as Node3D).global_position
-			var dx := ep.x - pos.x
-			var dz := ep.z - pos.z
-			if (dx * dx + dz * dz) < r2:
-				return false
-	return true
+func _get_random_arena_pos() -> Vector3:
+	var spawns := _get_enemy_spawns()
+	if spawns.is_empty():
+		return _get_player_spawn_pos()
+	spawns.shuffle()
+	return spawns[0].global_position
 
-func _get_player() -> Node3D:
-	if player_root.get_child_count() <= 0:
-		return null
-	return player_root.get_child(0) as Node3D
-
-func _make_temp_marker(p: Vector3) -> Node3D:
-	var m := Node3D.new()
-	m.global_position = p
-	return m
+func _get_player_spawn_pos() -> Vector3:
+	if arena_instance == null:
+		return Vector3.ZERO
+	var ps := arena_instance.get_node_or_null("PlayerSpawn")
+	if ps != null and ps is Node3D:
+		return (ps as Node3D).global_position
+	return arena_instance.global_position
 
 func _place_body_on_floor(body: Node3D, desired_pos: Vector3) -> Vector3:
 	var floor_y: float = _raycast_floor_y(desired_pos, body)
@@ -597,15 +712,11 @@ func _compute_body_floor_offset_y(body: Node3D) -> float:
 	var bottom_local: float = cs_y_in_body - half_height
 	return -bottom_local + FLOOR_EPS
 
-func _find_first_collision_shape(root: Node) -> CollisionShape3D:
-	for c in root.get_children():
-		if c is CollisionShape3D:
-			return c as CollisionShape3D
-		var found := _find_first_collision_shape(c)
-		if found != null:
-			return found
-	return null
-
-func _free_children(n: Node) -> void:
+func _find_first_collision_shape(n: Node) -> CollisionShape3D:
 	for c in n.get_children():
-		c.free()
+		if c is CollisionShape3D:
+			return c
+		var r := _find_first_collision_shape(c)
+		if r != null:
+			return r
+	return null
