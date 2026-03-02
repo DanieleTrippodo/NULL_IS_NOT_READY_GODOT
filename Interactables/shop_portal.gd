@@ -1,7 +1,7 @@
 # res://Interactables/shop_portal.gd
 extends Area3D
 
-@export var shop_scene_path: String = "res://Shop/Shop.tscn"
+@export var shop_scene_path: String = "res://Shop/shop.tscn"
 
 var _used: bool = false
 

@@ -292,15 +292,21 @@ func _set_survival_overlay_alpha(a: float) -> void:
 	if survival_overlay == null:
 		return
 
-	# 1) Overlay senza shader: usa alpha del color
+	# Se c'è uno ShaderMaterial, NON usare l'alpha del ColorRect (altrimenti lo rendi invisibile).
+	# Controlla solo via uniform dello shader.
+	if survival_overlay.material is ShaderMaterial:
+		# ColorRect deve rimanere opaco per disegnare il post-process
+		survival_overlay.color = Color(1, 1, 1, 1)
+
+		var mat := survival_overlay.material as ShaderMaterial
+		mat.set_shader_parameter("effect_strength", a) # <-- nuovo shader
+		mat.set_shader_parameter("pulse", 0.0)
+		return
+
+	# Fallback: vecchia logica (senza shader)
 	var c := survival_overlay.color
 	c.a = a
 	survival_overlay.color = c
-
-	# 2) Overlay con ShaderMaterial (vignette.gdshader): setta anche uniform "intensity"
-	var mat := survival_overlay.material
-	if mat is ShaderMaterial:
-		(mat as ShaderMaterial).set_shader_parameter("intensity", a)
 
 func _on_survival_mode_changed(active: bool) -> void:
 	_survival_active = active
@@ -330,6 +336,14 @@ func _update_survival_glitch(delta: float) -> void:
 	# micro “desync” tra indicatori per feel glitch
 	status_icon.position = _status_base_pos + Vector2(ox, oy)
 	crosshair_tex.position = _cross_base_pos + Vector2(-ox, oy)
+
+	# spike sul post-process (più glitch “cattivo”)
+	if survival_overlay != null and survival_overlay.material is ShaderMaterial:
+		var mat := survival_overlay.material as ShaderMaterial
+		var spike := 0.0
+		if _rng.randf() < 0.35:
+			spike = _rng.randf_range(0.35, 1.0)
+		mat.set_shader_parameter("pulse", spike)
 
 # -------------------------
 # FADE

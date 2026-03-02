@@ -1,0 +1,174 @@
+[gd_scene load_steps=11 format=3 uid="uid://cdw7o2kl6e6t2"]
+
+[ext_resource type="Script" uid="uid://mw3fokdvt2in" path="res://UI/main_menu.gd" id="1_p8ccj"]
+[ext_resource type="Shader" uid="uid://1rsa2kuohaem" path="res://UI/main_menu.gdshader" id="2_4cwpn"]
+[ext_resource type="Texture2D" uid="uid://c8tor3856x5ph" path="res://UI/Title.png" id="2_tk8dj"]
+[ext_resource type="Texture2D" uid="uid://dv0jkca5gj5gv" path="res://UI/NullaSprite.png" id="3_d8nwk"]
+[ext_resource type="Shader" uid="uid://cbyackngxcatx" path="res://UI/CRT.gdshader" id="5_f40uw"]
+[ext_resource type="AudioStream" uid="uid://btbhp1mjmq6h2" path="res://Audio/BGM/MainMenuBGM.mp3" id="6_8ctay"]
+[ext_resource type="AudioStream" uid="uid://dvfimj2pk5j1s" path="res://Audio/SFX/SwitchSelection.mp3" id="7_k0a0m"]
+[ext_resource type="AudioStream" uid="uid://bpjq3n43q26wj" path="res://Audio/SFX/onClick.mp3" id="8_2mudq"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_f40uw"]
+shader = ExtResource("2_4cwpn")
+shader_parameter/density = 55.38
+shader_parameter/speed = 0.06
+shader_parameter/size = 0.075
+shader_parameter/jitter = 0.305
+shader_parameter/intensity = 0.58
+shader_parameter/softness = 1.135
+shader_parameter/drift = Vector2(0.03, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_8ctay"]
+shader = ExtResource("5_f40uw")
+shader_parameter/warp_strength = 0.085
+shader_parameter/vignette_strength = 0.35
+shader_parameter/scanline_strength = 0.5
+shader_parameter/noise_strength = 0.025
+shader_parameter/flicker_strength = 0.02
+shader_parameter/edge_softness = 0.02
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_p8ccj")
+
+[node name="BG" type="CanvasLayer" parent="."]
+
+[node name="Background" type="ColorRect" parent="BG"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="DustShader" type="ColorRect" parent="BG"]
+material = SubResource("ShaderMaterial_f40uw")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="Center" type="MarginContainer" parent="UI"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+
+[node name="RowWrap" type="Control" parent="UI/Center"]
+layout_mode = 2
+
+[node name="Row" type="HBoxContainer" parent="UI/Center/RowWrap"]
+layout_direction = 1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = -720
+
+[node name="Left" type="VBoxContainer" parent="UI/Center/RowWrap/Row"]
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Title" type="TextureRect" parent="UI/Center/RowWrap/Row/Left"]
+custom_minimum_size = Vector2(250.99, 167.175)
+layout_mode = 2
+texture = ExtResource("2_tk8dj")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Menu" type="VBoxContainer" parent="UI/Center/RowWrap/Row/Left"]
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="ItemStart" type="Label" parent="UI/Center/RowWrap/Row/Left/Menu"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "START"
+
+[node name="ItemSettings" type="Label" parent="UI/Center/RowWrap/Row/Left/Menu"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "SETTINGS"
+
+[node name="ItemExit" type="Label" parent="UI/Center/RowWrap/Row/Left/Menu"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "EXIT"
+
+[node name="Spacer" type="Control" parent="UI/Center/RowWrap/Row/Left"]
+custom_minimum_size = Vector2(0, 76.49)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Footer" type="Label" parent="UI/Center/RowWrap/Row/Left"]
+layout_mode = 2
+text = "v0.1.0 © 2026 DDD"
+
+[node name="Fill" type="Control" parent="UI/Center/RowWrap/Row"]
+custom_minimum_size = Vector2(800, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Right" type="VBoxContainer" parent="UI/Center/RowWrap/Row"]
+custom_minimum_size = Vector2(700, 0)
+layout_mode = 2
+size_flags_horizontal = 8
+
+[node name="Character" type="TextureRect" parent="UI/Center/RowWrap/Row/Right"]
+custom_minimum_size = Vector2(700, 0)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 3
+texture = ExtResource("3_d8nwk")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CrtOverlay" type="ColorRect" parent="UI"]
+material = SubResource("ShaderMaterial_8ctay")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="FadeRect" type="ColorRect" parent="UI"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="BGM" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("6_8ctay")
+autoplay = true
+
+[node name="SfxSwitch" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("7_k0a0m")
+
+[node name="SfxClick" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("8_2mudq")

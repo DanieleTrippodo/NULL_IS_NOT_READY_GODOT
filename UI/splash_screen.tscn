@@ -1,0 +1,61 @@
+[gd_scene load_steps=6 format=3 uid="uid://bgl0mee7xdlq5"]
+
+[ext_resource type="Script" uid="uid://b2pmkq1o6nkp8" path="res://UI/splash_screen.gd" id="1_20jiu"]
+[ext_resource type="Texture2D" uid="uid://djs180bwh25ep" path="res://UI/SplashScreenDeveloper.jpg" id="1_oclqc"]
+[ext_resource type="Shader" uid="uid://cxpn3e0iy4wsv" path="res://UI/splash_screenCRT.gdshader" id="4_h85r7"]
+[ext_resource type="AudioStream" uid="uid://dorv05cljo1d2" path="res://Audio/BGM/SplashScreenSound.mp3" id="4_unscq"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_eo72v"]
+shader = ExtResource("4_h85r7")
+shader_parameter/strength = 1.0
+shader_parameter/jitter_amt = 1.0
+shader_parameter/warp_amt = 1.0
+shader_parameter/scanline = 0.35
+shader_parameter/noise_amt = 0.25
+shader_parameter/corner_radius = 0.0
+shader_parameter/border_softness = 0.0
+shader_parameter/vignette = 0.35
+
+[node name="SplashScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_20jiu")
+settle_seconds = 6.0
+
+[node name="DDD Logo" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_oclqc")
+expand_mode = 3
+
+[node name="SplashAudio" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("4_unscq")
+
+[node name="CrtOverlay2" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_eo72v")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="BlackOverlay" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)

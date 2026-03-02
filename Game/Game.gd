@@ -96,6 +96,11 @@ func _ready() -> void:
 
 	_setup_wave_button()
 	_set_state(ArenaState.WAIT_START)
+	
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("esc"):
+		get_tree().change_scene_to_file("res://UI/main_menu.tscn")
 
 func _physics_process(_delta: float) -> void:
 	if restarting or wave_transitioning:
