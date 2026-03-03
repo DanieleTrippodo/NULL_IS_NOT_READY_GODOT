@@ -11,6 +11,7 @@ var spawn_player_random: bool = false
 var shop_offers: Array = []  # array di Dictionary
 
 var depth: int = 1
+var terminal_logs_read: Array[bool] = []
 var null_ready: bool = true
 var null_dropped: bool = false # true solo quando il NULL è a terra (DROPPED)
 var survival_mode: bool = false
@@ -151,6 +152,7 @@ func reset() -> void:
 	returning_from_shop = false
 	spawn_player_random = false
 	shop_offers.clear()
+	terminal_logs_read.clear()
 	
 	survival_mode = false
 	depth = 1
@@ -190,6 +192,7 @@ func reset() -> void:
 
 	last_perk_title = ""
 	last_perk_desc = ""
+	terminal_logs_read.clear()
 
 func grant_random_perk(rng: RandomNumberGenerator) -> bool:
 	var available := []

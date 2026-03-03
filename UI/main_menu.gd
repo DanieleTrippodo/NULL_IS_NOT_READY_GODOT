@@ -36,6 +36,7 @@ var parallax_strength: float = 10.0
 var character_base_pos: Vector2
 
 func _ready() -> void:
+	Input.mouse_mode = Input.MOUSE_MODE_HIDDEN
 	# Start BGM (if Autoplay is off)
 	if bgm and bgm.stream and not bgm.playing:
 		bgm.play()

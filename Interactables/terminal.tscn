@@ -1,0 +1,54 @@
+[gd_scene load_steps=8 format=3 uid="uid://dqgk2yf0bdgir"]
+
+[ext_resource type="Script" uid="uid://cpn4u687x23t6" path="res://terminal.gd" id="1_yqvj0"]
+[ext_resource type="Texture2D" uid="uid://brax60tkshll8" path="res://Art/Terminals/Terminal1.png.png" id="2_xss3u"]
+[ext_resource type="Texture2D" uid="uid://du6e75dm7sq1k" path="res://UI/PickUp.png" id="3_ehort"]
+[ext_resource type="Texture2D" uid="uid://b4gphj5ektgg2" path="res://Art/Terminals/Side_Terminal.png" id="3_nhycj"]
+[ext_resource type="Texture2D" uid="uid://dhhu5b8vkbyro" path="res://Art/Terminals/Back_Terminal.png" id="4_5xcm3"]
+[ext_resource type="Texture2D" uid="uid://b7ct8nfpjoeyr" path="res://Art/Terminals/Top_Terminal.png" id="5_drlkn"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_0u45f"]
+size = Vector3(1, 1.8671875, 0.99050903)
+
+[node name="Terminal" type="Node3D"]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)
+script = ExtResource("1_yqvj0")
+
+[node name="TerminalSprite" type="Node3D" parent="."]
+transform = Transform3D(1.235, 0, 0, 0, 1.625, 0, 0, 0, 1.235, 0, 0.14978132, 0)
+
+[node name="Body_Front" type="Sprite3D" parent="TerminalSprite"]
+transform = Transform3D(0.17, 0, 0, 0, 0.17, 0, 0, 0, 0.17, 0, 0.6573628, -0.06560528)
+texture_filter = 0
+texture = ExtResource("2_xss3u")
+
+[node name="Body_Side_L" type="Sprite3D" parent="TerminalSprite"]
+transform = Transform3D(-7.430936e-09, 0, -0.17, 0, 0.17, 0, 0.17, 0, -7.430936e-09, -0.4584604, 0.6573628, -0.51636195)
+texture_filter = 0
+texture = ExtResource("3_nhycj")
+
+[node name="Body_Side_R" type="Sprite3D" parent="TerminalSprite"]
+transform = Transform3D(-7.430936e-09, 0, -0.17, 0, 0.17, 0, 0.17, 0, -7.430936e-09, 0.44564623, 0.6573628, -0.51636195)
+texture_filter = 0
+texture = ExtResource("3_nhycj")
+
+[node name="Body_Back" type="Sprite3D" parent="TerminalSprite"]
+transform = Transform3D(0.17, 0, 0, 0, 0.17, 0, 0, 0, 0.17, 0, 0.6573628, -0.9741491)
+texture_filter = 0
+texture = ExtResource("4_5xcm3")
+
+[node name="Body_Top" type="Sprite3D" parent="TerminalSprite"]
+transform = Transform3D(0.16901225, 0, 0, 0, -9.389507e-09, -0.16, 0, 0.2148069, -6.993822e-09, -0.0049865544, 1.388555, -0.5217496)
+texture_filter = 0
+texture = ExtResource("5_drlkn")
+
+[node name="Area3D" type="Area3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8095703, 0.22850037)
+shape = SubResource("BoxShape3D_0u45f")
+
+[node name="Prompt" type="Sprite3D" parent="."]
+transform = Transform3D(0.025, 0, 0, 0, 0.025, 0, 0, 0, 0.025, -0.054686293, 1.4375304, 0.11456968)
+billboard = 1
+texture = ExtResource("3_ehort")

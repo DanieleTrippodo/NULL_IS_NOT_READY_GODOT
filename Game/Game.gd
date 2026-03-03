@@ -20,7 +20,14 @@ extends Node
 @onready var enemies_root: Node3D = $World/EnemiesRoot
 @onready var hud: Node = $UIRoot/HUD
 
+@export var terminal_scene: PackedScene
+@export var terminal_overlay_scene: PackedScene
+@export var terminal_log_scenes: Array[PackedScene] = []
+@export var terminal_every_n_depth: int = 3
+
 var rng := RandomNumberGenerator.new()
+var terminal_instance: Node3D = null
+var terminal_overlay: CanvasLayer = null
 
 var arena_instance: Node3D = null
 var null_instance: Node3D = null
@@ -66,6 +73,7 @@ const FADE_TIME: float = 0.25
 const WAVE_FREEZE_TIME: float = 0.35
 
 func _ready() -> void:
+	
 	rng.randomize()
 	Engine.time_scale = 1.0
 
@@ -78,6 +86,7 @@ func _ready() -> void:
 	restarting = false
 	wave_transitioning = false
 	world_frozen = false
+	
 
 	Signals.request_shoot.connect(_on_request_shoot)
 	Signals.request_pickup.connect(_on_request_pickup)
@@ -96,7 +105,23 @@ func _ready() -> void:
 
 	_setup_wave_button()
 	_set_state(ArenaState.WAIT_START)
+	_setup_terminal_overlay()
 	
+	
+
+
+func _setup_terminal_overlay() -> void:
+	if terminal_overlay_scene == null:
+		return
+	var o := terminal_overlay_scene.instantiate()
+	if not (o is CanvasLayer):
+		return
+	terminal_overlay = o as CanvasLayer
+	$UIRoot.add_child(terminal_overlay)
+	terminal_overlay.visible = false
+	if terminal_overlay.has_signal("closed"):
+		terminal_overlay.closed.connect(_on_terminal_closed)
+
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("esc"):
@@ -151,6 +176,7 @@ func _set_state(s: int) -> void:
 		wave_button.set("enabled", s == ArenaState.WAIT_START)
 
 func _start_next_wave() -> void:
+	_despawn_terminal()
 	_cleanup_uncollected_money()
 	_cleanup_shop_portal()
 
@@ -424,14 +450,13 @@ func _on_enemy_killed(enemy: Node) -> void:
 		Run.depth += 1
 		Signals.depth_changed.emit(Run.depth)
 
-		# NON dare più perk random qui: ora c'è lo shop
 		_set_state(ArenaState.POST_WAVE)
 
 		_spawn_money_rain()
 		_spawn_shop_portal()
 
-		# Torna in modalità safe: bottone riattivo
 		_set_state(ArenaState.WAIT_START)
+		_maybe_spawn_terminal()
 
 func _force_null_return() -> void:
 	if null_instance != null and is_instance_valid(null_instance):
@@ -725,3 +750,111 @@ func _find_first_collision_shape(n: Node) -> CollisionShape3D:
 		if r != null:
 			return r
 	return null
+
+func _maybe_spawn_terminal() -> void:
+	print("[TERMINAL] maybe spawn | state=", arena_state, " depth=", Run.depth, " logs=", terminal_log_scenes.size())
+	# solo in SAFE
+	if arena_state != ArenaState.WAIT_START:
+		return
+
+	# ogni 3 depth
+	if terminal_every_n_depth <= 0:
+		return
+	if (Run.depth % terminal_every_n_depth) != 0:
+		_despawn_terminal()
+		return
+
+	var log_index := int(Run.depth / terminal_every_n_depth) - 1 # depth 3 -> 0
+	if log_index < 0:
+		_despawn_terminal()
+		return
+
+	# fuori log -> niente
+	if log_index >= terminal_log_scenes.size():
+		_despawn_terminal()
+		return
+
+	# inizializza array read
+	if Run.terminal_logs_read.size() != terminal_log_scenes.size():
+		Run.terminal_logs_read.resize(terminal_log_scenes.size())
+		for i in range(Run.terminal_logs_read.size()):
+			if Run.terminal_logs_read[i] == null:
+				Run.terminal_logs_read[i] = false
+
+	# già letto -> niente
+	if Run.terminal_logs_read[log_index]:
+		_despawn_terminal()
+		return
+
+	# se esiste un terminale vecchio -> rimuovi
+	_despawn_terminal()
+
+	_spawn_terminal(log_index)
+
+func _spawn_terminal(log_index: int) -> void:
+	if terminal_scene == null or arena_instance == null:
+		return
+
+	var t := terminal_scene.instantiate()
+	if not (t is Node3D):
+		return
+
+	terminal_instance = t as Node3D
+	world.add_child(terminal_instance)
+
+	# posizione: Marker3D "TerminalSpawn"
+	var marker := arena_instance.get_node_or_null("SpawnPoints/TerminalSpawn")
+	if marker != null and marker is Node3D:
+		terminal_instance.global_position = (marker as Node3D).global_position
+	else:
+		# fallback vicino al wave button
+		if wave_button != null and wave_button is Node3D:
+			terminal_instance.global_position = (wave_button as Node3D).global_position + Vector3(1.2, 0.0, 0.0)
+		else:
+			terminal_instance.global_position = arena_instance.global_position
+
+	# collega pressed
+	if terminal_instance.has_signal("pressed"):
+		var cb := Callable(self, "_on_terminal_pressed").bind(log_index)
+		if not terminal_instance.pressed.is_connected(cb):
+			terminal_instance.pressed.connect(cb)
+
+func _despawn_terminal() -> void:
+	if terminal_instance != null and is_instance_valid(terminal_instance):
+		terminal_instance.queue_free()
+	terminal_instance = null
+	
+func _on_terminal_pressed(log_index: int) -> void:
+	if terminal_overlay == null:
+		return
+	if arena_state != ArenaState.WAIT_START:
+		return
+
+	# segna letto (basta aprirlo una volta)
+	if log_index >= 0 and log_index < Run.terminal_logs_read.size():
+		Run.terminal_logs_read[log_index] = true
+
+	# disabilita il terminale finché l'overlay è aperto (evita reopen immediato con E)
+	if terminal_instance != null and is_instance_valid(terminal_instance):
+		terminal_instance.set("enabled", false)
+
+	# blocca player (movimento + mouse look + shoot + interact)
+	var p := _get_player()
+	if p != null and p.has_method("set_input_locked"):
+		p.call("set_input_locked", true)
+
+	# apri overlay
+	terminal_overlay.open_log(terminal_log_scenes[log_index])
+
+func _on_terminal_closed() -> void:
+	var player := _get_player()
+	if player != null and player.has_method("set_input_locked"):
+		player.call("set_input_locked", false)
+
+	# Riabilita il terminale dopo che E è stata rilasciata (evita reopen immediato)
+	await get_tree().process_frame
+	while Input.is_action_pressed("interact"):
+		await get_tree().process_frame
+
+	if terminal_instance != null and is_instance_valid(terminal_instance):
+		terminal_instance.set("enabled", true)

@@ -32,6 +32,7 @@ enum PState { NORMAL, KNOCKBACK, DOWNED }
 @export var downed_invuln_seconds: float = 0.5
 
 var state: int = PState.NORMAL
+var input_locked: bool = false
 
 # input camera
 var yaw: float = 0.0
@@ -85,6 +86,8 @@ func _ready() -> void:
 	_set_body_downed(false)
 
 func _unhandled_input(event: InputEvent) -> void:
+	if input_locked:
+		return
 	# mouse look sempre abilitato (anche in downed)
 	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
 		yaw -= event.relative.x * Constants.MOUSE_SENS
@@ -149,6 +152,14 @@ func _unhandled_input(event: InputEvent) -> void:
 	if has_swap and event.is_action_pressed("swap"):
 		Signals.request_swap.emit()
 
+func set_input_locked(v: bool) -> void:
+	input_locked = v
+	# opzionale: azzera charge se stavi caricando
+	if input_locked:
+		_charging = false
+		_charge_time = 0.0
+
+
 func _process(delta: float) -> void:
 	# charge timer (solo fuori survival)
 	if Run.charge_shot_enabled and _charging and not Run.survival_mode:
@@ -164,6 +175,17 @@ func _physics_process(delta: float) -> void:
 	# dash timers (solo NORMAL, ma aggiorniamo comunque)
 	dash_cd = maxf(dash_cd - delta, 0.0)
 	dash_time_left = maxf(dash_time_left - delta, 0.0)
+	
+	if input_locked:
+		# tienilo fermo ma “vivo” (animazioni mondo continuano)
+		velocity.x = 0.0
+		velocity.z = 0.0
+		if is_on_floor():
+			velocity.y = -1.0
+		else:
+			velocity.y -= GRAVITY * delta
+		move_and_slide()
+		return
 
 	match state:
 		PState.NORMAL:

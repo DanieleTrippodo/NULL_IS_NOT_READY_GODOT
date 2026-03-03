@@ -1,19 +1,19 @@
 [gd_scene load_steps=4 format=3 uid="uid://gshswk7putnj"]
 
 [ext_resource type="Script" uid="uid://bg6wqn6ltprkw" path="res://Interactables/shop_portal.gd" id="1_fsjvp"]
-[ext_resource type="Texture2D" uid="uid://dtfq2jfgdqqsi" path="res://Interactables/ShopPortal.png" id="2_rly3e"]
+[ext_resource type="Texture2D" uid="uid://dabccleacsd32" path="res://Interactables/ShopPortalW.png" id="2_rly3e"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_4bcmb"]
-size = Vector3(1.9776001, 1.6972656, 2.185669)
+size = Vector3(0.82655334, 3.5130615, 3.3239138)
 
 [node name="ShopPortal" type="Area3D"]
 script = ExtResource("1_fsjvp")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.065826416, 0.3486328, 0.06427002)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.10721588, 1.7731323, 0.046442628)
 shape = SubResource("BoxShape3D_4bcmb")
 
 [node name="PortalSprite" type="Sprite3D" parent="."]
-transform = Transform3D(0.39, 0, 0, 0, 0.39, 0, 0, 0, 0.39, 0, 1.3470455, 0)
-billboard = 1
+transform = Transform3D(1.1, 0, 0, 0, 1.1, 0, 0, 0, 1.1, 0, 2.1816945, 0)
+billboard = 2
 texture = ExtResource("2_rly3e")

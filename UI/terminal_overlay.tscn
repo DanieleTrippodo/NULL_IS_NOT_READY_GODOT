@@ -1,0 +1,87 @@
+[gd_scene load_steps=6 format=3 uid="uid://c1oasgfwdd86n"]
+
+[ext_resource type="Script" uid="uid://c0yh75mlvsp0c" path="res://UI/terminal_overlay.gd" id="1_gwwhl"]
+[ext_resource type="Texture2D" uid="uid://cf0opvjxjkvx7" path="res://UI/NullaReflectOpacity7.png" id="2_b4op3"]
+[ext_resource type="Shader" uid="uid://cbyackngxcatx" path="res://UI/CRT.gdshader" id="2_rosux"]
+[ext_resource type="AudioStream" uid="uid://1xx8jvekqy26" path="res://Audio/SFX/TypeSfx.mp3" id="4_owdol"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_b4op3"]
+shader = ExtResource("2_rosux")
+shader_parameter/warp_strength = 0.095
+shader_parameter/vignette_strength = 0.35
+shader_parameter/scanline_strength = 0.685
+shader_parameter/noise_strength = 0.025
+shader_parameter/flicker_strength = 0.02
+shader_parameter/edge_softness = 0.02
+
+[node name="TerminalOverlay" type="CanvasLayer"]
+script = ExtResource("1_gwwhl")
+
+[node name="Dim" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Panel" type="Panel" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Footer" type="Label" parent="Panel"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -552.0
+offset_top = -48.440002
+offset_right = 552.0
+offset_bottom = -25.440002
+grow_horizontal = 2
+grow_vertical = 0
+text = "E: CLOSE"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Margins" type="MarginContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 44
+theme_override_constants/margin_top = 36
+theme_override_constants/margin_right = 44
+theme_override_constants/margin_bottom = 38
+
+[node name="LogRoot" type="Control" parent="Panel/Margins"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_b4op3")
+stretch_mode = 5
+
+[node name="CrtOverlay" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_b4op3")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="TypeSfx" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("4_owdol")

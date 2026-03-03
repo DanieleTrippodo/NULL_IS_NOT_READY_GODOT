@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://bgwcyyqw3ssa1"]
+[gd_scene load_steps=17 format=3 uid="uid://bgwcyyqw3ssa1"]
 
 [ext_resource type="Script" uid="uid://pfb6mfm6lhf8" path="res://Game/Game.gd" id="1_wd0a0"]
 [ext_resource type="PackedScene" uid="uid://8w3pg480ojvn" path="res://Levels/arena.tscn" id="2_lv82p"]
@@ -12,6 +12,9 @@
 [ext_resource type="PackedScene" uid="uid://ce0g720tmhwp6" path="res://Enemies/exception.tscn" id="8_6o7ua"]
 [ext_resource type="PackedScene" uid="uid://ff6up5cjcaym" path="res://Pickups/money_cube.tscn" id="10_x253o"]
 [ext_resource type="PackedScene" uid="uid://gshswk7putnj" path="res://Interactables/shop_portal.tscn" id="11_krex0"]
+[ext_resource type="PackedScene" uid="uid://dqgk2yf0bdgir" path="res://Interactables/terminal.tscn" id="12_3tq7c"]
+[ext_resource type="PackedScene" uid="uid://c1oasgfwdd86n" path="res://UI/terminal_overlay.tscn" id="13_eg2md"]
+[ext_resource type="PackedScene" uid="uid://d0vplx8ahi2jp" path="res://UI/log_01.tscn" id="14_eg2md"]
 
 [sub_resource type="Environment" id="Environment_3xx61"]
 background_mode = 1
@@ -30,6 +33,9 @@ exception_scene = ExtResource("8_6o7ua")
 enemy_bullet_scene = ExtResource("7_q34ae")
 money_cube_scene = ExtResource("10_x253o")
 shop_portal_scene = ExtResource("11_krex0")
+terminal_scene = ExtResource("12_3tq7c")
+terminal_overlay_scene = ExtResource("13_eg2md")
+terminal_log_scenes = Array[PackedScene]([ExtResource("14_eg2md")])
 money_max = 11
 money_spawn_radius = 5.0
 magnet_radius = 3.0

@@ -17,7 +17,7 @@ extends Control
 @onready var black_overlay: ColorRect = $BlackOverlay
 
 func _ready() -> void:
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	Input.mouse_mode = Input.MOUSE_MODE_HIDDEN
 
 	# Sanity: 2 + 5 + 3 = 10 (se cambi valori, aggiorna coerentemente)
 	# Se non vuoi vincolarti, ignora total_seconds e usa solo le 3 fasi.

@@ -35,6 +35,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_behavior_recursive = 1
 script = ExtResource("1_p8ccj")
 
 [node name="BG" type="CanvasLayer" parent="."]
@@ -165,7 +166,9 @@ color = Color(0, 0, 0, 1)
 
 [node name="BGM" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("6_8ctay")
+volume_db = -5.0
 autoplay = true
+parameters/looping = true
 
 [node name="SfxSwitch" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("7_k0a0m")

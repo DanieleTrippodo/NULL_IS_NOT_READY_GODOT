@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dv0jkca5gj5gv"
-path.s3tc="res://.godot/imported/NullaSprite.png-18c975ee4117770878a69988bcc17c4d.s3tc.ctex"
+uid="uid://dhhu5b8vkbyro"
+path.s3tc="res://.godot/imported/Back_Terminal.png-85619383023fcba279ac88a1377baff6.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://UI/NullaSprite.png"
-dest_files=["res://.godot/imported/NullaSprite.png-18c975ee4117770878a69988bcc17c4d.s3tc.ctex"]
+source_file="res://Art/Terminals/Back_Terminal.png"
+dest_files=["res://.godot/imported/Back_Terminal.png-85619383023fcba279ac88a1377baff6.s3tc.ctex"]
 
 [params]
 

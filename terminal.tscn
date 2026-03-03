@@ -1,0 +1,26 @@
+[gd_scene load_steps=5 format=3 uid="uid://daflncsuleuhl"]
+
+[ext_resource type="Script" uid="uid://cpn4u687x23t6" path="res://terminal.gd" id="1_7d6gb"]
+[ext_resource type="Texture2D" uid="uid://cmsats04s85yv" path="res://icon.svg" id="2_0u45f"]
+[ext_resource type="Texture2D" uid="uid://du6e75dm7sq1k" path="res://UI/PickUp.png" id="2_b5qft"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_0u45f"]
+size = Vector3(1, 1.8671875, 1.3901978)
+
+[node name="Terminal" type="Node3D"]
+script = ExtResource("1_7d6gb")
+
+[node name="Body" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5004494, 0)
+texture = ExtResource("2_0u45f")
+
+[node name="Area3D" type="Area3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8095703, 0.028656006)
+shape = SubResource("BoxShape3D_0u45f")
+
+[node name="Prompt" type="Sprite3D" parent="."]
+transform = Transform3D(0.065, 0, 0, 0, 0.065, 0, 0, 0, 0.065, 0, 1.2725549, 0.4554975)
+billboard = 1
+texture = ExtResource("2_b5qft")
