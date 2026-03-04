@@ -85,6 +85,7 @@ func _ready() -> void:
 
 	_set_body_downed(false)
 
+
 func _unhandled_input(event: InputEvent) -> void:
 	if input_locked:
 		return

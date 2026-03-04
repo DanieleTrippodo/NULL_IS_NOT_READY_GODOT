@@ -51,18 +51,19 @@ surface_material_override/0 = SubResource("StandardMaterial3D_mnyru")
 [node name="SpawnPoints" type="Node3D" parent="."]
 
 [node name="Spawn_1" type="Marker3D" parent="SpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.219856, 0, -8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.005056, 0, -8)
 
 [node name="Spawn_2" type="Marker3D" parent="SpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 0, -8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.716835, 0, -8)
 
 [node name="Spawn_3" type="Marker3D" parent="SpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 16)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 12.90403)
 
 [node name="PlayerSpawn" type="Marker3D" parent="SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.072753906)
 
 [node name="TerminalSpawn" type="Marker3D" parent="SpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.7780452, 0.11398608, -0.101585865)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.9070253, 0.11398608, -3.6019473)
 
 [node name="Map_Geometry" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 17.689478, 0)

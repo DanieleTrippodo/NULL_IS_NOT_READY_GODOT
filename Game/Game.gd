@@ -9,6 +9,7 @@ extends Node
 @export var spike_scene: PackedScene
 @export var exception_scene: PackedScene
 @export var enemy_bullet_scene: PackedScene
+@onready var kill_sfx: AudioStreamPlayer = $KillSfx
 
 # NEW: money + shop
 @export var money_cube_scene: PackedScene
@@ -72,6 +73,8 @@ const FLOOR_EPS: float = 0.03
 const FADE_TIME: float = 0.25
 const WAVE_FREEZE_TIME: float = 0.35
 
+const KILL_FLASH_TIME := 0.09
+
 func _ready() -> void:
 	
 	rng.randomize()
@@ -109,6 +112,54 @@ func _ready() -> void:
 	
 	
 
+func _play_kill_sfx() -> void:
+	if kill_sfx == null:
+		return
+	# Piccolo random per evitare “mitraglietta” identica
+	kill_sfx.pitch_scale = rng.randf_range(0.92, 1.08)
+	kill_sfx.play()
+
+func _flash_enemy(enemy: Node) -> void:
+	if enemy == null or not (enemy is Node3D):
+		return
+
+	var e := enemy as Node3D
+	var mesh_node := e.find_child("MeshInstance3D", true, false)
+	if mesh_node == null or not (mesh_node is MeshInstance3D):
+		return
+
+	var mesh := mesh_node as MeshInstance3D
+	var prev_mat := mesh.material_override
+
+	# Materiale flash (unshaded + emission)
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.emission_enabled = true
+	mat.emission = Color(1, 1, 1)
+	mat.albedo_color = Color(1, 1, 1, 1)
+
+	mesh.material_override = mat
+
+	# Fade-out rapido e ripristino
+	var tw := get_tree().create_tween()
+	tw.tween_property(mat, "albedo_color:a", 0.0, KILL_FLASH_TIME)
+	tw.tween_callback(func():
+		if is_instance_valid(mesh):
+			mesh.material_override = prev_mat
+	)
+
+func _disable_enemy(enemy: Node) -> void:
+	if enemy == null:
+		return
+
+	# Stop logica
+	enemy.set_physics_process(false)
+	enemy.set_process(false)
+
+	# Spegni collisione se presente
+	var cs := enemy.find_child("CollisionShape3D", true, false)
+	if cs != null and cs is CollisionShape3D:
+		(cs as CollisionShape3D).disabled = true
 
 func _setup_terminal_overlay() -> void:
 	if terminal_overlay_scene == null:
@@ -440,8 +491,17 @@ func _on_enemy_killed(enemy: Node) -> void:
 		return
 
 	if is_instance_valid(enemy):
-		enemy.queue_free()
+		_disable_enemy(enemy)      # 1) non può più nuocere / muoversi
+		_play_kill_sfx()           # 2) sfx
+		_flash_enemy(enemy)        # 3) flash visivo
+		
+			
+		get_tree().create_timer(KILL_FLASH_TIME).timeout.connect(func():
+			if is_instance_valid(enemy):
+				enemy.queue_free()
+		)
 
+	
 	enemies_alive -= 1
 
 	if enemies_alive <= 0:
@@ -603,13 +663,16 @@ func _make_temp_marker(pos: Vector3) -> Node3D:
 func _get_enemy_spawns() -> Array[Node3D]:
 	if arena_instance == null:
 		return []
-	var sp := arena_instance.get_node_or_null("EnemySpawns")
+
+	var sp := arena_instance.get_node_or_null("SpawnPoints")
 	if sp == null:
 		return []
+
 	var out: Array[Node3D] = []
 	for c in sp.get_children():
-		if c is Node3D:
+		if c is Node3D and c.name.begins_with("Spawn_"):
 			out.append(c)
+
 	return out
 
 func _pick_spawn_index(count: int, used: Array[int]) -> int:
@@ -622,19 +685,9 @@ func _pick_spawn_index(count: int, used: Array[int]) -> int:
 		return idx
 	return rng.randi_range(0, count - 1)
 
-func _place_player_safe(player: Node3D, spawns: Array[Node3D]) -> void:
-	var center := arena_instance.global_position
-	var best := center
-
-	for s in spawns:
-		var p := s.global_position
-		var dx := p.x - center.x
-		var dz := p.z - center.z
-		if (dx * dx + dz * dz) <= (PLAYER_SAFE_RADIUS * PLAYER_SAFE_RADIUS):
-			best = p
-			break
-
-	player.global_position = _place_body_on_floor(player, best)
+func _place_player_safe(player: Node3D, _spawns: Array[Node3D]) -> void:
+	var ps := _get_player_spawn_pos()
+	player.global_position = _place_body_on_floor(player, ps)
 
 func _is_enemy_spawn_clear(pos: Vector3, body: Node3D, min_radius: float) -> bool:
 	for e in enemies_root.get_children():
@@ -681,10 +734,27 @@ func _get_random_arena_pos() -> Vector3:
 func _get_player_spawn_pos() -> Vector3:
 	if arena_instance == null:
 		return Vector3.ZERO
-	var ps := arena_instance.get_node_or_null("PlayerSpawn")
-	if ps != null and ps is Node3D:
-		return (ps as Node3D).global_position
+
+	# 1) cerca dentro SpawnPoints (struttura attuale della scena)
+	var sp := arena_instance.get_node_or_null("SpawnPoints")
+	if sp != null:
+		var ps := sp.get_node_or_null("PlayerSpawn")
+		if ps != null and ps is Node3D:
+			return (ps as Node3D).global_position
+
+	# 2) fallback: se un giorno lo metti root
+	var ps2 := arena_instance.get_node_or_null("PlayerSpawn")
+	if ps2 != null and ps2 is Node3D:
+		return (ps2 as Node3D).global_position
+
 	return arena_instance.global_position
+
+func _hitstop(seconds: float = 0.045) -> void:
+	if world_frozen:
+		return
+	_set_world_frozen(true)
+	await get_tree().create_timer(seconds).timeout
+	_set_world_frozen(false)
 
 func _place_body_on_floor(body: Node3D, desired_pos: Vector3) -> Vector3:
 	var floor_y: float = _raycast_floor_y(desired_pos, body)

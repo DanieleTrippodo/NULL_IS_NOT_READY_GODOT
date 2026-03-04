@@ -10,6 +10,7 @@ var rng := RandomNumberGenerator.new()
 enum Rarity { COMMON, RARE, EPIC }
 
 func _ready() -> void:
+	randomize()
 	rng.randomize()
 
 	# In shop il mouse deve essere libero per cliccare i bottoni
@@ -44,7 +45,7 @@ func _exit_shop() -> void:
 # OFFERS
 # -----------------------------
 func _generate_offers() -> void:
-	var count := randi_range(1, 3)
+	var count := rng.randi_range(1, 3)
 	Run.shop_offers.clear()
 
 	# candidates: perks acquistabili (riusa la tua logica attuale)
@@ -134,9 +135,9 @@ func _rarity_for(perk_id: String) -> int:
 
 func _price_for(r: int) -> int:
 	match r:
-		Rarity.COMMON: return randi_range(2, 4)
-		Rarity.RARE: return randi_range(5, 8)
-		Rarity.EPIC: return randi_range(9, 14)
+		Rarity.COMMON: return rng.randi_range(2, 4)
+		Rarity.RARE: return rng.randi_range(5, 8)
+		Rarity.EPIC: return rng.randi_range(9, 14)
 	return 3
 
 func _rarity_name(r: int) -> String:

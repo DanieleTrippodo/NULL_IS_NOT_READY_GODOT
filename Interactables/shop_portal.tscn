@@ -1,19 +1,26 @@
-[gd_scene load_steps=4 format=3 uid="uid://gshswk7putnj"]
+[gd_scene load_steps=5 format=3 uid="uid://gshswk7putnj"]
 
 [ext_resource type="Script" uid="uid://bg6wqn6ltprkw" path="res://Interactables/shop_portal.gd" id="1_fsjvp"]
 [ext_resource type="Texture2D" uid="uid://dabccleacsd32" path="res://Interactables/ShopPortalW.png" id="2_rly3e"]
+[ext_resource type="Texture2D" uid="uid://b1ufs2vlxuop3" path="res://UI/InputE.png" id="3_tmkmw"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_4bcmb"]
-size = Vector3(0.82655334, 3.5130615, 3.3239138)
+size = Vector3(3.4374733, 3.5130615, 3.3239138)
 
 [node name="ShopPortal" type="Area3D"]
 script = ExtResource("1_fsjvp")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.10721588, 1.7731323, 0.046442628)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.03640175, 1.7731323, 0.046442628)
 shape = SubResource("BoxShape3D_4bcmb")
 
 [node name="PortalSprite" type="Sprite3D" parent="."]
-transform = Transform3D(1.1, 0, 0, 0, 1.1, 0, 0, 0, 1.1, 0, 2.1816945, 0)
-billboard = 2
+transform = Transform3D(-1.1, 0, 9.616505e-08, 0, 1.1, 0, -9.616505e-08, 0, -1.1, 0, 2.1816945, 0)
 texture = ExtResource("2_rly3e")
+
+[node name="PromptE" type="Sprite3D" parent="."]
+transform = Transform3D(0.105, 0, 0, 0, 0.105, 0, 0, 0, 0.105, 0.028008312, 1.6824187, 0.08974075)
+visible = false
+billboard = 1
+render_priority = 1
+texture = ExtResource("3_tmkmw")
