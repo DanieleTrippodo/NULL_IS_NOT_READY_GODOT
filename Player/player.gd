@@ -6,6 +6,7 @@ extends CharacterBody3D
 
 @onready var body_sprite: Sprite3D = $Body
 @onready var body_down_sprite: Sprite3D = $Body_Down
+@onready var left_arm_push: AnimatedSprite3D = $Head/Camera/ViewModel/LeftArmPush
 
 enum PState { NORMAL, KNOCKBACK, DOWNED }
 
@@ -30,6 +31,22 @@ enum PState { NORMAL, KNOCKBACK, DOWNED }
 @export var downed_cam_offset_y: float = -0.75
 @export var knockback_min_time: float = 0.10
 @export var downed_invuln_seconds: float = 0.5
+
+# -------------------------
+# PUSH (RMB)
+# -------------------------
+@export var push_range: float = 2.5
+@export var push_cone_deg: float = 90.0
+@export var push_cooldown: float = 1.0
+
+# “medio” (valori iniziali, poi li ritocchiamo)
+@export var push_strength: float = 14.0
+@export var push_lift: float = 6.0
+@export var push_stun_seconds: float = 0.6
+
+var _push_cd_left: float = 0.0
+
+@onready var push_sfx: AudioStreamPlayer3D = $PushSfx
 
 var state: int = PState.NORMAL
 var input_locked: bool = false
@@ -104,6 +121,13 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if event.is_action_pressed("ui_cancel"):
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	
+
+	if state == PState.KNOCKBACK:
+		return
+
+	if event.is_action_pressed("push"):
+		_try_push()
 
 	# In KNOCKBACK: niente sparo (come richiesto)
 	if state == PState.KNOCKBACK:
@@ -176,6 +200,7 @@ func _physics_process(delta: float) -> void:
 	# dash timers (solo NORMAL, ma aggiorniamo comunque)
 	dash_cd = maxf(dash_cd - delta, 0.0)
 	dash_time_left = maxf(dash_time_left - delta, 0.0)
+	_push_cd_left = maxf(_push_cd_left - delta, 0.0)
 	
 	if input_locked:
 		# tienilo fermo ma “vivo” (animazioni mondo continuano)
@@ -359,3 +384,66 @@ func _on_enemy_killed(_enemy: Node) -> void:
 	# se uccidi mentre sei DOWNED -> recover immediato
 	if state == PState.DOWNED:
 		_exit_downed()
+
+func _try_push() -> void:
+	# Cooldown
+	if _push_cd_left > 0.0:
+		return
+
+	# Consuma cooldown SUBITO
+	_push_cd_left = push_cooldown
+
+	# Animazione sempre
+	_play_push_anim()
+
+	# Forward camera
+	var fwd: Vector3 = -camera.global_transform.basis.z
+	fwd.y = 0.0
+	if fwd.length() < 0.001:
+		return
+	fwd = fwd.normalized()
+
+	# Cono
+	var half_angle_rad := deg_to_rad(push_cone_deg * 0.5)
+	var cos_limit := cos(half_angle_rad)
+
+	var any_hit := false
+
+	for e in get_tree().get_nodes_in_group("enemy"):
+		if not (e is Node3D):
+			continue
+
+		var en := e as Node3D
+		var to := en.global_position - global_position
+
+		if to.length() > push_range:
+			continue
+
+		to.y = 0.0
+		if to.length() < 0.001:
+			continue
+
+		var dir_to := to.normalized()
+
+		if fwd.dot(dir_to) < cos_limit:
+			continue
+
+		if e.has_method("apply_push"):
+			e.apply_push(fwd, push_strength, push_lift, push_stun_seconds)
+			any_hit = true
+
+	if any_hit and is_instance_valid(push_sfx):
+		push_sfx.play()
+
+func _play_push_anim() -> void:
+	if not is_instance_valid(left_arm_push):
+		return
+
+	left_arm_push.visible = true
+	left_arm_push.stop()
+	left_arm_push.play("push")
+
+	await left_arm_push.animation_finished
+
+	if is_instance_valid(left_arm_push):
+		left_arm_push.visible = false

@@ -1,6 +1,185 @@
 # res://Game/Run.gd
 extends Node
 
+enum PerkRarity { COMMON, RARE, EPIC }
+
+func get_perk_rarity(id: String) -> int:
+	# Mappa rarità (puoi rifinirla quando vuoi)
+	match id:
+		"JUMP_UNLOCK", "DASH_UNLOCK", "CHARGE_SHOT", "SWAP_WITH_NULL":
+			return PerkRarity.EPIC
+		"PIERCE_1", "HOMING_NUDGE", "PULL_TO_HAND", "DROP_SHOCKWAVE", "SLOWMO_RECOVERY", "CHARGE_PLUS":
+			return PerkRarity.RARE
+		_:
+			return PerkRarity.COMMON
+
+func get_perk_title_static(id: String) -> String:
+	# Titoli usati in carta/tooltip (non applica il perk)
+	match id:
+		"NULL_BOUNCE": return "NULL BOUNCE"
+		"BOUNCE_STACK": return "BOUNCE STACK"
+		"JUMP_UNLOCK": return "JUMP UNLOCK"
+		"JUMP_POWER": return "HIGHER JUMP"
+		"LONG_JUMP": return "LONG JUMP"
+		"FLIGHT_BURST": return "FLIGHT (5s)"
+		"MAGNET_PICKUP": return "MAGNET"
+		"SPRINT": return "SPEED UP"
+		"PANIC_BOOST": return "PANIC BOOST"
+		"SLOW_TURRETS": return "SLOW TURRETS"
+		"NULL_SPEED": return "NULL SPEED"
+		"NULL_RANGE": return "NULL RANGE"
+		"PIERCE_1": return "PIERCE"
+		"HOMING_NUDGE": return "HOMING NUDGE"
+		"DASH_UNLOCK": return "DASH UNLOCK"
+		"CHARGE_SHOT": return "CHARGE SHOT"
+		"CHARGE_PLUS": return "CHARGE+"
+		"PULL_TO_HAND": return "PULL TO HAND"
+		"SWAP_WITH_NULL": return "SWAP"
+		"DROP_SHOCKWAVE": return "DROP SHOCKWAVE"
+		"SLOWMO_RECOVERY": return "SLOWMO RECOVERY"
+		_: return id
+
+func get_perk_desc_static(id: String) -> String:
+	match id:
+		"NULL_BOUNCE": return "Il NULL rimbalza 1 volta."
+		"BOUNCE_STACK": return "+1 rimbalzo (max %d)." % max_null_bounces
+		"JUMP_UNLOCK": return "Ora puoi saltare (Space)."
+		"JUMP_POWER": return "Salto più alto."
+		"LONG_JUMP": return "Più controllo/velocità in aria."
+		"FLIGHT_BURST": return "Vola per 5 secondi (Space)."
+		"MAGNET_PICKUP": return "Pickup automatico del NULL vicino."
+		"SPRINT": return "Velocità movimento +15%."
+		"PANIC_BOOST": return "+20% velocità quando NULL: NOT READY."
+		"SLOW_TURRETS": return "Turret sparano più lentamente."
+		"NULL_SPEED": return "Il NULL vola più veloce."
+		"NULL_RANGE": return "Il NULL va più lontano."
+		"PIERCE_1": return "Il NULL può uccidere 2 nemici in linea."
+		"HOMING_NUDGE": return "Leggera correzione verso il bersaglio vicino."
+		"DASH_UNLOCK": return "Scatto rapido con Shift."
+		"CHARGE_SHOT": return "Tieni premuto per caricare, rilascia per un NULL più grande."
+		"CHARGE_PLUS": return "Migliora la carica (tempo o scala, a seconda dello stato)."
+		"PULL_TO_HAND": return "Tieni premuto Interact per richiamare il NULL (0.6s)."
+		"SWAP_WITH_NULL": return "Scambia posizione col NULL droppato (Q)."
+		"DROP_SHOCKWAVE": return "Se missi, il drop respinge i chaser vicini."
+		"SLOWMO_RECOVERY": return "Rallenta il tempo quando il NULL è a terra."
+		_: return ""
+
+func get_perk_preview_lines(id: String) -> Array[String]:
+	# Ritorna più righe "valore finale" (non delta prima/dopo)
+	var lines: Array[String] = []
+
+	match id:
+		"NULL_BOUNCE":
+			lines.append("Bounces: %d" % 1)
+
+		"BOUNCE_STACK":
+			lines.append("Bounces: %d" % min(null_bounces + 1, max_null_bounces))
+
+		"JUMP_UNLOCK":
+			lines.append("Jump: UNLOCKED")
+
+		"JUMP_POWER":
+			lines.append("Jump velocity: %.1f" % min(jump_velocity + 2.0, 12.0))
+
+		"LONG_JUMP":
+			lines.append("Air speed: %.2fx" % min(air_speed_mult + 0.5, 2.0))
+
+		"FLIGHT_BURST":
+			lines.append("Flight time: 5.0s")
+
+		"MAGNET_PICKUP":
+			lines.append("Magnet: ON")
+			lines.append("Pickup radius: %.1f" % pickup_radius)
+
+		"SPRINT":
+			lines.append("Move speed: %.2fx" % min(move_speed_mult + 0.15, 1.5))
+
+		"PANIC_BOOST":
+			lines.append("NOT READY speed: %.2fx" % panic_speed_mult)
+
+		"SLOW_TURRETS":
+			lines.append("Turret interval: %.2fx" % max(turret_interval_mult - 0.1, 0.7))
+
+		"NULL_SPEED":
+			lines.append("Null speed: %.2fx" % min(null_speed_mult + 0.2, 1.8))
+
+		"NULL_RANGE":
+			lines.append("Null range: %.2fx" % min(null_range_mult + 0.2, 1.8))
+
+		"PIERCE_1":
+			lines.append("Pierce: 1")
+
+		"HOMING_NUDGE":
+			lines.append("Homing: ON")
+			lines.append("Max angle: %.0f°" % homing_max_angle_deg)
+
+		"DASH_UNLOCK":
+			lines.append("Dash: UNLOCKED")
+
+		"CHARGE_SHOT":
+			lines.append("Charge: ON")
+			lines.append("Charge time: %.1fs" % charge_shot_seconds)
+			lines.append("Charge scale: %.2fx" % charge_shot_scale)
+
+		"CHARGE_PLUS":
+			if charge_shot_enabled:
+				if charge_shot_seconds > 2.0:
+					lines.append("Charge time: %.1fs" % max(charge_shot_seconds - 0.5, 2.0))
+				else:
+					lines.append("Charge scale: %.2fx" % min(charge_shot_scale + 0.25, 2.25))
+			else:
+				lines.append("Requires: CHARGE SHOT")
+
+		"PULL_TO_HAND":
+			lines.append("Pull: ON")
+			lines.append("Channel: %.1fs" % pull_channel_seconds)
+			lines.append("Max distance: %.0f" % pull_max_distance)
+
+		"SWAP_WITH_NULL":
+			lines.append("Swap: ON")
+			lines.append("Cooldown: %.0fs" % swap_cooldown)
+			lines.append("Max distance: %.0f" % swap_max_distance)
+
+		"DROP_SHOCKWAVE":
+			lines.append("Shockwave: ON")
+			lines.append("Radius: %.0f" % shockwave_radius)
+
+		"SLOWMO_RECOVERY":
+			lines.append("Slowmo scale: %.2f" % slowmo_scale)
+
+		_:
+			pass
+
+	return lines
+
+func get_perk_icon_path(id: String) -> String:
+	# Se hai icone per-perk: res://Art/Cards/Icons/<ID>.png
+	var specific := "res://Art/Cards/Icons/%s.png" % id
+	if ResourceLoader.exists(specific):
+		return specific
+	# fallback base
+	return "res://Art/Cards/Icons/icon_base.png"
+
+func roll_price_for_rarity(rarity: int, rng: RandomNumberGenerator) -> int:
+	# Base random by rarity
+	var base := 3
+	match rarity:
+		PerkRarity.COMMON: base = rng.randi_range(2, 4)
+		PerkRarity.RARE: base = rng.randi_range(5, 8)
+		PerkRarity.EPIC: base = rng.randi_range(9, 14)
+
+	# Scaling moltiplicativo su depth
+	var mult := 1.0 + float(max(depth - 1, 0)) * 0.12
+	mult = clamp(mult, 1.0, 3.5) # evita prezzi folli
+	return int(round(base * mult))
+
+func rarity_name(r: int) -> String:
+	match r:
+		PerkRarity.COMMON: return "COMMON"
+		PerkRarity.RARE: return "RARE"
+		PerkRarity.EPIC: return "EPIC"
+	return "?"
+
 var money: int = 0
 
 # Per gestire cambio scena Shop <-> Arena senza resettare la run

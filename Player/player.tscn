@@ -1,10 +1,66 @@
-[gd_scene load_steps=5 format=3 uid="uid://c8uc2jlabtxn5"]
+[gd_scene load_steps=18 format=3 uid="uid://c8uc2jlabtxn5"]
 
 [ext_resource type="Script" uid="uid://dhtpslx53p3b5" path="res://Player/player.gd" id="1_l8h54"]
-[ext_resource type="Texture2D" uid="uid://dyjbapkskxgrw" path="res://Player/Body.png" id="2_4ntmi"]
+[ext_resource type="Texture2D" uid="uid://8l8fnewfoi4l" path="res://Player/Nullabreast.png" id="2_dkpta"]
 [ext_resource type="Texture2D" uid="uid://ck42bify45vkc" path="res://Player/Body_Down.png" id="3_btcbx"]
+[ext_resource type="Texture2D" uid="uid://bcw7yfdlyoonx" path="res://Player/pushAnimation/Frame0.png" id="4_dkpta"]
+[ext_resource type="Texture2D" uid="uid://bg1iu33imowcn" path="res://Player/pushAnimation/Frame1.png" id="5_lfmf2"]
+[ext_resource type="Texture2D" uid="uid://brhfqpp64uask" path="res://Player/pushAnimation/Frame2.png" id="6_pisgm"]
+[ext_resource type="Texture2D" uid="uid://dxfwbc5t65t8r" path="res://Player/pushAnimation/Frame3.png" id="7_b1ygp"]
+[ext_resource type="Texture2D" uid="uid://cf7hcmifnaghk" path="res://Player/pushAnimation/Frame4.png" id="8_o28un"]
+[ext_resource type="Texture2D" uid="uid://bdkx3h27u7vo1" path="res://Player/pushAnimation/Frame5.png" id="9_n471f"]
+[ext_resource type="Texture2D" uid="uid://brss5jsqv0y48" path="res://Player/pushAnimation/Frame6.png" id="10_7emwf"]
+[ext_resource type="Texture2D" uid="uid://bkil8h2kmest" path="res://Player/pushAnimation/Frame7.png" id="11_hshwv"]
+[ext_resource type="Texture2D" uid="uid://5ax4wqf2s0xe" path="res://Player/pushAnimation/Frame8.png" id="12_gpjlu"]
+[ext_resource type="Texture2D" uid="uid://c1e5w8qwcu566" path="res://Player/pushAnimation/Frame9.png" id="13_8mwp6"]
+[ext_resource type="Texture2D" uid="uid://c2j53fk6vbhvq" path="res://Player/pushAnimation/Frame10.png" id="14_qemgg"]
+[ext_resource type="Texture2D" uid="uid://dmft5xplpx8ai" path="res://Player/pushAnimation/Frame11.png" id="15_8viyr"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_hvfyp"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_btcbx"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("4_dkpta")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_lfmf2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_pisgm")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_b1ygp")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_o28un")
+}, {
+"duration": 1.0,
+"texture": ExtResource("9_n471f")
+}, {
+"duration": 1.0,
+"texture": ExtResource("10_7emwf")
+}, {
+"duration": 1.0,
+"texture": ExtResource("11_hshwv")
+}, {
+"duration": 1.0,
+"texture": ExtResource("12_gpjlu")
+}, {
+"duration": 1.0,
+"texture": ExtResource("13_8mwp6")
+}, {
+"duration": 1.0,
+"texture": ExtResource("14_qemgg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("15_8viyr")
+}],
+"loop": false,
+"name": &"push",
+"speed": 17.0
+}]
 
 [node name="Player" type="CharacterBody3D" groups=["player"]]
 script = ExtResource("1_l8h54")
@@ -14,10 +70,10 @@ downed_cam_offset_y = -0.95
 downed_invuln_seconds = 0.8
 
 [node name="Body" type="Sprite3D" parent="."]
-transform = Transform3D(0.035, 0, 0, 0, -1.5298985e-09, 0.035, 0, -0.035, -1.5298985e-09, 0, -0.42730194, -0.37083784)
+transform = Transform3D(0.055, 0, 0, 0, -2.4041265e-09, 0.055, 0, -0.055, -2.4041265e-09, 0, -0.34450436, -0.4299104)
 visible = false
-texture_filter = 4
-texture = ExtResource("2_4ntmi")
+texture_filter = 0
+texture = ExtResource("2_dkpta")
 
 [node name="Body_Down" type="Sprite3D" parent="."]
 transform = Transform3D(0.135, 0, 0, 0, 0.135, 0, 0, 0, 0.135, -0.19245908, -0.66381145, -0.3018834)
@@ -34,5 +90,22 @@ shape = SubResource("CapsuleShape3D_hvfyp")
 [node name="Camera" type="Camera3D" parent="Head"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
 
+[node name="ViewModel" type="Node3D" parent="Head/Camera"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.26720208, -0.20390713, -0.46859902)
+
+[node name="LeftArmPush" type="AnimatedSprite3D" parent="Head/Camera/ViewModel"]
+transform = Transform3D(0.08, 0, 0, 0, 0.08, 0, 0, 0, 0.08, -0.037247002, 0, 0.06386602)
+visible = false
+billboard = 1
+texture_filter = 0
+render_priority = 1
+sprite_frames = SubResource("SpriteFrames_btcbx")
+animation = &"push"
+frame = 11
+frame_progress = 1.0
+
 [node name="ShootRay" type="RayCast3D" parent="Head" groups=["player"]]
 target_position = Vector3(0, 0, -100)
+
+[node name="PushSfx" type="AudioStreamPlayer3D" parent="."]
+max_distance = 12.0

@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://dqgk2yf0bdgir"]
+[gd_scene load_steps=10 format=3 uid="uid://dqgk2yf0bdgir"]
 
 [ext_resource type="Script" uid="uid://cpn4u687x23t6" path="res://terminal.gd" id="1_yqvj0"]
 [ext_resource type="Texture2D" uid="uid://brax60tkshll8" path="res://Art/Terminals/Terminal1.png.png" id="2_xss3u"]
@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://dhhu5b8vkbyro" path="res://Art/Terminals/Back_Terminal.png" id="4_5xcm3"]
 [ext_resource type="Texture2D" uid="uid://b7ct8nfpjoeyr" path="res://Art/Terminals/Top_Terminal.png" id="5_drlkn"]
 [ext_resource type="Texture2D" uid="uid://b1ufs2vlxuop3" path="res://UI/InputE.png" id="6_xss3u"]
+[ext_resource type="AudioStream" uid="uid://byrut2dfpk1f0" path="res://Audio/SFX/LogStationSound.mp3" id="7_nhycj"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_0u45f"]
 size = Vector3(1, 1.8671875, 0.99050903)
@@ -61,3 +62,10 @@ texture = ExtResource("6_xss3u")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Solid"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0010986325, 1.1880722, -0.6563721)
 shape = SubResource("BoxShape3D_xss3u")
+
+[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("7_nhycj")
+volume_db = -22.0
+autoplay = true
+max_distance = 8.0
+parameters/looping = true

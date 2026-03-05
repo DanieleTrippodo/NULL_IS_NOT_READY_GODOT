@@ -15,13 +15,20 @@ var _dash_left: float = 0.0
 var _dash_cd: float = 0.0
 var _dash_dir: Vector3 = Vector3.ZERO
 
-# Knockback (perk shockwave)
+# Knockback (perk shockwave + push melee)
 var _knock: Vector3 = Vector3.ZERO
 @export var knock_decay: float = 22.0
 
 # Glitch (MVP)
-@onready var _mesh: Node3D = $MeshInstance3D
+@onready var _mesh: MeshInstance3D = $MeshInstance3D
 var _glitch_t: float = 0.0
+
+# PUSH / STUN
+var _stun_left: float = 0.0
+
+# Flash (on hit)
+var _flash_mat: StandardMaterial3D
+var _orig_override: Material = null
 
 func set_target(t: Node3D) -> void:
 	target = t
@@ -29,12 +36,46 @@ func set_target(t: Node3D) -> void:
 func add_knockback(v: Vector3) -> void:
 	_knock += v
 
+# Chiamata dal Player (RMB push)
+func apply_push(forward: Vector3, strength: float, lift: float, stun_seconds: float) -> void:
+	_stun_left = maxf(_stun_left, stun_seconds)
+
+	var dir := forward
+	dir.y = 0.0
+	if dir.length() > 0.001:
+		dir = dir.normalized()
+
+	_knock += dir * strength
+	velocity.y = maxf(velocity.y, lift)
+
+	_do_flash()
+
 func _physics_process(delta: float) -> void:
+	# STUN: freeze totale (niente AI / niente glitch / niente kill)
+	# Però knockback + gravità devono continuare (così il push si vede).
+	if _stun_left > 0.0:
+		_stun_left = maxf(_stun_left - delta, 0.0)
+
+		if is_instance_valid(_mesh):
+			_mesh.visible = true
+
+		velocity.x = _knock.x
+		velocity.z = _knock.z
+
+		if not is_on_floor():
+			velocity.y -= GRAVITY * delta
+		else:
+			velocity.y = -1.0
+
+		_knock = _knock.move_toward(Vector3.ZERO, knock_decay * delta)
+		move_and_slide()
+		return
+
 	if target == null:
 		return
 
 	_glitch_t += delta
-	if _mesh != null:
+	if is_instance_valid(_mesh):
 		# flicker leggero
 		_mesh.visible = int(_glitch_t * 24.0) % 7 != 0
 
@@ -99,3 +140,24 @@ func _physics_process(delta: float) -> void:
 	if global_position.distance_to(target.global_position) <= KILL_RADIUS:
 		var away2 := (target.global_position - global_position).normalized()
 		Signals.player_hit.emit(away2)
+
+func _do_flash() -> void:
+	if not is_instance_valid(_mesh):
+		return
+
+	if _flash_mat == null:
+		_flash_mat = StandardMaterial3D.new()
+		_flash_mat.emission_enabled = true
+		_flash_mat.emission = Color(1, 1, 1)
+		_flash_mat.albedo_color = Color(1, 1, 1)
+		_flash_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+
+	if _orig_override == null:
+		_orig_override = _mesh.material_override
+
+	_mesh.visible = true
+	_mesh.material_override = _flash_mat
+
+	await get_tree().create_timer(0.08).timeout
+	if is_instance_valid(_mesh):
+		_mesh.material_override = _orig_override
