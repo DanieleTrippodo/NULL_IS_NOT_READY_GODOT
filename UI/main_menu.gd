@@ -6,6 +6,7 @@ extends Control
 @onready var item_labels: Array[Label] = [
 	$UI/Center/RowWrap/Row/Left/Menu/ItemStart,
 	$UI/Center/RowWrap/Row/Left/Menu/ItemSettings,
+	$UI/Center/RowWrap/Row/Left/Menu/ItemTutorial,
 	$UI/Center/RowWrap/Row/Left/Menu/ItemExit
 ]
 
@@ -125,6 +126,9 @@ func _activate_current() -> void:
 			print("SETTINGS")
 			_restore_from_transition()
 		2:
+			# TUTORIAL
+			get_tree().change_scene_to_file("res://Game/tutorial_main.tscn")
+		3:
 			# EXIT
 			get_tree().quit()
 

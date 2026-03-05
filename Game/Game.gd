@@ -26,6 +26,8 @@ extends Node
 @export var terminal_log_scenes: Array[PackedScene] = []
 @export var terminal_every_n_depth: int = 3
 
+@export var tutorial_mode: bool = false
+
 var rng := RandomNumberGenerator.new()
 var terminal_instance: Node3D = null
 var terminal_overlay: CanvasLayer = null
@@ -507,16 +509,21 @@ func _on_enemy_killed(enemy: Node) -> void:
 	if enemies_alive <= 0:
 		_force_null_return()
 
-		Run.depth += 1
-		Signals.depth_changed.emit(Run.depth)
-
-		_set_state(ArenaState.POST_WAVE)
-
-		_spawn_money_rain()
-		_spawn_shop_portal()
-
+	if tutorial_mode:
+		# In tutorial non avanzi depth, non spawni soldi, non shop, non terminali.
 		_set_state(ArenaState.WAIT_START)
-		_maybe_spawn_terminal()
+		return
+
+	Run.depth += 1
+	Signals.depth_changed.emit(Run.depth)
+
+	_set_state(ArenaState.POST_WAVE)
+
+	_spawn_money_rain()
+	_spawn_shop_portal()
+
+	_set_state(ArenaState.WAIT_START)
+	_maybe_spawn_terminal()
 
 func _force_null_return() -> void:
 	if null_instance != null and is_instance_valid(null_instance):

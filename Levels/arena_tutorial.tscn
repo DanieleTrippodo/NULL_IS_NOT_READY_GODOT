@@ -1,0 +1,59 @@
+[gd_scene load_steps=7 format=3 uid="uid://bmh5v3pstny5c"]
+
+[ext_resource type="Texture2D" uid="uid://b0yc6digipfue" path="res://Levels/Floor.jpg" id="1_c58mu"]
+[ext_resource type="PackedScene" uid="uid://cqkyne466bpru" path="res://Interactables/tutorial_spawn_button.tscn" id="2_h6fp6"]
+[ext_resource type="PackedScene" uid="uid://cagjhpfgva4b6" path="res://Enemies/chaser.tscn" id="3_l8gg7"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_h6fp6"]
+size = Vector3(30, 1, 30)
+
+[sub_resource type="BoxMesh" id="BoxMesh_l8gg7"]
+size = Vector3(30, 1, 30)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nywap"]
+shading_mode = 0
+diffuse_mode = 3
+specular_mode = 1
+disable_ambient_light = true
+disable_fog = true
+disable_specular_occlusion = true
+albedo_texture = ExtResource("1_c58mu")
+uv1_scale = Vector3(64, 64, 64)
+stencil_flags = 2
+stencil_color = Color(1, 1, 1, 1)
+stencil_outline_thickness = 0.057
+
+[node name="ArenaTutorial" type="Node3D"]
+
+[node name="Floor" type="StaticBody3D" parent="."]
+transform = Transform3D(2.545, 0, 0, 0, 2.545, 0, 0, 0, 2.545, 0, 0, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("BoxShape3D_h6fp6")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+mesh = SubResource("BoxMesh_l8gg7")
+surface_material_override/0 = SubResource("StandardMaterial3D_nywap")
+
+[node name="SpawnPoints" type="Node3D" parent="."]
+
+[node name="Spawn_1" type="Marker3D" parent="SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.005056, 0, -8)
+
+[node name="Spawn_2" type="Marker3D" parent="SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.716835, 0, -8)
+
+[node name="Spawn_3" type="Marker3D" parent="SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 12.90403)
+
+[node name="PlayerSpawn" type="Marker3D" parent="SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.072753906)
+
+[node name="TerminalSpawn" type="Marker3D" parent="SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.9070253, 0.11398608, -3.6019473)
+
+[node name="TutorialSpawnButton" parent="." instance=ExtResource("2_h6fp6")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -17.965387)
+enemy_scene = ExtResource("3_l8gg7")

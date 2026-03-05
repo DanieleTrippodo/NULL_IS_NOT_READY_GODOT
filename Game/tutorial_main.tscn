@@ -1,0 +1,71 @@
+[gd_scene load_steps=23 format=3 uid="uid://db66pbuu3ii4u"]
+
+[ext_resource type="Script" uid="uid://pfb6mfm6lhf8" path="res://Game/Game.gd" id="1_0rotx"]
+[ext_resource type="PackedScene" uid="uid://bmh5v3pstny5c" path="res://Levels/arena_tutorial.tscn" id="2_0rotx"]
+[ext_resource type="PackedScene" uid="uid://c8uc2jlabtxn5" path="res://Player/player.tscn" id="3_htsq7"]
+[ext_resource type="PackedScene" uid="uid://dmowmk14plofq" path="res://Weapons/null_projectile.tscn" id="4_ra5rg"]
+[ext_resource type="PackedScene" uid="uid://cagjhpfgva4b6" path="res://Enemies/chaser.tscn" id="5_6dbyx"]
+[ext_resource type="PackedScene" uid="uid://dcwn63iuwth1h" path="res://Enemies/turret.tscn" id="6_xcyp1"]
+[ext_resource type="PackedScene" uid="uid://bivvuwcjgan2n" path="res://Enemies/spike.tscn" id="7_eblan"]
+[ext_resource type="PackedScene" uid="uid://ce0g720tmhwp6" path="res://Enemies/exception.tscn" id="8_88s0g"]
+[ext_resource type="PackedScene" uid="uid://d2t46kkawn2qv" path="res://Enemies/enemy_bullet.tscn" id="9_hkwxv"]
+[ext_resource type="PackedScene" uid="uid://ff6up5cjcaym" path="res://Pickups/money_cube.tscn" id="10_8lva8"]
+[ext_resource type="PackedScene" uid="uid://gshswk7putnj" path="res://Interactables/shop_portal.tscn" id="11_vd0t5"]
+[ext_resource type="PackedScene" uid="uid://dqgk2yf0bdgir" path="res://Interactables/terminal.tscn" id="12_0bg76"]
+[ext_resource type="PackedScene" uid="uid://c1oasgfwdd86n" path="res://UI/terminal_overlay.tscn" id="13_rfjwq"]
+[ext_resource type="PackedScene" uid="uid://d0vplx8ahi2jp" path="res://UI/log_01.tscn" id="14_dnhxd"]
+[ext_resource type="PackedScene" uid="uid://dlignrjkutci0" path="res://UI/log_02.tscn" id="15_dm6cm"]
+[ext_resource type="PackedScene" uid="uid://bwenhpdd8ynhc" path="res://UI/log_03.tscn" id="16_apice"]
+[ext_resource type="PackedScene" uid="uid://bdnvevac4p2fh" path="res://UI/log_04.tscn" id="17_prlci"]
+[ext_resource type="PackedScene" uid="uid://cxydsp1rqodpm" path="res://UI/log_05.tscn" id="18_c02gb"]
+[ext_resource type="PackedScene" uid="uid://cyhtuqa1pdl7b" path="res://UI/log_06.tscn" id="19_yiwbl"]
+[ext_resource type="PackedScene" uid="uid://bhkaynd3qjg8j" path="res://UI/hud.tscn" id="20_lsedi"]
+[ext_resource type="AudioStream" uid="uid://mh2uti7himha" path="res://Audio/SFX/KillSound.mp3" id="21_v4bmq"]
+
+[sub_resource type="Environment" id="Environment_3xx61"]
+background_mode = 1
+ambient_light_source = 2
+ambient_light_color = Color(0.98234254, 0.9823423, 0.9823424, 1)
+
+[node name="Node" type="Node"]
+script = ExtResource("1_0rotx")
+arena_scene = ExtResource("2_0rotx")
+player_scene = ExtResource("3_htsq7")
+null_projectile_scene = ExtResource("4_ra5rg")
+chaser_scene = ExtResource("5_6dbyx")
+turret_scene = ExtResource("6_xcyp1")
+spike_scene = ExtResource("7_eblan")
+exception_scene = ExtResource("8_88s0g")
+enemy_bullet_scene = ExtResource("9_hkwxv")
+money_cube_scene = ExtResource("10_8lva8")
+shop_portal_scene = ExtResource("11_vd0t5")
+terminal_scene = ExtResource("12_0bg76")
+terminal_overlay_scene = ExtResource("13_rfjwq")
+terminal_log_scenes = Array[PackedScene]([ExtResource("14_dnhxd"), ExtResource("15_dm6cm"), ExtResource("16_apice"), ExtResource("17_prlci"), ExtResource("18_c02gb"), ExtResource("19_yiwbl")])
+tutorial_mode = true
+money_max = 11
+money_spawn_radius = 5.0
+magnet_radius = 3.0
+
+[node name="World" type="Node3D" parent="."]
+
+[node name="ArenaRoot" type="Node3D" parent="World"]
+
+[node name="PlayerRoot" type="Node3D" parent="World"]
+
+[node name="EnemiesRoot" type="Node3D" parent="World"]
+
+[node name="UIRoot" type="CanvasLayer" parent="."]
+
+[node name="HUD" parent="UIRoot" instance=ExtResource("20_lsedi")]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.02476363, 0.99969333, 0, -0.99969333, 0.02476363, 0, 2.0265074, 0)
+directional_shadow_mode = 0
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_3xx61")
+
+[node name="KillSfx" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("21_v4bmq")
+volume_db = -6.0

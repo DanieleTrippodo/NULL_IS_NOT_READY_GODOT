@@ -1,0 +1,54 @@
+[gd_scene load_steps=6 format=3 uid="uid://cqkyne466bpru"]
+
+[ext_resource type="Script" uid="uid://bf56vh5r13nge" path="res://Interactables/tutorial_spawn_button.gd" id="1_5ufhi"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_h36mv"]
+size = Vector3(1, 1.5598145, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_5ufhi"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5ufhi"]
+render_priority = 1
+transparency = 1
+shading_mode = 0
+grow = true
+grow_amount = 0.04
+stencil_mode = 3
+stencil_flags = 1
+stencil_compare = 5
+metadata/_stencil_owned = true
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_t6jl4"]
+next_pass = SubResource("StandardMaterial3D_5ufhi")
+shading_mode = 0
+diffuse_mode = 3
+specular_mode = 1
+albedo_color = Color(0, 0, 0, 1)
+stencil_mode = 1
+stencil_flags = 2
+stencil_color = Color(1, 1, 1, 1)
+stencil_outline_thickness = 0.04
+
+[node name="TutorialSpawnButton" type="Area3D"]
+script = ExtResource("1_5ufhi")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5819092, 0)
+shape = SubResource("BoxShape3D_h36mv")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.40968594, 0, 0, 0, 0.44516435, 0, 0, 0, 0.38617477, 0, 0.37188524, 0)
+mesh = SubResource("CylinderMesh_5ufhi")
+surface_material_override/0 = SubResource("StandardMaterial3D_t6jl4")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="MeshInstance3D"]
+transform = Transform3D(0.665, 0, 0, 0, 0.369, 0, 0, 0, 0.66, 0, 0.7796412, 0)
+mesh = SubResource("CylinderMesh_5ufhi")
+surface_material_override/0 = SubResource("StandardMaterial3D_t6jl4")
+
+[node name="SpawnPoint" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -5.022021)
+
+[node name="Label3D" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.17668, 0)
+text = "SPAWN Enemy"
