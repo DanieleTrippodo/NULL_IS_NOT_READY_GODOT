@@ -23,13 +23,9 @@ theme_override_constants/separation = 10
 
 [node name="Header" type="Label" parent="VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = "M.A.M.M.A. // TRAINING
-PROTOCOL: CONSTRAINT
-EVENT: TERMINAL ACCESS
-RESOURCE: NULL
-COUNT: 1
-RECOVERY: MANDATORY"
+theme_override_font_sizes/font_size = 32
+text = "BOX REPORT // ERROR ANALYSIS
+EVENT: MISS DETECTED"
 
 [node name="Separator" type="Label" parent="VBox"]
 layout_mode = 2
@@ -40,16 +36,30 @@ clip_text = true
 [node name="Body" type="RichTextLabel" parent="VBox"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_font_sizes/normal_font_size = 22
-theme_override_font_sizes/bold_font_size = 24
-theme_override_font_sizes/bold_italics_font_size = 24
-theme_override_font_sizes/italics_font_size = 20
-theme_override_font_sizes/mono_font_size = 24
-text = "XXXx"
+theme_override_font_sizes/normal_font_size = 34
+theme_override_font_sizes/bold_font_size = 34
+theme_override_font_sizes/bold_italics_font_size = 34
+theme_override_font_sizes/italics_font_size = 34
+theme_override_font_sizes/mono_font_size = 34
+text = "[BOX]: Projectile lost.
+
+[BOX]: Subject hesitation detected.
+
+[M.A.M.M.A.]: Continue observation.
+
+[BOX]: Clarification requested.
+
+[M.A.M.M.A.]: Recovery is the lesson. Not accuracy.
+
+[BOX]: Noted.
+
+BOX]: QUESTION _ does failure occur when the mistake happens,
+or when movement stops?"
 scroll_active = false
 
 [node name="LogIndex" type="Label" parent="VBox"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 32
 text = "LOG 4/9"
 
 [node name="LogSFX" type="AudioStreamPlayer" parent="."]

@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://ff6up5cjcaym"]
+[gd_scene load_steps=5 format=3 uid="uid://ff6up5cjcaym"]
 
 [ext_resource type="Script" uid="uid://cskbx215au08" path="res://Pickups/money_cube.gd" id="1_bk1g1"]
 [ext_resource type="Texture2D" uid="uid://duoktrt4k7npc" path="res://Pickups/CubesMoney.png" id="2_16n4a"]
+[ext_resource type="AudioStream" uid="uid://c6xa745ie6mo5" path="res://Audio/SFX/CubePickUp.mp3" id="3_n725t"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_16n4a"]
 size = Vector3(1, 0.8348999, 1)
@@ -20,3 +21,4 @@ texture_filter = 0
 texture = ExtResource("2_16n4a")
 
 [node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("3_n725t")

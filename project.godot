@@ -28,6 +28,10 @@ Run="*res://Game/Run.gd"
 
 window/size/mode=3
 
+[gui]
+
+theme/custom_font="uid://cd7edkymfqydv"
+
 [input]
 
 move_forward={

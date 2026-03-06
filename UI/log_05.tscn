@@ -23,13 +23,8 @@ theme_override_constants/separation = 10
 
 [node name="Header" type="Label" parent="VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = "M.A.M.M.A. // TRAINING
-PROTOCOL: CONSTRAINT
-EVENT: TERMINAL ACCESS
-RESOURCE: NULL
-COUNT: 1
-RECOVERY: MANDATORY"
+theme_override_font_sizes/font_size = 32
+text = "BOX REPORT // EDGE CONTACT"
 
 [node name="Separator" type="Label" parent="VBox"]
 layout_mode = 2
@@ -40,16 +35,27 @@ clip_text = true
 [node name="Body" type="RichTextLabel" parent="VBox"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_font_sizes/normal_font_size = 22
-theme_override_font_sizes/bold_font_size = 24
-theme_override_font_sizes/bold_italics_font_size = 24
-theme_override_font_sizes/italics_font_size = 20
-theme_override_font_sizes/mono_font_size = 24
-text = "XXXxx"
+theme_override_font_sizes/normal_font_size = 34
+theme_override_font_sizes/bold_font_size = 34
+theme_override_font_sizes/bold_italics_font_size = 34
+theme_override_font_sizes/italics_font_size = 34
+theme_override_font_sizes/mono_font_size = 34
+text = "[BOX]: Subject interacting with boundary surface.
+
+[BOX]: Boundary response: none.
+
+[M.A.M.M.A.]: Expected.
+
+[BOX]: Subject repeats contact.
+
+[M.A.M.M.A.]: Ignore.
+
+[BOX]: QUESTION _ why do intelligent entities request permission from walls?"
 scroll_active = false
 
 [node name="LogIndex" type="Label" parent="VBox"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 32
 text = "LOG 5/9"
 
 [node name="LogSFX" type="AudioStreamPlayer" parent="."]

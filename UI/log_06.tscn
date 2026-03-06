@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://cyhtuqa1pdl7b"]
+[gd_scene load_steps=3 format=3 uid="uid://cyhtuqa1pdl7b"]
 
 [ext_resource type="AudioStream" uid="uid://wcnr40kvcf5r" path="res://Audio/SFX/LogComputer.mp3" id="1_q5uxb"]
+[ext_resource type="AudioStream" uid="uid://d3ptsvur60byg" path="res://Audio/SFX/breath.mp3" id="2_v7of2"]
 
 [node name="Log06" type="Control"]
 layout_mode = 3
@@ -23,13 +24,8 @@ theme_override_constants/separation = 10
 
 [node name="Header" type="Label" parent="VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = "M.A.M.M.A. // TRAINING
-PROTOCOL: CONSTRAINT
-EVENT: TERMINAL ACCESS
-RESOURCE: NULL
-COUNT: 1
-RECOVERY: MANDATORY"
+theme_override_font_sizes/font_size = 32
+text = "BOX REPORT // AUDIO ANOMALY"
 
 [node name="Separator" type="Label" parent="VBox"]
 layout_mode = 2
@@ -40,20 +36,37 @@ clip_text = true
 [node name="Body" type="RichTextLabel" parent="VBox"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_font_sizes/normal_font_size = 22
-theme_override_font_sizes/bold_font_size = 24
-theme_override_font_sizes/bold_italics_font_size = 24
-theme_override_font_sizes/italics_font_size = 20
-theme_override_font_sizes/mono_font_size = 24
-text = "XXXxxx"
+theme_override_font_sizes/normal_font_size = 34
+theme_override_font_sizes/bold_font_size = 34
+theme_override_font_sizes/bold_italics_font_size = 34
+theme_override_font_sizes/italics_font_size = 34
+theme_override_font_sizes/mono_font_size = 34
+text = "[BOX]: Respiration-like waveform detected.
+
+[BOX]: Chamber hardware contains no respiratory systems.
+
+[M.A.M.M.A].: Log anomaly. Continue training.
+
+[BOX]: Advisory issued — If you hear the system “breathing”, ignore it.
+It is not supposed to have lungs.
+
+[BOX]: QUESTION _ if something breathes inside a sealed machine,
+what exactly is alive?"
 scroll_active = false
 
 [node name="LogIndex" type="Label" parent="VBox"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 32
 text = "LOG 6/9"
 
 [node name="LogSFX" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("1_q5uxb")
+volume_db = 0.03
+autoplay = true
+parameters/looping = true
+
+[node name="BreathSFX" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_v7of2")
 volume_db = 0.03
 autoplay = true
 parameters/looping = true

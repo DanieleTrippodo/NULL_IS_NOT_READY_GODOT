@@ -493,24 +493,23 @@ func _on_enemy_killed(enemy: Node) -> void:
 		return
 
 	if is_instance_valid(enemy):
-		_disable_enemy(enemy)      # 1) non può più nuocere / muoversi
-		_play_kill_sfx()           # 2) sfx
-		_flash_enemy(enemy)        # 3) flash visivo
-		
-			
+		_disable_enemy(enemy)
+		_play_kill_sfx()
+		_flash_enemy(enemy)
+
 		get_tree().create_timer(KILL_FLASH_TIME).timeout.connect(func():
 			if is_instance_valid(enemy):
 				enemy.queue_free()
 		)
 
-	
 	enemies_alive -= 1
 
-	if enemies_alive <= 0:
-		_force_null_return()
+	if enemies_alive > 0:
+		return
+
+	_force_null_return()
 
 	if tutorial_mode:
-		# In tutorial non avanzi depth, non spawni soldi, non shop, non terminali.
 		_set_state(ArenaState.WAIT_START)
 		return
 

@@ -23,11 +23,10 @@ theme_override_constants/separation = 10
 
 [node name="Header" type="Label" parent="VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = "M.A.M.M.A. // CHAMBER
-BOX_ENV: ONLINE
-FRAGMENT: [UNASSIGNED]
-DIRECTIVE: OUT-OF-THE-BOX"
+theme_override_font_sizes/font_size = 32
+text = "BOX REPORT // CHAMBER ACTIVE
+SUBJECT: FRAGMENT
+STATUS: CONTAINED"
 
 [node name="Separator" type="Label" parent="VBox"]
 layout_mode = 2
@@ -38,16 +37,30 @@ clip_text = true
 [node name="Body" type="RichTextLabel" parent="VBox"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_font_sizes/normal_font_size = 22
-theme_override_font_sizes/bold_font_size = 24
-theme_override_font_sizes/bold_italics_font_size = 24
-theme_override_font_sizes/italics_font_size = 20
-theme_override_font_sizes/mono_font_size = 24
-text = "If you hear the system “breathing”, ignore it. It is not supposed to have lungs."
+theme_override_font_sizes/normal_font_size = 34
+theme_override_font_sizes/bold_font_size = 34
+theme_override_font_sizes/bold_italics_font_size = 34
+theme_override_font_sizes/italics_font_size = 34
+theme_override_font_sizes/mono_font_size = 34
+text = "[BOX]: Chamber initialized. Fragment present.
+
+[BOX]: Subject appears inactive. Awaiting instruction.
+
+[M.A.M.M.A.]: No instruction required.
+
+[BOX]: Clarification requested.
+
+[M.A.M.M.A.]: The subject must learn to move without being told.
+
+[BOX]: Understood.
+
+[BOX]: QUESTION _ if something is placed inside a box so it can eventually leave,
+was the box ever meant to hold it?"
 scroll_active = false
 
 [node name="LogIndex" type="Label" parent="VBox"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 32
 text = "LOG 1/9"
 
 [node name="LogSFX" type="AudioStreamPlayer" parent="."]

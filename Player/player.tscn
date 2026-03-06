@@ -1,20 +1,22 @@
-[gd_scene load_steps=18 format=3 uid="uid://c8uc2jlabtxn5"]
+[gd_scene load_steps=20 format=3 uid="uid://c8uc2jlabtxn5"]
 
 [ext_resource type="Script" uid="uid://dhtpslx53p3b5" path="res://Player/player.gd" id="1_l8h54"]
 [ext_resource type="Texture2D" uid="uid://8l8fnewfoi4l" path="res://Player/Nullabreast.png" id="2_dkpta"]
 [ext_resource type="Texture2D" uid="uid://ck42bify45vkc" path="res://Player/Body_Down.png" id="3_btcbx"]
-[ext_resource type="Texture2D" uid="uid://bcw7yfdlyoonx" path="res://Player/pushAnimation/Frame0.png" id="4_dkpta"]
-[ext_resource type="Texture2D" uid="uid://bg1iu33imowcn" path="res://Player/pushAnimation/Frame1.png" id="5_lfmf2"]
-[ext_resource type="Texture2D" uid="uid://brhfqpp64uask" path="res://Player/pushAnimation/Frame2.png" id="6_pisgm"]
-[ext_resource type="Texture2D" uid="uid://dxfwbc5t65t8r" path="res://Player/pushAnimation/Frame3.png" id="7_b1ygp"]
-[ext_resource type="Texture2D" uid="uid://cf7hcmifnaghk" path="res://Player/pushAnimation/Frame4.png" id="8_o28un"]
-[ext_resource type="Texture2D" uid="uid://bdkx3h27u7vo1" path="res://Player/pushAnimation/Frame5.png" id="9_n471f"]
-[ext_resource type="Texture2D" uid="uid://brss5jsqv0y48" path="res://Player/pushAnimation/Frame6.png" id="10_7emwf"]
-[ext_resource type="Texture2D" uid="uid://bkil8h2kmest" path="res://Player/pushAnimation/Frame7.png" id="11_hshwv"]
-[ext_resource type="Texture2D" uid="uid://5ax4wqf2s0xe" path="res://Player/pushAnimation/Frame8.png" id="12_gpjlu"]
-[ext_resource type="Texture2D" uid="uid://c1e5w8qwcu566" path="res://Player/pushAnimation/Frame9.png" id="13_8mwp6"]
-[ext_resource type="Texture2D" uid="uid://c2j53fk6vbhvq" path="res://Player/pushAnimation/Frame10.png" id="14_qemgg"]
-[ext_resource type="Texture2D" uid="uid://dmft5xplpx8ai" path="res://Player/pushAnimation/Frame11.png" id="15_8viyr"]
+[ext_resource type="Texture2D" uid="uid://b04yl61hoqrjn" path="res://Player/pushAnimation/Frame0.png" id="4_dkpta"]
+[ext_resource type="Texture2D" uid="uid://clvlpki0s7b8d" path="res://Player/pushAnimation/Frame1.png" id="5_lfmf2"]
+[ext_resource type="Texture2D" uid="uid://cw1e0pir0idc4" path="res://Player/pushAnimation/Frame2.png" id="6_pisgm"]
+[ext_resource type="Texture2D" uid="uid://dto40o3s0411u" path="res://Player/pushAnimation/Frame3.png" id="7_b1ygp"]
+[ext_resource type="Texture2D" uid="uid://brs6yo7xjxhye" path="res://Player/pushAnimation/Frame4.png" id="8_o28un"]
+[ext_resource type="Texture2D" uid="uid://u3fg0vx2iwwe" path="res://Player/pushAnimation/Frame5.png" id="9_n471f"]
+[ext_resource type="Texture2D" uid="uid://b6qx6wk6b6g08" path="res://Player/pushAnimation/Frame6.png" id="10_7emwf"]
+[ext_resource type="Texture2D" uid="uid://cpu4w5qtsnk1j" path="res://Player/pushAnimation/Frame7.png" id="11_hshwv"]
+[ext_resource type="Texture2D" uid="uid://bo8mxawqnmhy5" path="res://Player/pushAnimation/Frame8.png" id="12_gpjlu"]
+[ext_resource type="Texture2D" uid="uid://d4fv3x5qqeqeu" path="res://Player/pushAnimation/Frame9.png" id="13_8mwp6"]
+[ext_resource type="Texture2D" uid="uid://c0kb20ptwgt8w" path="res://Player/pushAnimation/Frame10.png" id="14_qemgg"]
+[ext_resource type="Texture2D" uid="uid://c3fpbcv1s842r" path="res://Player/pushAnimation/Frame11.png" id="15_8viyr"]
+[ext_resource type="Texture2D" uid="uid://dodmu4nv3yp52" path="res://Player/pushAnimation/Frame12.png" id="16_pisgm"]
+[ext_resource type="Texture2D" uid="uid://d23i2gw17tmi5" path="res://Player/pushAnimation/Frame13.png" id="17_b1ygp"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_hvfyp"]
 
@@ -56,10 +58,16 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": ExtResource("15_8viyr")
+}, {
+"duration": 1.0,
+"texture": ExtResource("16_pisgm")
+}, {
+"duration": 1.0,
+"texture": ExtResource("17_b1ygp")
 }],
 "loop": false,
 "name": &"push",
-"speed": 17.0
+"speed": 20.0
 }]
 
 [node name="Player" type="CharacterBody3D" groups=["player"]]
@@ -101,7 +109,7 @@ texture_filter = 0
 render_priority = 1
 sprite_frames = SubResource("SpriteFrames_btcbx")
 animation = &"push"
-frame = 11
+frame = 13
 frame_progress = 1.0
 
 [node name="ShootRay" type="RayCast3D" parent="Head" groups=["player"]]

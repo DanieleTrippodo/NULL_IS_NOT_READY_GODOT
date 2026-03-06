@@ -23,13 +23,10 @@ theme_override_constants/separation = 10
 
 [node name="Header" type="Label" parent="VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = "M.A.M.M.A. // TRAINING
-PROTOCOL: CONSTRAINT
-EVENT: TERMINAL ACCESS
+theme_override_font_sizes/font_size = 32
+text = "BOX REPORT // LOADOUT CHECK
 RESOURCE: NULL
-COUNT: 1
-RECOVERY: MANDATORY"
+ALLOCATION: 1"
 
 [node name="Separator" type="Label" parent="VBox"]
 layout_mode = 2
@@ -40,34 +37,29 @@ clip_text = true
 [node name="Body" type="RichTextLabel" parent="VBox"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_font_sizes/normal_font_size = 22
-theme_override_font_sizes/bold_font_size = 24
-theme_override_font_sizes/bold_italics_font_size = 24
-theme_override_font_sizes/italics_font_size = 20
-theme_override_font_sizes/mono_font_size = 24
-text = "Resource allocation restricted to one unit.
+theme_override_font_sizes/normal_font_size = 34
+theme_override_font_sizes/bold_font_size = 34
+theme_override_font_sizes/bold_italics_font_size = 34
+theme_override_font_sizes/italics_font_size = 34
+theme_override_font_sizes/mono_font_size = 34
+text = "[BOX]: Subject equipped with one projectile.
 
-Excess supply produces false competence.
-OUTSIDE punishes false competence with silence.
+[BOX]: Additional ammunition unavailable.
 
-Constraint forces:
+[M.A.M.M.A.]: Correct.
 
-> intention before action
+[BOX]: Probability of failure increased.
 
-> placement before aggression
+[M.A.M.M.A.]: That is the purpose.
 
-> recovery before comfort
+[BOX]: QUESTION _ does scarcity improve decision making?
 
-When the Null leaves your hand,
-the cube measures what remains of you.
-
-Do not confuse readiness with possession.
-Possession is temporary.
-Readiness is behavior."
+[M.A.M.M.A.]: Scarcity reveals it."
 scroll_active = false
 
 [node name="LogIndex" type="Label" parent="VBox"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 32
 text = "LOG 2/9"
 
 [node name="LogSFX" type="AudioStreamPlayer" parent="."]

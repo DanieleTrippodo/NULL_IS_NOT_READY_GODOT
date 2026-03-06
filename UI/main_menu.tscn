@@ -12,11 +12,11 @@
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_f40uw"]
 shader = ExtResource("2_4cwpn")
 shader_parameter/density = 55.38
-shader_parameter/speed = 0.06
+shader_parameter/speed = 0.845
 shader_parameter/size = 0.075
-shader_parameter/jitter = 0.305
-shader_parameter/intensity = 0.58
-shader_parameter/softness = 1.135
+shader_parameter/jitter = 1.25
+shader_parameter/intensity = 0.445
+shader_parameter/softness = 0.74
 shader_parameter/drift = Vector2(0.03, 1)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_8ctay"]
@@ -72,6 +72,7 @@ size_flags_vertical = 3
 theme_override_constants/margin_left = 24
 theme_override_constants/margin_top = 24
 theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 26
 
 [node name="RowWrap" type="Control" parent="UI/Center"]
 layout_mode = 2
@@ -91,7 +92,7 @@ layout_mode = 2
 size_flags_horizontal = 0
 
 [node name="Title" type="TextureRect" parent="UI/Center/RowWrap/Row/Left"]
-custom_minimum_size = Vector2(250.99, 167.175)
+custom_minimum_size = Vector2(320, 167.175)
 layout_mode = 2
 texture = ExtResource("2_tk8dj")
 expand_mode = 1
@@ -103,22 +104,22 @@ size_flags_horizontal = 0
 
 [node name="ItemStart" type="Label" parent="UI/Center/RowWrap/Row/Left/Menu"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 42
 text = "START"
 
 [node name="ItemSettings" type="Label" parent="UI/Center/RowWrap/Row/Left/Menu"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 42
 text = "SETTINGS"
 
 [node name="ItemTutorial" type="Label" parent="UI/Center/RowWrap/Row/Left/Menu"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 42
 text = "TUTORIAL // DEBUG"
 
 [node name="ItemExit" type="Label" parent="UI/Center/RowWrap/Row/Left/Menu"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 42
 text = "EXIT"
 
 [node name="Spacer" type="Control" parent="UI/Center/RowWrap/Row/Left"]
@@ -128,7 +129,8 @@ size_flags_vertical = 3
 
 [node name="Footer" type="Label" parent="UI/Center/RowWrap/Row/Left"]
 layout_mode = 2
-text = "v0.1.0 © 2026 DDD"
+theme_override_font_sizes/font_size = 24
+text = "   v0.1.0 © 2026 DDD"
 
 [node name="Fill" type="Control" parent="UI/Center/RowWrap/Row"]
 custom_minimum_size = Vector2(800, 0)

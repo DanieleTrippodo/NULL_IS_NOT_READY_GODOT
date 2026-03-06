@@ -23,13 +23,9 @@ theme_override_constants/separation = 10
 
 [node name="Header" type="Label" parent="VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = "M.A.M.M.A. // TRAINING
-PROTOCOL: CONSTRAINT
-EVENT: TERMINAL ACCESS
-RESOURCE: NULL
-COUNT: 1
-RECOVERY: MANDATORY"
+theme_override_font_sizes/font_size = 32
+text = "BOX REPORT // SIMULATION ACTIVE
+ENTITIES: DEPLOYED"
 
 [node name="Separator" type="Label" parent="VBox"]
 layout_mode = 2
@@ -40,16 +36,29 @@ clip_text = true
 [node name="Body" type="RichTextLabel" parent="VBox"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_font_sizes/normal_font_size = 22
-theme_override_font_sizes/bold_font_size = 24
-theme_override_font_sizes/bold_italics_font_size = 24
-theme_override_font_sizes/italics_font_size = 20
-theme_override_font_sizes/mono_font_size = 24
-text = "XXX"
+theme_override_font_sizes/normal_font_size = 34
+theme_override_font_sizes/bold_font_size = 34
+theme_override_font_sizes/bold_italics_font_size = 34
+theme_override_font_sizes/italics_font_size = 34
+theme_override_font_sizes/mono_font_size = 34
+text = "[BOX]: Hostile entities entering chamber.
+
+[M.A.M.M.A.]: Correction. Not hostile.
+
+[BOX]: Clarify designation.
+
+[M.A.M.M.A.]: Pressure.
+
+[BOX]: Pressure applied through pursuit behavior.
+
+[BOX]: Subject response indicates perception of threat.
+
+[BOX]: QUESTION _ if something chases you without intention, is the fear still justified?"
 scroll_active = false
 
 [node name="LogIndex" type="Label" parent="VBox"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 32
 text = "LOG 3/9"
 
 [node name="LogSFX" type="AudioStreamPlayer" parent="."]

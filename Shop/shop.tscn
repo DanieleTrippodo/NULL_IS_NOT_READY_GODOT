@@ -1,7 +1,21 @@
-[gd_scene load_steps=3 format=3 uid="uid://bom7nxs26mskb"]
+[gd_scene load_steps=6 format=3 uid="uid://bom7nxs26mskb"]
 
 [ext_resource type="Script" uid="uid://d3geaeciapu8a" path="res://shop.gd" id="1_qlv7h"]
 [ext_resource type="PackedScene" uid="uid://88p81m1sehnq" path="res://Interactables/exit_portal.tscn" id="2_6mmxm"]
+[ext_resource type="Shader" uid="uid://ccfpct2g6l5y2" path="res://Shop/shop.gdshader" id="2_nunvh"]
+[ext_resource type="AudioStream" uid="uid://bgv7pwg7lv83i" path="res://Audio/BGM/ShopOST.mp3" id="3_6mmxm"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_u3phx"]
+shader = ExtResource("2_nunvh")
+shader_parameter/darkness = 0.22
+shader_parameter/noise_strength = 0.035
+shader_parameter/flicker_strength = 0.025
+shader_parameter/scanline_strength = 0.1
+shader_parameter/scanline_density = 900.0
+shader_parameter/refresh_strength = 0.1
+shader_parameter/refresh_speed = 0.4370000207575
+shader_parameter/refresh_thickness = 0.035
+shader_parameter/tint = Vector3(0.82, 0.88, 0.84)
 
 [node name="Shop" type="Control"]
 layout_mode = 3
@@ -11,6 +25,27 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_qlv7h")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.3328807, 0.33288068, 0.33288068, 1)
+
+[node name="TVStaticOverlay" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_u3phx")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.18000486, 0.18000486, 0.18000486, 1)
 
 [node name="CardsRow" type="HBoxContainer" parent="."]
 layout_mode = 1
@@ -90,3 +125,9 @@ autowrap_mode = 2
 layout_mode = 2
 fit_content = true
 scroll_active = false
+
+[node name="ShopBGM" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3_6mmxm")
+volume_db = -10.0
+autoplay = true
+parameters/looping = true
