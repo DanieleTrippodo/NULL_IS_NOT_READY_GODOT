@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3 uid="uid://c8uc2jlabtxn5"]
+[gd_scene load_steps=22 format=3 uid="uid://c8uc2jlabtxn5"]
 
 [ext_resource type="Script" uid="uid://dhtpslx53p3b5" path="res://Player/player.gd" id="1_l8h54"]
 [ext_resource type="Texture2D" uid="uid://8l8fnewfoi4l" path="res://Player/Nullabreast.png" id="2_dkpta"]
@@ -17,6 +17,8 @@
 [ext_resource type="Texture2D" uid="uid://c3fpbcv1s842r" path="res://Player/pushAnimation/Frame11.png" id="15_8viyr"]
 [ext_resource type="Texture2D" uid="uid://dodmu4nv3yp52" path="res://Player/pushAnimation/Frame12.png" id="16_pisgm"]
 [ext_resource type="Texture2D" uid="uid://d23i2gw17tmi5" path="res://Player/pushAnimation/Frame13.png" id="17_b1ygp"]
+[ext_resource type="Texture2D" uid="uid://bam2bjgu263yy" path="res://Player/Hand.png" id="18_b1ygp"]
+[ext_resource type="Texture2D" uid="uid://bnitp82n0jibx" path="res://Player/ShootRing.png" id="19_o28un"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_hvfyp"]
 
@@ -78,9 +80,10 @@ downed_cam_offset_y = -0.95
 downed_invuln_seconds = 0.8
 
 [node name="Body" type="Sprite3D" parent="."]
-transform = Transform3D(0.055, 0, 0, 0, -2.4041265e-09, 0.055, 0, -0.055, -2.4041265e-09, 0, -0.34450436, -0.4299104)
+transform = Transform3D(0.069, 0, 0, 0, -3.0160858e-09, 0.069, 0, -0.069, -3.0160858e-09, 0, -0.34450436, -0.43808374)
 visible = false
 texture_filter = 0
+render_priority = 1
 texture = ExtResource("2_dkpta")
 
 [node name="Body_Down" type="Sprite3D" parent="."]
@@ -111,6 +114,18 @@ sprite_frames = SubResource("SpriteFrames_btcbx")
 animation = &"push"
 frame = 13
 frame_progress = 1.0
+
+[node name="Hand" type="Sprite3D" parent="Head/Camera/ViewModel"]
+transform = Transform3D(0.03, 0, 0, 0, 0.03, 0, 0, 0, 0.03, 0.6909939, -0.06382388, 0.067738324)
+billboard = 1
+texture_filter = 0
+render_priority = 1
+texture = ExtResource("18_b1ygp")
+
+[node name="ShootRing" type="Sprite3D" parent="Head/Camera/ViewModel"]
+transform = Transform3D(0.004, 0, 0, 0, 0.004, 0, 0, 0, 0.004, 0.5839122, 0.039703667, 0.071623564)
+visible = false
+texture = ExtResource("19_o28un")
 
 [node name="ShootRay" type="RayCast3D" parent="Head" groups=["player"]]
 target_position = Vector3(0, 0, -100)

@@ -7,6 +7,8 @@ extends CharacterBody3D
 @onready var body_sprite: Sprite3D = $Body
 @onready var body_down_sprite: Sprite3D = $Body_Down
 @onready var left_arm_push: AnimatedSprite3D = $Head/Camera/ViewModel/LeftArmPush
+@onready var hand: Sprite3D = $Head/Camera/ViewModel/Hand
+@onready var shoot_ring: Sprite3D = $Head/Camera/ViewModel/ShootRing
 
 enum PState { NORMAL, KNOCKBACK, DOWNED }
 
@@ -83,6 +85,56 @@ const DASH_DURATION: float = 0.12
 const DASH_COOLDOWN: float = 0.9
 const DASH_STRENGTH: float = 14.0
 
+@export_group("Hand Bob")
+@export var hand_bob_enabled: bool = true
+@export_range(0.0, 20.0, 0.1) var hand_bob_speed: float = 10.0
+@export_range(0.0, 0.2, 0.001) var hand_bob_amp_x: float = 0.012
+@export_range(0.0, 0.2, 0.001) var hand_bob_amp_y: float = 0.014
+@export_range(0.0, 10.0, 0.1) var hand_bob_rot_z_deg: float = 2.0
+
+@export_group("Hand Idle")
+@export var hand_idle_enabled: bool = true
+@export_range(0.0, 10.0, 0.1) var hand_idle_speed: float = 1.6
+@export_range(0.0, 0.05, 0.0005) var hand_idle_amp_y: float = 0.006
+@export_range(0.0, 5.0, 0.1) var hand_idle_rot_z_deg: float = 0.6
+
+@export_group("Hand Sway")
+@export var hand_sway_enabled: bool = true
+@export_range(0.0, 0.1, 0.0005) var hand_sway_pos_amount: float = 0.012
+@export_range(0.0, 20.0, 0.1) var hand_sway_rot_deg: float = 4.0
+@export_range(0.0, 30.0, 0.1) var hand_sway_return_speed: float = 10.0
+
+@export_group("Body Idle")
+@export var body_idle_enabled: bool = true
+@export_range(0.0, 10.0, 0.1) var body_idle_speed: float = 1.5
+@export_range(0.0, 0.1, 0.0005) var body_idle_amp_y: float = 0.01
+@export_range(0.0, 10.0, 0.1) var body_idle_rot_deg: float = 0.8
+
+@export_group("Body Walk")
+@export var body_walk_enabled: bool = true
+@export_range(0.0, 20.0, 0.1) var body_walk_speed: float = 7.0
+@export_range(0.0, 0.1, 0.0005) var body_walk_amp_x: float = 0.008
+@export_range(0.0, 0.1, 0.0005) var body_walk_amp_y: float = 0.012
+@export_range(0.0, 10.0, 0.1) var body_walk_rot_deg: float = 1.2
+
+var _hand_base_pos: Vector3 = Vector3.ZERO
+var _hand_base_rot: Vector3 = Vector3.ZERO
+var _hand_tween: Tween
+var _hand_bob_t: float = 0.0
+var _hand_look_input: Vector2 = Vector2.ZERO
+var _hand_sway_pos: Vector3 = Vector3.ZERO
+var _hand_sway_rot: Vector3 = Vector3.ZERO
+var _hand_idle_t: float = 0.0
+
+var _body_base_pos: Vector3 = Vector3.ZERO
+var _body_base_rot: Vector3 = Vector3.ZERO
+var _body_base_scale: Vector3 = Vector3.ONE
+var _body_idle_t: float = 0.0
+var _body_walk_t: float = 0.0
+
+var _shoot_ring_base_scale: Vector3 = Vector3.ONE
+var _shoot_ring_tween: Tween
+
 func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	set_process_unhandled_input(true)
@@ -102,14 +154,30 @@ func _ready() -> void:
 
 	_set_body_downed(false)
 
+	if is_instance_valid(hand):
+		_hand_base_pos = hand.position
+		_hand_base_rot = hand.rotation
+
+	if is_instance_valid(body_sprite):
+		_body_base_pos = body_sprite.position
+		_body_base_rot = body_sprite.rotation
+		_body_base_scale = body_sprite.scale
+
+	if is_instance_valid(shoot_ring):
+		_shoot_ring_base_scale = shoot_ring.scale
+		shoot_ring.visible = false
+		shoot_ring.modulate = Color(1, 1, 1, 1)
+
 
 func _unhandled_input(event: InputEvent) -> void:
 	if input_locked:
 		return
 	# mouse look sempre abilitato (anche in downed)
 	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
-		yaw -= event.relative.x * Constants.MOUSE_SENS
-		pitch -= event.relative.y * Constants.MOUSE_SENS
+		_hand_look_input = event.relative
+
+		yaw -= event.relative.x * Settings.mouse_sens
+		pitch -= event.relative.y * Settings.mouse_sens
 
 		var limit_deg: float = normal_pitch_limit_deg
 		if state == PState.DOWNED:
@@ -138,6 +206,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.is_action_pressed("shoot"):
 			var origin: Vector3 = camera.global_transform.origin
 			var dir: Vector3 = -camera.global_transform.basis.z
+			_play_hand_shoot_anim()
+			_play_shoot_ring_fx()
 			Signals.request_shoot.emit(origin, dir, 1.0)
 
 		if event.is_action_pressed("interact"):
@@ -163,11 +233,15 @@ func _unhandled_input(event: InputEvent) -> void:
 				var size_mult := 1.0
 				if _charge_time >= Run.charge_shot_seconds:
 					size_mult = Run.charge_shot_scale
+				_play_hand_shoot_anim()
+				_play_shoot_ring_fx()
 				Signals.request_shoot.emit(origin2, dir2, size_mult)
 	else:
 		if event.is_action_pressed("shoot"):
 			var origin3: Vector3 = camera.global_transform.origin
 			var dir3: Vector3 = -camera.global_transform.basis.z
+			_play_hand_shoot_anim()
+			_play_shoot_ring_fx()
 			Signals.request_shoot.emit(origin3, dir3, 1.0)
 
 	if event.is_action_pressed("interact"):
@@ -189,6 +263,9 @@ func _process(delta: float) -> void:
 	# charge timer (solo fuori survival)
 	if Run.charge_shot_enabled and _charging and not Run.survival_mode:
 		_charge_time += delta
+
+	_update_hand_effects(delta)
+	_update_body_effects(delta)
 
 func _physics_process(delta: float) -> void:
 	# timers
@@ -447,3 +524,211 @@ func _play_push_anim() -> void:
 
 	if is_instance_valid(left_arm_push):
 		left_arm_push.visible = false
+
+func _update_hand_effects(delta: float) -> void:
+	if not is_instance_valid(hand):
+		return
+
+	# Se sta andando il recoil di sparo, lasciamo priorità al tween
+	if is_instance_valid(_hand_tween) and _hand_tween.is_running():
+		_hand_look_input = _hand_look_input.lerp(Vector2.ZERO, delta * hand_sway_return_speed)
+		return
+
+	var target_pos: Vector3 = _hand_base_pos
+	var target_rot: Vector3 = _hand_base_rot
+
+	# -------------------------
+	# IDLE FLOAT
+	# -------------------------
+	if hand_idle_enabled:
+		_hand_idle_t += delta * hand_idle_speed
+
+		var idle_y: float = sin(_hand_idle_t) * hand_idle_amp_y
+		var idle_rot_z: float = sin(_hand_idle_t * 0.8) * deg_to_rad(hand_idle_rot_z_deg)
+
+		target_pos.y += idle_y
+		target_rot.z += idle_rot_z
+
+	# -------------------------
+	# WALK BOB
+	# -------------------------
+	if hand_bob_enabled:
+		var move_input: Vector2 = Vector2.ZERO
+		if Input.is_action_pressed("move_forward"):
+			move_input.y += 1.0
+		if Input.is_action_pressed("move_back"):
+			move_input.y -= 1.0
+		if Input.is_action_pressed("move_left"):
+			move_input.x -= 1.0
+		if Input.is_action_pressed("move_right"):
+			move_input.x += 1.0
+
+		var is_moving: bool = move_input.length() > 0.0 and state == PState.NORMAL and is_on_floor()
+
+		if is_moving:
+			var planar_speed: float = Vector2(velocity.x, velocity.z).length()
+			var speed_factor: float = clampf(planar_speed / maxf(Constants.PLAYER_SPEED, 0.001), 0.0, 1.2)
+
+			_hand_bob_t += delta * hand_bob_speed * lerpf(0.45, 0.9, speed_factor)
+
+			var bob_y: float = -absf(sin(_hand_bob_t)) * hand_bob_amp_y
+			var bob_x: float = sin(_hand_bob_t * 0.5) * hand_bob_amp_x * 0.35
+			var bob_rot_z: float = sin(_hand_bob_t * 0.5) * deg_to_rad(hand_bob_rot_z_deg) * 0.35
+			var bob_rot_x: float = absf(sin(_hand_bob_t)) * deg_to_rad(1.2)
+
+			target_pos += Vector3(bob_x, bob_y, 0.0)
+			target_rot.x += bob_rot_x
+			target_rot.z += bob_rot_z
+		else:
+			_hand_bob_t = lerpf(_hand_bob_t, 0.0, delta * 4.0)
+
+	# -------------------------
+	# LOOK SWAY (forte ma controllato)
+	# -------------------------
+	if hand_sway_enabled:
+		var look: Vector2 = _hand_look_input.clamp(
+			Vector2(-120.0, -120.0),
+			Vector2(120.0, 120.0)
+		)
+
+		var target_sway_pos: Vector3 = Vector3(
+			-look.x * hand_sway_pos_amount * 0.018,
+			-look.y * hand_sway_pos_amount * 0.014,
+			absf(look.x) * hand_sway_pos_amount * 0.006
+		)
+
+		var target_sway_rot: Vector3 = Vector3(
+			deg_to_rad(-look.y * hand_sway_rot_deg * 0.012),
+			deg_to_rad(-look.x * hand_sway_rot_deg * 0.010),
+			deg_to_rad(-look.x * hand_sway_rot_deg * 0.014)
+		)
+
+		_hand_sway_pos = _hand_sway_pos.lerp(target_sway_pos, delta * hand_sway_return_speed)
+		_hand_sway_rot = _hand_sway_rot.lerp(target_sway_rot, delta * hand_sway_return_speed)
+
+		target_pos += _hand_sway_pos
+		target_rot += _hand_sway_rot
+
+		_hand_look_input = _hand_look_input.lerp(Vector2.ZERO, delta * hand_sway_return_speed * 0.85)
+
+	hand.position = hand.position.lerp(target_pos, delta * hand_sway_return_speed)
+	hand.rotation = hand.rotation.lerp(target_rot, delta * hand_sway_return_speed)
+
+func _update_body_effects(delta: float) -> void:
+	if not is_instance_valid(body_sprite):
+		return
+
+	if not body_sprite.visible:
+		return
+
+	var target_pos: Vector3 = _body_base_pos
+	var target_rot: Vector3 = _body_base_rot
+	var base_scale: Vector3 = _body_base_scale
+	var target_scale: Vector3 = _body_base_scale
+
+	if body_idle_enabled:
+		_body_idle_t += delta * body_idle_speed
+
+		var idle_y: float = sin(_body_idle_t) * body_idle_amp_y
+		var idle_x: float = sin(_body_idle_t * 0.5) * body_idle_amp_y * 0.35
+		var idle_rot_z: float = sin(_body_idle_t * 0.8) * deg_to_rad(body_idle_rot_deg)
+		var idle_rot_x: float = sin(_body_idle_t * 0.6) * deg_to_rad(body_idle_rot_deg * 0.35)
+
+		target_pos.x += idle_x
+		target_pos.y += idle_y
+		target_rot.x += idle_rot_x
+		target_rot.z += idle_rot_z
+
+		target_scale.x = base_scale.x * (1.0 + sin(_body_idle_t * 0.7) * 0.003)
+		target_scale.y = base_scale.y * (1.0 - sin(_body_idle_t * 0.7) * 0.002)
+		target_scale.z = base_scale.z
+
+	if body_walk_enabled:
+		var move_input: Vector2 = Vector2.ZERO
+		if Input.is_action_pressed("move_forward"):
+			move_input.y += 1.0
+		if Input.is_action_pressed("move_back"):
+			move_input.y -= 1.0
+		if Input.is_action_pressed("move_left"):
+			move_input.x -= 1.0
+		if Input.is_action_pressed("move_right"):
+			move_input.x += 1.0
+
+		var is_moving: bool = move_input.length() > 0.0 and state == PState.NORMAL and is_on_floor()
+
+		if is_moving:
+			var planar_speed: float = Vector2(velocity.x, velocity.z).length()
+			var speed_factor: float = clampf(planar_speed / maxf(Constants.PLAYER_SPEED, 0.001), 0.0, 1.2)
+
+			_body_walk_t += delta * body_walk_speed * lerpf(0.5, 1.0, speed_factor)
+
+			var walk_x: float = sin(_body_walk_t * 0.5) * body_walk_amp_x
+			var walk_y: float = -absf(sin(_body_walk_t)) * body_walk_amp_y
+			var walk_rot_z: float = sin(_body_walk_t * 0.5) * deg_to_rad(body_walk_rot_deg)
+			var walk_rot_x: float = absf(sin(_body_walk_t)) * deg_to_rad(body_walk_rot_deg * 0.45)
+
+			target_pos += Vector3(walk_x, walk_y, 0.0)
+			target_rot.x += walk_rot_x
+			target_rot.z += walk_rot_z
+
+			target_scale.x = target_scale.x * (1.0 + absf(sin(_body_walk_t)) * 0.004)
+			target_scale.y = target_scale.y * (1.0 - absf(sin(_body_walk_t)) * 0.003)
+		else:
+			_body_walk_t = lerpf(_body_walk_t, 0.0, delta * 4.0)
+
+	body_sprite.position = body_sprite.position.lerp(target_pos, delta * 6.0)
+	body_sprite.rotation = body_sprite.rotation.lerp(target_rot, delta * 6.0)
+	body_sprite.scale = body_sprite.scale.lerp(target_scale, delta * 6.0)
+
+func _play_hand_shoot_anim() -> void:
+	if not is_instance_valid(hand):
+		return
+
+	if is_instance_valid(_hand_tween):
+		_hand_tween.kill()
+
+	_hand_sway_pos = Vector3.ZERO
+	_hand_sway_rot = Vector3.ZERO
+
+	hand.position = _hand_base_pos
+	hand.rotation = _hand_base_rot
+	var base_scale: Vector3 = hand.scale
+
+	var recoil_pos: Vector3 = _hand_base_pos + Vector3(-0.008, -0.055, 0.02)
+	var recoil_scale: Vector3 = Vector3(
+		base_scale.x * 1.015,
+		base_scale.y * 0.985,
+		base_scale.z
+	)
+
+	_hand_tween = create_tween()
+	_hand_tween.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_hand_tween.tween_property(hand, "position", recoil_pos, 0.045)
+	_hand_tween.parallel().tween_property(hand, "scale", recoil_scale, 0.045)
+
+	_hand_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_hand_tween.tween_property(hand, "position", _hand_base_pos, 0.12)
+	_hand_tween.parallel().tween_property(hand, "scale", base_scale, 0.12)
+
+func _play_shoot_ring_fx() -> void:
+	if not is_instance_valid(shoot_ring):
+		return
+
+	if is_instance_valid(_shoot_ring_tween):
+		_shoot_ring_tween.kill()
+
+	shoot_ring.visible = true
+	shoot_ring.scale = _shoot_ring_base_scale * 0.4
+	shoot_ring.modulate = Color(1, 1, 1, 1)
+
+	_shoot_ring_tween = create_tween()
+	_shoot_ring_tween.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_shoot_ring_tween.tween_property(shoot_ring, "scale", _shoot_ring_base_scale * 1.8, 0.12)
+	_shoot_ring_tween.parallel().tween_property(shoot_ring, "modulate", Color(1, 1, 1, 0), 0.12)
+
+	await _shoot_ring_tween.finished
+
+	if is_instance_valid(shoot_ring):
+		shoot_ring.visible = false
+		shoot_ring.scale = _shoot_ring_base_scale
+		shoot_ring.modulate = Color(1, 1, 1, 1)

@@ -2,6 +2,7 @@
 extends Node
 
 @export var arena_scene: PackedScene
+@export var arena_wave_scenes: Array[PackedScene] = []
 @export var player_scene: PackedScene
 @export var null_projectile_scene: PackedScene
 @export var chaser_scene: PackedScene
@@ -102,7 +103,7 @@ func _ready() -> void:
 	Signals.enemy_killed.connect(_on_enemy_killed)
 	Signals.player_died.connect(_on_player_died)
 
-	_spawn_arena()
+	_spawn_arena(_get_arena_scene_for_depth(Run.depth))
 	_spawn_player()
 
 	Signals.depth_changed.emit(Run.depth)
@@ -245,28 +246,65 @@ func _wave_transition() -> void:
 	wave_transitioning = true
 
 	await _freeze_and_fade(true)
+
+	_swap_arena_for_current_depth()
 	_spawn_wave()
+
 	await _freeze_and_fade(false)
 
 	wave_transitioning = false
 
+func _swap_arena_for_current_depth() -> void:
+	var next_arena_scene := _get_arena_scene_for_depth(Run.depth)
+	if next_arena_scene == null:
+		return
+
+	var player := _get_player()
+
+	_spawn_arena(next_arena_scene)
+	_setup_wave_button()
+
+	if player != null:
+		var spawn_pos := _get_player_spawn_pos()
+		player.global_position = _place_body_on_floor(player, spawn_pos)
+
 # ------------------------------------------------------------
 # Spawn arena/player
 # ------------------------------------------------------------
-func _spawn_arena() -> void:
+func _spawn_arena(scene_to_spawn: PackedScene = null) -> void:
 	_free_children(arena_root)
 
-	if arena_scene == null:
+	var chosen_scene: PackedScene = scene_to_spawn
+	if chosen_scene == null:
+		chosen_scene = arena_scene
+
+	if chosen_scene == null:
 		push_error("arena_scene non assegnata.")
 		return
 
-	var a := arena_scene.instantiate()
+	var a := chosen_scene.instantiate()
 	if not (a is Node3D):
-		push_error("arena_scene deve istanziare un Node3D.")
+		push_error("La scena arena deve istanziare un Node3D.")
 		return
 
 	arena_root.add_child(a)
 	arena_instance = a as Node3D
+
+func _get_arena_scene_for_depth(depth: int) -> PackedScene:
+	var all_arenas: Array[PackedScene] = []
+
+	if arena_scene != null:
+		all_arenas.append(arena_scene)
+
+	for a in arena_wave_scenes:
+		if a != null:
+			all_arenas.append(a)
+
+	if all_arenas.is_empty():
+		return null
+
+	var index := (depth - 1) % all_arenas.size()
+	return all_arenas[index]
 
 func _spawn_player() -> void:
 	_free_children(player_root)

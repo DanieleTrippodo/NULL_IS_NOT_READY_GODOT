@@ -5,6 +5,7 @@ enum State { FIRED, DROPPED }
 
 @onready var pickup_indicator: Sprite3D = $PickupIndicator
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
+@onready var projectile_mesh: MeshInstance3D = $MeshInstance3D
 
 var state: int = State.FIRED
 var velocity: Vector3 = Vector3.ZERO
@@ -22,6 +23,18 @@ const RECENT_HIT_TIME: float = 0.07
 const MIN_SEGMENT_LEN: float = 0.12
 const MAX_SUBSTEPS: int = 10
 const HIT_NUDGE: float = 0.05
+
+@export_group("Ghost Afterimages")
+@export var ghost_enabled: bool = true
+@export_range(0.001, 0.2, 0.001) var ghost_spawn_interval: float = 0.025
+@export_range(0.01, 1.0, 0.01) var ghost_lifetime: float = 0.14
+@export_range(0.1, 3.0, 0.01) var ghost_scale_mult: float = 1.0
+@export_range(0.1, 1.0, 0.01) var ghost_end_scale_mult: float = 0.65
+@export_range(0.0, 1.0, 0.01) var ghost_alpha: float = 0.55
+@export_range(0.0, 1.0, 0.01) var ghost_alpha_min: float = 0.25
+@export_range(0.0, 1.0, 0.01) var ghost_alpha_max: float = 0.55
+
+var _ghost_timer: float = 0.0
 
 func is_dropped() -> bool:
 	return state == State.DROPPED
@@ -42,6 +55,7 @@ func fire(origin: Vector3, direction: Vector3, size_mult_in: float = 1.0) -> voi
 	state = State.FIRED
 	traveled = 0.0
 	t = 0.0
+	_ghost_timer = 0.0
 
 	bounces_left = 0 if Run.survival_mode else Run.null_bounces
 	pierce_left = 0 if Run.survival_mode else Run.null_pierce
@@ -63,6 +77,7 @@ func _physics_process(delta: float) -> void:
 		pickup_indicator.position.y = 0.7 + sin(t * 6.0) * 0.08
 		return
 
+	_update_ghost_afterimages(delta)
 	_apply_homing(delta)
 
 	if _try_hit_enemy_at(global_position):
@@ -249,6 +264,7 @@ func _drop() -> void:
 	state = State.DROPPED
 	velocity = Vector3.ZERO
 	global_position.y += 0.05
+	_ghost_timer = 0.0
 
 	pickup_indicator.visible = true
 	pickup_indicator.position.y = 0.7
@@ -258,4 +274,73 @@ func _drop() -> void:
 
 func pickup() -> void:
 	pickup_indicator.visible = false
+	_ghost_timer = 0.0
 	queue_free()
+
+func _update_ghost_afterimages(delta: float) -> void:
+	if not ghost_enabled:
+		return
+	if state != State.FIRED:
+		return
+	if not is_instance_valid(projectile_mesh):
+		return
+
+	_ghost_timer += delta
+	if _ghost_timer < ghost_spawn_interval:
+		return
+
+	_ghost_timer = 0.0
+	_spawn_ghost_afterimage()
+
+func _spawn_ghost_afterimage() -> void:
+	if not is_instance_valid(projectile_mesh):
+		return
+	if get_tree() == null or get_tree().current_scene == null:
+		return
+
+	var ghost := MeshInstance3D.new()
+	ghost.mesh = projectile_mesh.mesh
+	ghost.global_transform = projectile_mesh.global_transform
+	ghost.scale = projectile_mesh.scale * ghost_scale_mult
+	ghost.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+	var ghost_mat: Material = null
+	var _start_alpha: float = randf_range(ghost_alpha_min, ghost_alpha_max)
+
+	if projectile_mesh.material_override != null:
+		ghost_mat = projectile_mesh.material_override.duplicate(true)
+		ghost.material_override = ghost_mat
+	elif projectile_mesh.get_surface_override_material_count() > 0:
+		var src_mat := projectile_mesh.get_surface_override_material(0)
+		if src_mat != null:
+			ghost_mat = src_mat.duplicate(true)
+			ghost.set_surface_override_material(0, ghost_mat)
+
+	get_tree().current_scene.add_child(ghost)
+
+	var end_scale: Vector3 = ghost.scale * ghost_end_scale_mult
+	var tween := ghost.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(ghost, "scale", end_scale, ghost_lifetime)
+
+	if ghost_mat is StandardMaterial3D:
+		var sm := ghost_mat as StandardMaterial3D
+		sm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		var c := sm.albedo_color
+		sm.albedo_color = Color(c.r, c.g, c.b, ghost_alpha)
+		tween.tween_property(sm, "albedo_color", Color(c.r, c.g, c.b, 0.0), ghost_lifetime)
+	elif ghost_mat is BaseMaterial3D:
+		var bm := ghost_mat as BaseMaterial3D
+		bm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		var c2 := bm.albedo_color
+		bm.albedo_color = Color(c2.r, c2.g, c2.b, ghost_alpha)
+		tween.tween_property(bm, "albedo_color", Color(c2.r, c2.g, c2.b, 0.0), ghost_lifetime)
+	else:
+		ghost.transparency = 1.0 - ghost_alpha
+		tween.tween_property(ghost, "transparency", 1.0, ghost_lifetime)
+
+	get_tree().create_timer(ghost_lifetime).timeout.connect(
+		func():
+			if is_instance_valid(ghost):
+				ghost.queue_free()
+	)

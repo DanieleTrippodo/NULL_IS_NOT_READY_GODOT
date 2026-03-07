@@ -63,7 +63,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 12.90403)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.072753906)
 
 [node name="TerminalSpawn" type="Marker3D" parent="SpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.9070253, 0.11398608, -3.6019473)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.176577, 0.11398608, -2.3534803)
 
 [node name="Map_Geometry" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 17.689478, 0)

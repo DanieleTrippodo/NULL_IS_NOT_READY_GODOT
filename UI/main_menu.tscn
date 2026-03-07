@@ -152,6 +152,62 @@ texture = ExtResource("3_d8nwk")
 expand_mode = 1
 stretch_mode = 5
 
+[node name="SettingsPanel" type="Control" parent="UI"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ColorRect" type="ColorRect" parent="UI/SettingsPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.06879827, 0.06879828, 0.06879828, 1)
+
+[node name="CenterContainer" type="CenterContainer" parent="UI/SettingsPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/SettingsPanel/CenterContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="Title" type="Label" parent="UI/SettingsPanel/CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 48
+text = "SETTINGS"
+
+[node name="MasterValue" type="Label" parent="UI/SettingsPanel/CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 42
+text = "MASTER VOLUME: 80"
+
+[node name="FullscreenValue" type="Label" parent="UI/SettingsPanel/CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 42
+text = "FULLSCREEN: ON"
+
+[node name="MouseSensValue" type="Label" parent="UI/SettingsPanel/CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 42
+text = "MOUSE SENS: 0.0020"
+
+[node name="BackValue" type="Label" parent="UI/SettingsPanel/CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 48
+text = "BACK"
+
 [node name="CrtOverlay" type="ColorRect" parent="UI"]
 material = SubResource("ShaderMaterial_8ctay")
 anchors_preset = 15

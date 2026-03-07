@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bam2bjgu263yy"
-path.s3tc="res://.godot/imported/Hand.png-912b7b6f03a340821d421684b70e0881.s3tc.ctex"
+uid="uid://bnitp82n0jibx"
+path.s3tc="res://.godot/imported/ShootRing.png-6405ab55ca73cb1858e644abb97a69ed.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://Player/Hand.png"
-dest_files=["res://.godot/imported/Hand.png-912b7b6f03a340821d421684b70e0881.s3tc.ctex"]
+source_file="res://Player/ShootRing.png"
+dest_files=["res://.godot/imported/ShootRing.png-6405ab55ca73cb1858e644abb97a69ed.s3tc.ctex"]
 
 [params]
 

@@ -1,7 +1,6 @@
 # res://UI/hud.gd
 extends Control
 
-@onready var hand: TextureRect = $Hand
 @onready var status_icon: TextureRect = $StatusIcon
 @onready var depth_label: Label = $DepthLabel
 @onready var money_label: Label = get_node_or_null("MoneyLabel") as Label
@@ -38,30 +37,6 @@ extends Control
 
 var _last_ready: bool = true
 var _status_tween: Tween
-
-# ------------------------------------------------------------
-# HAND BOB (DOOM-ish walking)
-# ------------------------------------------------------------
-@export var hand_bob_enabled: bool = true
-@export var hand_bob_only_on_floor: bool = true
-@export_range(0.0, 2.0, 0.01) var walk_speed_threshold: float = 0.10
-
-# Taratura: velocità orizzontale alla quale il bob è “pieno”
-@export_range(0.1, 20.0, 0.1) var walk_speed_reference: float = 6.0
-
-@export_range(0.0, 50.0, 0.1) var hand_bob_speed: float = 12.0
-@export var hand_bob_amplitude: Vector2 = Vector2(5.0, 9.0) # px (x,y)
-@export_range(0.0, 10.0, 0.1) var hand_bob_rotation_deg: float = 1.4
-@export_range(0.0, 30.0, 0.1) var hand_return_speed: float = 14.0
-
-# Se true usa “step bob” (2 bump per ciclo) stile DOOM
-@export var doom_step_bob: bool = true
-
-var _hand_base_pos: Vector2
-var _hand_base_rot: float
-var _hand_phase: float = 0.0
-var _hand_has_base: bool = false
-var _player_cache: CharacterBody3D
 
 # ------------------------------------------------------------
 # CROSSHAIR SIZES
@@ -122,12 +97,6 @@ func _post_ready_init() -> void:
 	status_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	_apply_status_icon_layout()
 
-	# Hand bob base pose
-	_hand_base_pos = hand.position
-	_hand_base_rot = hand.rotation
-	hand.pivot_offset = hand.size * 0.5
-	_hand_has_base = true
-
 	# Salva pos base per glitch
 	_status_base_pos = status_icon.position
 	_cross_base_pos = crosshair_tex.position
@@ -140,74 +109,7 @@ func _post_ready_init() -> void:
 	_update_all()
 
 func _process(delta: float) -> void:
-	_update_hand_bob(delta)
 	_update_survival_glitch(delta)
-
-# -------------------------
-# HAND BOB
-# -------------------------
-func _update_hand_bob(delta: float) -> void:
-	if not hand_bob_enabled or not _hand_has_base:
-		return
-
-	var walking := _is_player_walking()
-
-	if walking:
-		var p := _get_player()
-		if p == null:
-			return
-
-		var v := p.velocity
-		var horizontal_speed: float = Vector2(v.x, v.z).length()
-
-		# 0..1: amp e velocità bob scalano con la velocità reale
-		var speed_factor: float = clamp(horizontal_speed / walk_speed_reference, 0.0, 1.0)
-
-		_hand_phase += delta * hand_bob_speed * lerp(0.35, 1.0, speed_factor)
-
-		var amp: Vector2 = hand_bob_amplitude * speed_factor
-
-		# DOOM-ish: sway laterale + “step bob” (2 bump per ciclo)
-		var x: float = sin(_hand_phase) * amp.x
-
-		var y: float
-		if doom_step_bob:
-			# 0..amp.y (sempre positivo) con due bump per ciclo
-			y = ((1.0 - cos(_hand_phase * 2.0)) * 0.5) * amp.y
-		else:
-			# oscillazione simmetrica
-			y = sin(_hand_phase * 2.0) * amp.y
-
-		hand.position = _hand_base_pos + Vector2(x, y)
-
-		var rot_amp: float = deg_to_rad(hand_bob_rotation_deg) * speed_factor
-		hand.rotation = _hand_base_rot + sin(_hand_phase) * rot_amp
-	else:
-		# rientro morbido alla posa base
-		var k: float = 1.0 - exp(-hand_return_speed * delta)
-		hand.position = hand.position.lerp(_hand_base_pos, k)
-		hand.rotation = lerp_angle(hand.rotation, _hand_base_rot, k)
-
-func _get_player() -> CharacterBody3D:
-	# Richiede: il Player deve essere in group "player"
-	if _player_cache == null or not is_instance_valid(_player_cache):
-		_player_cache = get_tree().get_first_node_in_group("player") as CharacterBody3D
-	return _player_cache
-
-func _is_player_walking() -> bool:
-	var p := _get_player()
-	if p == null:
-		return false
-
-	var v := p.velocity
-	var horizontal_speed: float = Vector2(v.x, v.z).length()
-	if horizontal_speed < walk_speed_threshold:
-		return false
-
-	if hand_bob_only_on_floor:
-		return p.is_on_floor()
-
-	return true
 
 # -------------------------
 # STATUS ICON LAYOUT
@@ -299,7 +201,7 @@ func _set_survival_overlay_alpha(a: float) -> void:
 		survival_overlay.color = Color(1, 1, 1, 1)
 
 		var mat := survival_overlay.material as ShaderMaterial
-		mat.set_shader_parameter("effect_strength", a) # <-- nuovo shader
+		mat.set_shader_parameter("effect_strength", a)
 		mat.set_shader_parameter("pulse", 0.0)
 		return
 
@@ -337,7 +239,7 @@ func _update_survival_glitch(delta: float) -> void:
 	status_icon.position = _status_base_pos + Vector2(ox, oy)
 	crosshair_tex.position = _cross_base_pos + Vector2(-ox, oy)
 
-	# spike sul post-process (più glitch “cattivo”)
+	# spike sul post-process
 	if survival_overlay != null and survival_overlay.material is ShaderMaterial:
 		var mat := survival_overlay.material as ShaderMaterial
 		var spike := 0.0

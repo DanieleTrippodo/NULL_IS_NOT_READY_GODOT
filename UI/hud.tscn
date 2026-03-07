@@ -1,10 +1,9 @@
-[gd_scene load_steps=8 format=3 uid="uid://bhkaynd3qjg8j"]
+[gd_scene load_steps=7 format=3 uid="uid://bhkaynd3qjg8j"]
 
 [ext_resource type="Script" uid="uid://dt46fcsmdc2co" path="res://UI/hud.gd" id="1_ne75i"]
 [ext_resource type="Texture2D" uid="uid://r8m6r24rj04y" path="res://UI/Crosshair.png" id="2_bytes"]
 [ext_resource type="Texture2D" uid="uid://b7wnnyu6bh3wq" path="res://UI/READY.png" id="2_rnl6m"]
 [ext_resource type="Texture2D" uid="uid://c5hsvtkaoaitb" path="res://UI/NOT READY.png" id="3_1ui3w"]
-[ext_resource type="Texture2D" uid="uid://bam2bjgu263yy" path="res://Player/Hand.png" id="3_2o5uh"]
 [ext_resource type="Shader" uid="uid://c8ot1uvrd8jxg" path="res://UI/hud.gdshader" id="6_1ui3w"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_0j753"]
@@ -32,50 +31,37 @@ mouse_filter = 2
 script = ExtResource("1_ne75i")
 status_ready_texture = ExtResource("2_rnl6m")
 status_not_ready_texture = ExtResource("3_1ui3w")
-status_rect_size = Vector2(400, 90)
-ready_scale = 1.2
-walk_speed_reference = 13.0
-
-[node name="Hand" type="TextureRect" parent="."]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.9320023
-anchor_top = 1.048611
-anchor_right = 0.9320023
-anchor_bottom = 1.048611
-offset_left = -376.18463
-offset_top = -473.26495
-offset_right = 45.149048
-offset_bottom = 158.73517
-grow_horizontal = 0
-grow_vertical = 0
-texture = ExtResource("3_2o5uh")
-expand_mode = 1
-stretch_mode = 5
-metadata/_edit_use_anchors_ = true
+status_rect_size = Vector2(600, 160)
 
 [node name="StatusIcon" type="TextureRect" parent="."]
+custom_minimum_size = Vector2(320, 120)
 layout_mode = 1
-offset_right = 40.0
-offset_bottom = 40.0
+anchors_preset = -1
+anchor_right = 0.261
+anchor_bottom = 0.13700001
+offset_left = 4.13
+offset_top = 14.81
+offset_right = 23.458008
+offset_bottom = 46.03402
+grow_horizontal = 2
 expand_mode = 1
 stretch_mode = 4
 
 [node name="DepthLabel" type="Label" parent="."]
 layout_mode = 1
 offset_left = 80.0
-offset_top = 154.605
-offset_right = 150.0
-offset_bottom = 177.605
+offset_top = 181.9
+offset_right = 157.0
+offset_bottom = 206.9
 theme_override_font_sizes/font_size = 24
 text = "DEPTH: 1"
 
 [node name="MoneyLabel" type="Label" parent="."]
 layout_mode = 0
 offset_left = 80.0
-offset_top = 118.37
+offset_top = 216.765
 offset_right = 187.0
-offset_bottom = 152.37004
+offset_bottom = 250.76503
 theme_override_font_sizes/font_size = 24
 
 [node name="Crosshair" type="Control" parent="."]
