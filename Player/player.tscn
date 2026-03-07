@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3 uid="uid://c8uc2jlabtxn5"]
+[gd_scene load_steps=23 format=3 uid="uid://c8uc2jlabtxn5"]
 
 [ext_resource type="Script" uid="uid://dhtpslx53p3b5" path="res://Player/player.gd" id="1_l8h54"]
 [ext_resource type="Texture2D" uid="uid://8l8fnewfoi4l" path="res://Player/Nullabreast.png" id="2_dkpta"]
@@ -19,6 +19,7 @@
 [ext_resource type="Texture2D" uid="uid://d23i2gw17tmi5" path="res://Player/pushAnimation/Frame13.png" id="17_b1ygp"]
 [ext_resource type="Texture2D" uid="uid://bam2bjgu263yy" path="res://Player/Hand.png" id="18_b1ygp"]
 [ext_resource type="Texture2D" uid="uid://bnitp82n0jibx" path="res://Player/ShootRing.png" id="19_o28un"]
+[ext_resource type="Texture2D" uid="uid://cmsats04s85yv" path="res://icon.svg" id="20_n471f"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_hvfyp"]
 
@@ -126,6 +127,11 @@ texture = ExtResource("18_b1ygp")
 transform = Transform3D(0.004, 0, 0, 0, 0.004, 0, 0, 0, 0.004, 0.5839122, 0.039703667, 0.071623564)
 visible = false
 texture = ExtResource("19_o28un")
+
+[node name="HandRecovery" type="Sprite3D" parent="Head/Camera/ViewModel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.24883556, 0, -0.34618688)
+visible = false
+texture = ExtResource("20_n471f")
 
 [node name="ShootRay" type="RayCast3D" parent="Head" groups=["player"]]
 target_position = Vector3(0, 0, -100)

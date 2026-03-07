@@ -98,7 +98,10 @@ func _ready() -> void:
 	Signals.request_pickup.connect(_on_request_pickup)
 	Signals.request_pull_to_hand.connect(_on_request_pull_to_hand)
 	Signals.request_swap.connect(_on_request_swap)
+	Signals.request_recovery_start.connect(_on_request_recovery_start)
+	Signals.request_recovery_stop.connect(_on_request_recovery_stop)
 	Signals.null_dropped.connect(_on_null_dropped)
+	
 
 	Signals.enemy_killed.connect(_on_enemy_killed)
 	Signals.player_died.connect(_on_player_died)
@@ -503,6 +506,29 @@ func _on_request_pull_to_hand() -> void:
 		return
 	if null_instance.has_method("pull_to_hand"):
 		null_instance.call("pull_to_hand")
+
+func _on_request_recovery_start() -> void:
+	if restarting or wave_transitioning:
+		return
+	if null_instance == null or not is_instance_valid(null_instance):
+		return
+	if not Run.null_dropped:
+		return
+
+	var player := _get_player()
+	if player == null:
+		return
+
+	if null_instance.has_method("start_remote_recovery"):
+		null_instance.call("start_remote_recovery", player)
+
+
+func _on_request_recovery_stop() -> void:
+	if null_instance == null or not is_instance_valid(null_instance):
+		return
+
+	if null_instance.has_method("stop_remote_recovery"):
+		null_instance.call("stop_remote_recovery")
 
 func _on_request_swap() -> void:
 	if restarting or wave_transitioning:

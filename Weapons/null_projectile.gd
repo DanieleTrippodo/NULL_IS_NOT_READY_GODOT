@@ -34,10 +34,40 @@ const HIT_NUDGE: float = 0.05
 @export_range(0.0, 1.0, 0.01) var ghost_alpha_min: float = 0.25
 @export_range(0.0, 1.0, 0.01) var ghost_alpha_max: float = 0.55
 
+@export_group("Remote Recovery")
+@export var recovery_pull_speed_min: float = 1.7
+@export var recovery_pull_speed_max: float = 6.0
+@export var recovery_accel_time: float = 5.0
+@export var recovery_pickup_radius: float = 1.0
+
 var _ghost_timer: float = 0.0
+
+var _remote_recovering: bool = false
+var _recovery_target: Node3D = null
+var _recovery_hold_time: float = 0.0
 
 func is_dropped() -> bool:
 	return state == State.DROPPED
+
+func start_remote_recovery(target: Node3D) -> void:
+	if state != State.DROPPED:
+		return
+	if target == null:
+		return
+
+	_remote_recovering = true
+	_recovery_target = target
+	_recovery_hold_time = 0.0
+	Signals.recovery_mode_changed.emit(true)
+
+func stop_remote_recovery() -> void:
+	if not _remote_recovering:
+		return
+
+	_remote_recovering = false
+	_recovery_target = null
+	_recovery_hold_time = 0.0
+	Signals.recovery_mode_changed.emit(false)
 
 func fire(origin: Vector3, direction: Vector3, size_mult_in: float = 1.0) -> void:
 	var dir: Vector3 = direction.normalized()
@@ -57,6 +87,10 @@ func fire(origin: Vector3, direction: Vector3, size_mult_in: float = 1.0) -> voi
 	t = 0.0
 	_ghost_timer = 0.0
 
+	_remote_recovering = false
+	_recovery_target = null
+	_recovery_hold_time = 0.0
+
 	bounces_left = 0 if Run.survival_mode else Run.null_bounces
 	pierce_left = 0 if Run.survival_mode else Run.null_pierce
 	range_mult = 1.0 if Run.survival_mode else Run.null_range_mult
@@ -75,6 +109,33 @@ func _physics_process(delta: float) -> void:
 
 	if state == State.DROPPED:
 		pickup_indicator.position.y = 0.7 + sin(t * 6.0) * 0.08
+
+		if _remote_recovering:
+			if _recovery_target == null or not is_instance_valid(_recovery_target):
+				stop_remote_recovery()
+				return
+
+			var target_pos: Vector3 = _recovery_target.global_position
+			var to_target: Vector3 = target_pos - global_position
+			var dist: float = to_target.length()
+
+			if dist <= recovery_pickup_radius:
+				stop_remote_recovery()
+				Run.null_ready = true
+				Run.null_dropped = false
+				Signals.null_ready_changed.emit(true)
+				pickup()
+				return
+
+			if dist > 0.0001:
+				_recovery_hold_time += delta
+
+				var accel_t: float = clamp(_recovery_hold_time / recovery_accel_time, 0.0, 1.0)
+				var current_speed: float = lerp(recovery_pull_speed_min, recovery_pull_speed_max, accel_t)
+
+				var step: float = current_speed * delta
+				global_position += to_target.normalized() * min(step, dist)
+
 		return
 
 	_update_ghost_afterimages(delta)
@@ -258,9 +319,14 @@ func _find_enemy_node(collider: Object) -> Node:
 		if n.is_in_group("enemy"):
 			return n
 		n = n.get_parent()
+
 	return null
 
 func _drop() -> void:
+	_remote_recovering = false
+	_recovery_target = null
+	_recovery_hold_time = 0.0
+
 	state = State.DROPPED
 	velocity = Vector3.ZERO
 	global_position.y += 0.05
@@ -273,6 +339,7 @@ func _drop() -> void:
 	Signals.null_ready_changed.emit(false)
 
 func pickup() -> void:
+	stop_remote_recovery()
 	pickup_indicator.visible = false
 	_ghost_timer = 0.0
 	queue_free()

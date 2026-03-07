@@ -45,14 +45,26 @@ var base_crosshair_size: Vector2 = Vector2(32, 32)
 var not_ready_size: Vector2 = Vector2(22, 22)
 
 # ------------------------------------------------------------
-# SURVIVAL OVERLAY + GLITCH
+# SURVIVAL / RECOVERY OVERLAY + GLITCH
 # ------------------------------------------------------------
 @export_range(0.0, 1.0, 0.01) var survival_overlay_intensity: float = 0.65
+@export_range(0.0, 1.0, 0.01) var recovery_overlay_intensity: float = 0.65
+
+@export_range(0.1, 20.0, 0.1) var recovery_overlay_rise_speed: float = 4.0
+@export_range(0.1, 20.0, 0.1) var recovery_overlay_fall_speed: float = 3.0
+
 @export var survival_glitch_enabled: bool = true
 @export_range(0.0, 12.0, 0.1) var survival_glitch_px: float = 3.0
 @export_range(0.0, 60.0, 1.0) var survival_glitch_hz: float = 24.0
+@export var recovery_pull_speed_min: float = 1.7
+@export var recovery_pull_speed_max: float = 6.0
+@export var recovery_accel_time: float = 5.0
 
 var _survival_active: bool = false
+var _recovery_active: bool = false
+var _recovery_hold_time: float = 0.0
+var _overlay_current_strength: float = 0.0
+
 var _glitch_t: float = 0.0
 var _rng := RandomNumberGenerator.new()
 
@@ -70,9 +82,11 @@ func _ready() -> void:
 
 	Signals.perk_granted.connect(_on_perk_granted)
 
-	# se esiste nel tuo Signals.gd
 	if Signals.has_signal("survival_mode_changed"):
 		Signals.survival_mode_changed.connect(_on_survival_mode_changed)
+
+	if Signals.has_signal("recovery_mode_changed"):
+		Signals.recovery_mode_changed.connect(_on_recovery_mode_changed)
 
 	var cb := Callable(self, "_on_perk_timer_timeout")
 	if not perk_timer.timeout.is_connected(cb):
@@ -109,6 +123,7 @@ func _post_ready_init() -> void:
 	_update_all()
 
 func _process(delta: float) -> void:
+	_update_overlay_strength(delta)
 	_update_survival_glitch(delta)
 
 # -------------------------
@@ -188,16 +203,15 @@ func _on_perk_timer_timeout() -> void:
 	perk_label.visible = false
 
 # -------------------------
-# SURVIVAL OVERLAY + GLITCH
+# SURVIVAL / RECOVERY OVERLAY + GLITCH
 # -------------------------
 func _set_survival_overlay_alpha(a: float) -> void:
 	if survival_overlay == null:
 		return
 
-	# Se c'è uno ShaderMaterial, NON usare l'alpha del ColorRect (altrimenti lo rendi invisibile).
+	# Se c'è uno ShaderMaterial, NON usare l'alpha del ColorRect
 	# Controlla solo via uniform dello shader.
 	if survival_overlay.material is ShaderMaterial:
-		# ColorRect deve rimanere opaco per disegnare il post-process
 		survival_overlay.color = Color(1, 1, 1, 1)
 
 		var mat := survival_overlay.material as ShaderMaterial
@@ -215,15 +229,37 @@ func _on_survival_mode_changed(active: bool) -> void:
 	_glitch_t = 0.0
 
 	if not active:
-		_set_survival_overlay_alpha(0.0)
-		status_icon.position = _status_base_pos
-		crosshair_tex.position = _cross_base_pos
+		if not _recovery_active:
+			_set_survival_overlay_alpha(0.0)
+			status_icon.position = _status_base_pos
+			crosshair_tex.position = _cross_base_pos
 		return
 
-	_set_survival_overlay_alpha(survival_overlay_intensity)
+func _on_recovery_mode_changed(active: bool) -> void:
+	_recovery_active = active
+	if not active:
+		_glitch_t = 0.0
+
+func _update_overlay_strength(delta: float) -> void:
+	var target: float = 0.0
+
+	if _survival_active:
+		target = max(target, survival_overlay_intensity)
+
+	if _recovery_active:
+		target = max(target, recovery_overlay_intensity)
+
+	var speed: float = recovery_overlay_rise_speed if target > _overlay_current_strength else recovery_overlay_fall_speed
+	_overlay_current_strength = move_toward(_overlay_current_strength, target, speed * delta)
+
+	_set_survival_overlay_alpha(_overlay_current_strength)
+
+	if _overlay_current_strength <= 0.001 and not _survival_active and not _recovery_active:
+		status_icon.position = _status_base_pos
+		crosshair_tex.position = _cross_base_pos
 
 func _update_survival_glitch(delta: float) -> void:
-	if not _survival_active or not survival_glitch_enabled:
+	if not (_survival_active or _recovery_active) or not survival_glitch_enabled:
 		return
 
 	_glitch_t += delta
@@ -239,14 +275,6 @@ func _update_survival_glitch(delta: float) -> void:
 	status_icon.position = _status_base_pos + Vector2(ox, oy)
 	crosshair_tex.position = _cross_base_pos + Vector2(-ox, oy)
 
-	# spike sul post-process
-	if survival_overlay != null and survival_overlay.material is ShaderMaterial:
-		var mat := survival_overlay.material as ShaderMaterial
-		var spike := 0.0
-		if _rng.randf() < 0.35:
-			spike = _rng.randf_range(0.35, 1.0)
-		mat.set_shader_parameter("pulse", spike)
-
 # -------------------------
 # FADE
 # -------------------------
@@ -254,19 +282,3 @@ func _set_fade_alpha(a: float) -> void:
 	var c := fade_rect.color
 	c.a = a
 	fade_rect.color = c
-
-func fade_out(duration: float = 0.25) -> void:
-	fade_rect.visible = true
-	var tw := create_tween()
-	var c := fade_rect.color
-	c.a = 1.0
-	tw.tween_property(fade_rect, "color", c, duration)
-	await tw.finished
-
-func fade_in(duration: float = 0.25) -> void:
-	var tw := create_tween()
-	var c := fade_rect.color
-	c.a = 0.0
-	tw.tween_property(fade_rect, "color", c, duration)
-	await tw.finished
-	fade_rect.visible = false

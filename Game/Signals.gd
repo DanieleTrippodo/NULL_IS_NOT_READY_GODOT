@@ -8,6 +8,8 @@ signal request_shoot(origin: Vector3, direction: Vector3, size_mult: float)
 signal request_pickup
 signal request_pull_to_hand
 signal request_swap
+signal request_recovery_start
+signal request_recovery_stop
 
 # Combat / run
 signal enemy_killed(enemy: Node)
@@ -25,3 +27,4 @@ signal perk_granted(title: String, description: String)
 
 # Survival UI
 signal survival_mode_changed(active: bool)
+signal recovery_mode_changed(active: bool)

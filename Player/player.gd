@@ -7,6 +7,7 @@ extends CharacterBody3D
 @onready var body_sprite: Sprite3D = $Body
 @onready var body_down_sprite: Sprite3D = $Body_Down
 @onready var left_arm_push: AnimatedSprite3D = $Head/Camera/ViewModel/LeftArmPush
+@onready var hand_recovery: Sprite3D = $Head/Camera/ViewModel/HandRecovery
 @onready var hand: Sprite3D = $Head/Camera/ViewModel/Hand
 @onready var shoot_ring: Sprite3D = $Head/Camera/ViewModel/ShootRing
 
@@ -52,6 +53,7 @@ var _push_cd_left: float = 0.0
 
 var state: int = PState.NORMAL
 var input_locked: bool = false
+var is_recovering_null: bool = false
 
 # input camera
 var yaw: float = 0.0
@@ -139,6 +141,7 @@ func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	set_process_unhandled_input(true)
 	set_process(true)
+	_update_hand_mode_visual()
 
 	add_to_group("player")
 
@@ -172,6 +175,14 @@ func _ready() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if input_locked:
 		return
+	
+	if is_recovering_null:
+		if event.is_action_released("swap"):
+			is_recovering_null = false
+			_update_hand_mode_visual()
+			Signals.request_recovery_stop.emit()
+		return
+	
 	# mouse look sempre abilitato (anche in downed)
 	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
 		_hand_look_input = event.relative
@@ -214,8 +225,19 @@ func _unhandled_input(event: InputEvent) -> void:
 			Signals.request_pickup.emit()
 
 		# SWAP (perk) - Q
-		if has_swap and event.is_action_pressed("swap"):
-			Signals.request_swap.emit()
+		if event.is_action_pressed("swap"):
+			if Run.null_dropped:
+				is_recovering_null = true
+				_update_hand_mode_visual()
+				Signals.request_recovery_start.emit()
+			elif has_swap:
+				Signals.request_swap.emit()
+
+		if event.is_action_released("swap"):
+			if is_recovering_null:
+				is_recovering_null = false
+				_update_hand_mode_visual()
+				Signals.request_recovery_stop.emit()
 
 		return
 
@@ -248,8 +270,19 @@ func _unhandled_input(event: InputEvent) -> void:
 		Signals.request_pickup.emit()
 
 	# SWAP (perk) - Q
-	if has_swap and event.is_action_pressed("swap"):
-		Signals.request_swap.emit()
+	if event.is_action_pressed("swap"):
+		if Run.null_dropped:
+			is_recovering_null = true
+			_update_hand_mode_visual()
+			Signals.request_recovery_start.emit()
+		elif has_swap:
+			Signals.request_swap.emit()
+
+	if event.is_action_released("swap"):
+		if is_recovering_null:
+			is_recovering_null = false
+			_update_hand_mode_visual()
+			Signals.request_recovery_stop.emit()
 
 func set_input_locked(v: bool) -> void:
 	input_locked = v
@@ -258,6 +291,12 @@ func set_input_locked(v: bool) -> void:
 		_charging = false
 		_charge_time = 0.0
 
+func _update_hand_mode_visual() -> void:
+	if hand != null:
+		hand.visible = not is_recovering_null
+
+	if hand_recovery != null:
+		hand_recovery.visible = is_recovering_null
 
 func _process(delta: float) -> void:
 	# charge timer (solo fuori survival)
@@ -278,6 +317,17 @@ func _physics_process(delta: float) -> void:
 	dash_cd = maxf(dash_cd - delta, 0.0)
 	dash_time_left = maxf(dash_time_left - delta, 0.0)
 	_push_cd_left = maxf(_push_cd_left - delta, 0.0)
+	if is_recovering_null:
+		velocity.x = 0.0
+		velocity.z = 0.0
+
+		if is_on_floor():
+			velocity.y = -1.0
+		else:
+			velocity.y -= GRAVITY * delta
+
+		move_and_slide()
+		return
 	
 	if input_locked:
 		# tienilo fermo ma “vivo” (animazioni mondo continuano)
@@ -398,6 +448,10 @@ func _physics_downed(delta: float) -> void:
 	move_and_slide()
 
 func _on_player_hit(knockback_dir: Vector3) -> void:
+	if is_recovering_null:
+		is_recovering_null = false
+		_update_hand_mode_visual()
+		Signals.request_recovery_stop.emit()
 	# durante knockback ignoriamo hit extra (più fair)
 	if state == PState.KNOCKBACK:
 		return
