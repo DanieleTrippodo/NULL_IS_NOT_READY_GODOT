@@ -6,7 +6,7 @@ enum PerkRarity { COMMON, RARE, EPIC }
 func get_perk_rarity(id: String) -> int:
 	# Mappa rarità (puoi rifinirla quando vuoi)
 	match id:
-		"JUMP_UNLOCK", "DASH_UNLOCK", "CHARGE_SHOT", "SWAP_WITH_NULL":
+		"DASH_UNLOCK", "CHARGE_SHOT", "SWAP_WITH_NULL":
 			return PerkRarity.EPIC
 		"PIERCE_1", "HOMING_NUDGE", "PULL_TO_HAND", "DROP_SHOCKWAVE", "SLOWMO_RECOVERY", "CHARGE_PLUS":
 			return PerkRarity.RARE
@@ -199,7 +199,7 @@ var survival_mode: bool = false
 # Perks (stato run)
 # ------------------------------------------------------------
 var null_bounces: int = 0
-var jump_enabled: bool = false
+var jump_enabled: bool = true
 var jump_velocity: float = 7.0
 var flight_time_left: float = 0.0
 
@@ -264,7 +264,6 @@ var perk_pool: Array[String] = [
 	"NULL_BOUNCE",
 	"BOUNCE_STACK",
 
-	"JUMP_UNLOCK",
 	"JUMP_POWER",
 	"LONG_JUMP",
 	"FLIGHT_BURST",
@@ -340,7 +339,7 @@ func reset() -> void:
 
 	null_bounces = 0
 
-	jump_enabled = false
+	jump_enabled = true
 	jump_velocity = 8.0
 	flight_time_left = 0.0
 
@@ -388,8 +387,6 @@ func grant_random_perk(rng: RandomNumberGenerator) -> bool:
 
 func _can_take(id: String) -> bool:
 	match id:
-		"JUMP_UNLOCK":
-			return not jump_enabled
 		"DASH_UNLOCK":
 			return not dash_enabled
 		"CHARGE_SHOT":
@@ -461,11 +458,6 @@ func _apply(id: String) -> void:
 			null_bounces = min(null_bounces + 1, max_null_bounces)
 			last_perk_title = "BOUNCE STACK"
 			last_perk_desc = "+1 rimbalzo (max %d)." % max_null_bounces
-
-		"JUMP_UNLOCK":
-			jump_enabled = true
-			last_perk_title = "JUMP UNLOCK"
-			last_perk_desc = "Ora puoi saltare (Space)."
 
 		"JUMP_POWER":
 			jump_velocity = min(jump_velocity + 2.0, 12.0)

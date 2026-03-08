@@ -45,6 +45,7 @@ offset_right = 552.0
 offset_bottom = -25.440002
 grow_horizontal = 2
 grow_vertical = 0
+theme_override_font_sizes/font_size = 28
 text = "E: CLOSE"
 horizontal_alignment = 1
 vertical_alignment = 1

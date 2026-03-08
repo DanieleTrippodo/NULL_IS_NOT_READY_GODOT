@@ -213,6 +213,22 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 48
 text = "BACK"
 
+[node name="Label" type="Label" parent="UI/SettingsPanel"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -109.0
+offset_top = -47.630005
+offset_right = 109.0
+offset_bottom = -30.630005
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 24
+text = "Made for \"Bad Ideas Game Jam 2026\""
+
 [node name="CrtOverlay" type="ColorRect" parent="UI"]
 material = SubResource("ShaderMaterial_8ctay")
 anchors_preset = 15

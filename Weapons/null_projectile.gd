@@ -29,7 +29,7 @@ const HIT_NUDGE: float = 0.05
 @export_range(0.001, 0.2, 0.001) var ghost_spawn_interval: float = 0.025
 @export_range(0.01, 1.0, 0.01) var ghost_lifetime: float = 0.14
 @export_range(0.1, 3.0, 0.01) var ghost_scale_mult: float = 1.0
-@export_range(0.1, 1.0, 0.01) var ghost_end_scale_mult: float = 0.65
+@export_range(0.1, 3.0, 0.01) var ghost_end_scale_mult: float = 0.65
 @export_range(0.0, 1.0, 0.01) var ghost_alpha: float = 0.55
 @export_range(0.0, 1.0, 0.01) var ghost_alpha_min: float = 0.25
 @export_range(0.0, 1.0, 0.01) var ghost_alpha_max: float = 0.55
@@ -46,8 +46,10 @@ var _remote_recovering: bool = false
 var _recovery_target: Node3D = null
 var _recovery_hold_time: float = 0.0
 
+
 func is_dropped() -> bool:
 	return state == State.DROPPED
+
 
 func start_remote_recovery(target: Node3D) -> void:
 	if state != State.DROPPED:
@@ -60,6 +62,7 @@ func start_remote_recovery(target: Node3D) -> void:
 	_recovery_hold_time = 0.0
 	Signals.recovery_mode_changed.emit(true)
 
+
 func stop_remote_recovery() -> void:
 	if not _remote_recovering:
 		return
@@ -69,10 +72,11 @@ func stop_remote_recovery() -> void:
 	_recovery_hold_time = 0.0
 	Signals.recovery_mode_changed.emit(false)
 
+
 func fire(origin: Vector3, direction: Vector3, size_mult_in: float = 1.0) -> void:
 	var dir: Vector3 = direction.normalized()
 
-	# In survival: ignora charge/size perk (ma tu già invii size_mult=1 dal player)
+	# In survival: ignora charge/size perk
 	size_mult = max(0.25, size_mult_in)
 	scale = Vector3.ONE * size_mult
 
@@ -96,6 +100,7 @@ func fire(origin: Vector3, direction: Vector3, size_mult_in: float = 1.0) -> voi
 	range_mult = 1.0 if Run.survival_mode else Run.null_range_mult
 
 	pickup_indicator.visible = false
+
 
 func _physics_process(delta: float) -> void:
 	t += delta
@@ -197,6 +202,7 @@ func _physics_process(delta: float) -> void:
 	if traveled >= (Constants.NULL_MAX_DISTANCE * range_mult):
 		_drop()
 
+
 func _apply_homing(delta: float) -> void:
 	if not Run.homing_nudge:
 		return
@@ -225,6 +231,7 @@ func _apply_homing(delta: float) -> void:
 	var new_dir := current_dir.slerp(desired_dir, tturn).normalized()
 	velocity = new_dir * speed
 
+
 func _find_nearest_enemy() -> Node3D:
 	var best: Node3D = null
 	var best_d2 := INF
@@ -243,6 +250,7 @@ func _find_nearest_enemy() -> Node3D:
 
 	return best
 
+
 func _compute_substeps(step_len: float) -> int:
 	var base_r: float = 0.25
 	if collision_shape != null and collision_shape.shape is SphereShape3D:
@@ -253,6 +261,7 @@ func _compute_substeps(step_len: float) -> int:
 	var seg_len: float = max(MIN_SEGMENT_LEN, r * 0.75)
 
 	return clampi(ceili(step_len / seg_len), 1, MAX_SUBSTEPS)
+
 
 func _try_hit_enemy_at(pos: Vector3) -> bool:
 	if collision_shape == null or collision_shape.shape == null:
@@ -287,6 +296,7 @@ func _try_hit_enemy_at(pos: Vector3) -> bool:
 
 	return false
 
+
 func _handle_enemy_hit(enemy_node: Node) -> bool:
 	if enemy_node == null:
 		return false
@@ -298,7 +308,7 @@ func _handle_enemy_hit(enemy_node: Node) -> bool:
 	_recent_hit[iid] = RECENT_HIT_TIME
 	Signals.enemy_killed.emit(enemy_node)
 
-	# se durante il segnale qualcuno ha già chiamato pickup()/queue_free(), fermati.
+	# Se durante il segnale qualcuno ha già chiamato pickup()/queue_free(), fermati.
 	if is_queued_for_deletion():
 		return true
 
@@ -309,6 +319,7 @@ func _handle_enemy_hit(enemy_node: Node) -> bool:
 	Signals.null_ready_changed.emit(true)
 	queue_free()
 	return true
+
 
 func _find_enemy_node(collider: Object) -> Node:
 	if collider == null or not (collider is Node):
@@ -321,6 +332,7 @@ func _find_enemy_node(collider: Object) -> Node:
 		n = n.get_parent()
 
 	return null
+
 
 func _drop() -> void:
 	_remote_recovering = false
@@ -338,11 +350,13 @@ func _drop() -> void:
 	Signals.null_dropped.emit(global_position)
 	Signals.null_ready_changed.emit(false)
 
+
 func pickup() -> void:
 	stop_remote_recovery()
 	pickup_indicator.visible = false
 	_ghost_timer = 0.0
 	queue_free()
+
 
 func _update_ghost_afterimages(delta: float) -> void:
 	if not ghost_enabled:
@@ -359,6 +373,7 @@ func _update_ghost_afterimages(delta: float) -> void:
 	_ghost_timer = 0.0
 	_spawn_ghost_afterimage()
 
+
 func _spawn_ghost_afterimage() -> void:
 	if not is_instance_valid(projectile_mesh):
 		return
@@ -372,7 +387,7 @@ func _spawn_ghost_afterimage() -> void:
 	ghost.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
 	var ghost_mat: Material = null
-	var _start_alpha: float = randf_range(ghost_alpha_min, ghost_alpha_max)
+	var start_alpha: float = randf_range(ghost_alpha_min, ghost_alpha_max)
 
 	if projectile_mesh.material_override != null:
 		ghost_mat = projectile_mesh.material_override.duplicate(true)
@@ -394,20 +409,16 @@ func _spawn_ghost_afterimage() -> void:
 		var sm := ghost_mat as StandardMaterial3D
 		sm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 		var c := sm.albedo_color
-		sm.albedo_color = Color(c.r, c.g, c.b, ghost_alpha)
+		sm.albedo_color = Color(c.r, c.g, c.b, start_alpha)
 		tween.tween_property(sm, "albedo_color", Color(c.r, c.g, c.b, 0.0), ghost_lifetime)
 	elif ghost_mat is BaseMaterial3D:
 		var bm := ghost_mat as BaseMaterial3D
 		bm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 		var c2 := bm.albedo_color
-		bm.albedo_color = Color(c2.r, c2.g, c2.b, ghost_alpha)
+		bm.albedo_color = Color(c2.r, c2.g, c2.b, start_alpha)
 		tween.tween_property(bm, "albedo_color", Color(c2.r, c2.g, c2.b, 0.0), ghost_lifetime)
 	else:
-		ghost.transparency = 1.0 - ghost_alpha
+		ghost.transparency = 1.0 - start_alpha
 		tween.tween_property(ghost, "transparency", 1.0, ghost_lifetime)
 
-	get_tree().create_timer(ghost_lifetime).timeout.connect(
-		func():
-			if is_instance_valid(ghost):
-				ghost.queue_free()
-	)
+	tween.chain().tween_callback(Callable(ghost, "queue_free"))

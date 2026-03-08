@@ -45,7 +45,7 @@ enum PState { NORMAL, KNOCKBACK, DOWNED }
 # “medio” (valori iniziali, poi li ritocchiamo)
 @export var push_strength: float = 14.0
 @export var push_lift: float = 6.0
-@export var push_stun_seconds: float = 0.6
+@export var push_stun_seconds: float = 1
 
 var _push_cd_left: float = 0.0
 

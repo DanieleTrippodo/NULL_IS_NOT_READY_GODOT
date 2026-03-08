@@ -11,9 +11,12 @@ var _knock: Vector3 = Vector3.ZERO
 @export var knock_decay: float = 22.0
 
 var _stun_left: float = 0.0
-@onready var _mesh: MeshInstance3D = $MeshInstance3D
-var _flash_mat: StandardMaterial3D
-var _orig_override: Material = null
+@onready var _sprite: AnimatedSprite3D = $AnimatedSprite3D
+
+func _ready() -> void:
+	if _sprite:
+		_sprite.play("walk")
+
 
 func set_target(t: Node3D) -> void:
 	target = t
@@ -76,23 +79,18 @@ func _physics_process(delta: float) -> void:
 		Signals.player_hit.emit(away2)
 
 func _do_flash() -> void:
-	if _mesh == null:
+	if _sprite == null:
 		return
-	if _flash_mat == null:
-		_flash_mat = StandardMaterial3D.new()
-		_flash_mat.emission_enabled = true
-		_flash_mat.emission = Color(1, 1, 1)
-		_flash_mat.albedo_color = Color(1, 1, 1)
-		_flash_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 
-	if _orig_override == null:
-		_orig_override = _mesh.material_override
-	_mesh.material_override = _flash_mat
+	_sprite.modulate = Color(0.405, 0.405, 0.405, 1.0)
+	await get_tree().create_timer(0.03).timeout
 
-	# restore after short time
-	await get_tree().create_timer(0.08).timeout
-	if is_instance_valid(_mesh):
-		_mesh.material_override = _orig_override
+	if is_instance_valid(_sprite):
+		_sprite.modulate = Color(0.385, 0.385, 0.385, 1.0)
+	await get_tree().create_timer(0.03).timeout
+
+	if is_instance_valid(_sprite):
+		_sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)
 
 func apply_push(forward: Vector3, strength: float, lift: float, stun_seconds: float) -> void:
 	_stun_left = maxf(_stun_left, stun_seconds)
