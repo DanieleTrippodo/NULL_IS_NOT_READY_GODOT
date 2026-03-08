@@ -35,6 +35,9 @@ stencil_outline_thickness = 0.091
 
 [node name="NullProjectile" type="Area3D"]
 script = ExtResource("1_5yk5j")
+recovery_pull_speed_min = 4.0
+recovery_pull_speed_max = 15.0
+recovery_accel_time = 8.0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 shape = SubResource("SphereShape3D_f0lqa")

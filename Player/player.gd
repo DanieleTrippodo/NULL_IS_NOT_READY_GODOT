@@ -51,6 +51,13 @@ var _push_cd_left: float = 0.0
 
 @onready var push_sfx: AudioStreamPlayer3D = $PushSfx
 
+@export_group("Recovery Hand Anim")
+@export var hand_recovery_enter_offset_y: float = -0.22
+@export var hand_recovery_enter_time: float = 0.14
+
+var _hand_recovery_default_pos: Vector3
+var _hand_recovery_tween: Tween
+
 var state: int = PState.NORMAL
 var input_locked: bool = false
 var is_recovering_null: bool = false
@@ -141,6 +148,8 @@ func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	set_process_unhandled_input(true)
 	set_process(true)
+	if hand_recovery != null:
+		_hand_recovery_default_pos = hand_recovery.position
 	_update_hand_mode_visual()
 
 	add_to_group("player")
@@ -170,6 +179,8 @@ func _ready() -> void:
 		_shoot_ring_base_scale = shoot_ring.scale
 		shoot_ring.visible = false
 		shoot_ring.modulate = Color(1, 1, 1, 1)
+		
+	
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -214,21 +225,11 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	# DOWNED: puoi sparare ma senza perk (niente charge)
 	if state == PState.DOWNED:
-		if event.is_action_pressed("shoot"):
-			var origin: Vector3 = camera.global_transform.origin
-			var dir: Vector3 = -camera.global_transform.basis.z
-			_play_hand_shoot_anim()
-			_play_shoot_ring_fx()
-			Signals.request_shoot.emit(origin, dir, 1.0)
-
-		if event.is_action_pressed("interact"):
-			Signals.request_pickup.emit()
-
-		# SWAP (perk) - Q
 		if event.is_action_pressed("swap"):
 			if Run.null_dropped:
 				is_recovering_null = true
 				_update_hand_mode_visual()
+				_play_hand_recovery_enter_anim()
 				Signals.request_recovery_start.emit()
 			elif has_swap:
 				Signals.request_swap.emit()
@@ -238,6 +239,18 @@ func _unhandled_input(event: InputEvent) -> void:
 				is_recovering_null = false
 				_update_hand_mode_visual()
 				Signals.request_recovery_stop.emit()
+
+		if event.is_action_pressed("interact"):
+			Signals.request_pickup.emit()
+
+		# DOWNED: puoi sparare, ma senza charge/perk
+		if event.is_action_pressed("shoot"):
+			if Run.null_ready:
+				var origin_d: Vector3 = camera.global_transform.origin
+				var dir_d: Vector3 = -camera.global_transform.basis.z
+				_play_hand_shoot_anim()
+				_play_shoot_ring_fx()
+				Signals.request_shoot.emit(origin_d, dir_d, 1.0)
 
 		return
 
@@ -274,6 +287,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if Run.null_dropped:
 			is_recovering_null = true
 			_update_hand_mode_visual()
+			_play_hand_recovery_enter_anim()
 			Signals.request_recovery_start.emit()
 		elif has_swap:
 			Signals.request_swap.emit()
@@ -294,6 +308,31 @@ func set_input_locked(v: bool) -> void:
 func _update_hand_mode_visual() -> void:
 	if hand != null:
 		hand.visible = not is_recovering_null
+
+	if hand_recovery != null:
+		if not is_recovering_null:
+			hand_recovery.visible = false
+			hand_recovery.position = _hand_recovery_default_pos
+
+func _play_hand_recovery_enter_anim() -> void:
+	if hand_recovery == null:
+		return
+
+	if is_instance_valid(_hand_recovery_tween):
+		_hand_recovery_tween.kill()
+
+	hand_recovery.position = _hand_recovery_default_pos + Vector3(0.0, hand_recovery_enter_offset_y, 0.0)
+	hand_recovery.visible = true
+
+	_hand_recovery_tween = create_tween()
+	_hand_recovery_tween.set_trans(Tween.TRANS_QUAD)
+	_hand_recovery_tween.set_ease(Tween.EASE_OUT)
+	_hand_recovery_tween.tween_property(
+		hand_recovery,
+		"position",
+		_hand_recovery_default_pos,
+		hand_recovery_enter_time
+	)
 
 	if hand_recovery != null:
 		hand_recovery.visible = is_recovering_null

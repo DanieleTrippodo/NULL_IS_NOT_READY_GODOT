@@ -1,7 +1,8 @@
-[gd_scene load_steps=23 format=3 uid="uid://bgwcyyqw3ssa1"]
+[gd_scene load_steps=24 format=3 uid="uid://bgwcyyqw3ssa1"]
 
 [ext_resource type="Script" uid="uid://pfb6mfm6lhf8" path="res://Game/Game.gd" id="1_wd0a0"]
 [ext_resource type="PackedScene" uid="uid://8w3pg480ojvn" path="res://Levels/arena.tscn" id="2_lv82p"]
+[ext_resource type="PackedScene" uid="uid://bc1drh8nfh4el" path="res://Levels/arena2.tscn" id="3_qvna0"]
 [ext_resource type="PackedScene" uid="uid://c8uc2jlabtxn5" path="res://Player/player.tscn" id="3_w1egk"]
 [ext_resource type="PackedScene" uid="uid://dmowmk14plofq" path="res://Weapons/null_projectile.tscn" id="4_rchnd"]
 [ext_resource type="PackedScene" uid="uid://cagjhpfgva4b6" path="res://Enemies/chaser.tscn" id="5_rl4yr"]
@@ -30,6 +31,7 @@ ambient_light_color = Color(0.98234254, 0.9823423, 0.9823424, 1)
 [node name="Node" type="Node"]
 script = ExtResource("1_wd0a0")
 arena_scene = ExtResource("2_lv82p")
+arena_wave_scenes = Array[PackedScene]([ExtResource("3_qvna0")])
 player_scene = ExtResource("3_w1egk")
 null_projectile_scene = ExtResource("4_rchnd")
 chaser_scene = ExtResource("5_rl4yr")

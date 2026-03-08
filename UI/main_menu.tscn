@@ -198,6 +198,11 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 42
 text = "FULLSCREEN: ON"
 
+[node name="ResolutionValue" type="Label" parent="UI/SettingsPanel/CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 42
+text = "RESOLUTION:"
+
 [node name="MouseSensValue" type="Label" parent="UI/SettingsPanel/CenterContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 42

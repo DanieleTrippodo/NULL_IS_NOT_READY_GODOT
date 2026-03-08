@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://bmh5v3pstny5c"]
+[gd_scene load_steps=15 format=3 uid="uid://bmh5v3pstny5c"]
 
 [ext_resource type="Texture2D" uid="uid://b0yc6digipfue" path="res://Levels/Floor.jpg" id="1_c58mu"]
 [ext_resource type="PackedScene" uid="uid://cqkyne466bpru" path="res://Interactables/tutorial_spawn_button.tscn" id="2_h6fp6"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://bchjqf85c5jai" path="res://Props/tutorial_tips_null.tscn" id="6_7ntq1"]
 [ext_resource type="Texture2D" uid="uid://bmk5p2xsgnyr7" path="res://Art/Icon/Arrow.png" id="7_lhwux"]
 [ext_resource type="PackedScene" uid="uid://d4d1pfv5jl7vk" path="res://Props/tutorial_tips_critstate.tscn" id="8_cfrca"]
+[ext_resource type="PackedScene" uid="uid://clhyriywskaor" path="res://Props/tutorial_tips_recovery.tscn" id="9_08727"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_h6fp6"]
 size = Vector3(30, 1, 30)
@@ -27,6 +28,29 @@ uv1_scale = Vector3(64, 64, 64)
 stencil_flags = 2
 stencil_color = Color(1, 1, 1, 1)
 stencil_outline_thickness = 0.057
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5ufhi"]
+render_priority = 1
+transparency = 1
+shading_mode = 0
+grow = true
+grow_amount = 0.04
+stencil_mode = 3
+stencil_flags = 1
+stencil_compare = 5
+metadata/_stencil_owned = true
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_i73tf"]
+next_pass = SubResource("StandardMaterial3D_5ufhi")
+shading_mode = 0
+diffuse_mode = 3
+specular_mode = 1
+albedo_color = Color(0, 0, 0, 1)
+texture_filter = 0
+stencil_mode = 1
+stencil_flags = 2
+stencil_color = Color(1, 1, 1, 1)
+stencil_outline_thickness = 0.04
 
 [node name="ArenaTutorial" type="Node3D"]
 
@@ -66,33 +90,66 @@ autoplay = true
 parameters/looping = true
 
 [node name="Props_MAP" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -14.043114)
 
 [node name="TutorialTips_PUSH" parent="Props_MAP" instance=ExtResource("5_i6mam")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.2646804, -1.1920929e-07, -16.737034)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.051172614, -1.1920929e-07, -15.486555)
 
 [node name="TutorialSpawnButton" parent="Props_MAP/TutorialTips_PUSH" instance=ExtResource("2_h6fp6")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.7480159, 1.1920929e-07, 0.8597269)
 enemy_scene = ExtResource("3_l8gg7")
 
+[node name="TutorialTips_CRITSTATE" parent="Props_MAP" instance=ExtResource("8_cfrca")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.9832997, 0, -9.862774)
+
+[node name="TutorialTips_RECOVERY" parent="Props_MAP" instance=ExtResource("9_08727")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.4197783, 0, -9.83083)
+
 [node name="TutorialTips_NULL" parent="Props_MAP" instance=ExtResource("6_7ntq1")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.861816, 0, -5.544015)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.38046002, 0, -6.084696)
 
 [node name="Arrows" type="Node3D" parent="Props_MAP"]
 
 [node name="Direction" type="Sprite3D" parent="Props_MAP/Arrows"]
-transform = Transform3D(0.040468775, 0, 0.050865293, 0, 0.065, 0, -0.050865293, 0, 0.040468775, -1.404, 1.11, -2.419)
+transform = Transform3D(-0.06294632, 0, 0.016209882, 0, 0.06499998, 0, -0.016209882, 0, -0.06294632, -2.226909, 1.11, -6.1987934)
 texture_filter = 0
 texture = ExtResource("7_lhwux")
 
 [node name="Direction2" type="Sprite3D" parent="Props_MAP/Arrows"]
-transform = Transform3D(-0.059173327, 0, 0.026898269, 0, 0.065, 0, -0.026898269, 0, -0.059173327, 0.98075557, 1.1101493, -5.9186354)
+transform = Transform3D(0.061334673, 0, 0.021518769, 0, 0.065, 0, -0.021518769, 0, 0.061334673, 2.9484074, 1.1101493, -6.1498337)
 texture_filter = 0
 texture = ExtResource("7_lhwux")
 
 [node name="Direction3" type="Sprite3D" parent="Props_MAP/Arrows"]
-transform = Transform3D(0.060299188, 0, 0.024269463, 0, 0.06499999, 0, -0.024269463, 0, 0.060299188, -1.198, 1.11, -11.183)
+transform = Transform3D(-2.84124e-09, 0, 0.06499999, 0, 0.06499998, 0, -0.06499999, 0, -2.84124e-09, -0.030745506, 0.6365243, -9.89942)
 texture_filter = 0
 texture = ExtResource("7_lhwux")
 
-[node name="TutorialTips_CRITSTATE" parent="." instance=ExtResource("8_cfrca")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.8697116, 0, -11.126884)
+[node name="Label3D" type="Label3D" parent="Props_MAP"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.137003, -9.72377)
+text = "Character Tutorial"
+font_size = 286
+
+[node name="BOUND" type="CSGCombiner3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.33259964)
+use_collision = true
+
+[node name="CSGBox3D6" type="CSGBox3D" parent="BOUND"]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.1328229, 3.6197429, -38.446)
+size = Vector3(0.22314453, 7.3852463, 75.97016)
+material = SubResource("StandardMaterial3D_i73tf")
+
+[node name="CSGBox3D7" type="CSGBox3D" parent="BOUND"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -37.959366, 3.636034, -0.531662)
+size = Vector3(0.223, 7.385, 76.045)
+material = SubResource("StandardMaterial3D_i73tf")
+
+[node name="CSGBox3D8" type="CSGBox3D" parent="BOUND"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 38.019474, 3.636034, -0.42111588)
+size = Vector3(0.223, 7.385, 76.266)
+material = SubResource("StandardMaterial3D_i73tf")
+
+[node name="CSGBox3D9" type="CSGBox3D" parent="BOUND"]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.0062770844, 3.636034, 37.575527)
+size = Vector3(0.223, 7.385, 76.223)
+material = SubResource("StandardMaterial3D_i73tf")

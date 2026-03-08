@@ -17,6 +17,7 @@ extends Control
 @onready var settings_title: Label = $UI/SettingsPanel/CenterContainer/VBoxContainer/Title
 @onready var master_value: Label = $UI/SettingsPanel/CenterContainer/VBoxContainer/MasterValue
 @onready var fullscreen_value: Label = $UI/SettingsPanel/CenterContainer/VBoxContainer/FullscreenValue
+@onready var resolution_value: Label = $UI/SettingsPanel/CenterContainer/VBoxContainer/ResolutionValue
 @onready var mouse_sens_value: Label = $UI/SettingsPanel/CenterContainer/VBoxContainer/MouseSensValue
 @onready var back_value: Label = $UI/SettingsPanel/CenterContainer/VBoxContainer/BackValue
 
@@ -28,8 +29,7 @@ extends Control
 @onready var sfx_click: AudioStreamPlayer = $SfxClick
 
 # =========================
-# FADE (node under MainMenu root)
-# FadeRect must be above CrtOverlay in the scene tree (last is best)
+# FADE
 # =========================
 @onready var fade_rect: ColorRect = $UI/FadeRect
 
@@ -48,18 +48,15 @@ var character_base_pos: Vector2
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_HIDDEN
 
-	# Start BGM (if Autoplay is off)
 	if bgm and bgm.stream and not bgm.playing:
 		bgm.play()
 
-	# FadeRect: start fully transparent (we animate its COLOR alpha)
 	if fade_rect:
 		fade_rect.visible = true
 		var c := fade_rect.color
 		c.a = 0.0
 		fade_rect.color = c
 
-	# Cache character base pos for parallax
 	if character:
 		character_base_pos = character.position
 
@@ -76,7 +73,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if in_settings:
 		if event.is_action_pressed("ui_down"):
-			settings_index = min(settings_index + 1, 3)
+			settings_index = min(settings_index + 1, 4)
 			_refresh_settings_ui()
 			_play_switch()
 			return
@@ -99,9 +96,19 @@ func _unhandled_input(event: InputEvent) -> void:
 
 		elif event.is_action_pressed("ui_accept"):
 			_play_click()
-			if settings_index == 3:
+
+			if settings_index == 1:
+				_change_settings_value(1)
+			elif settings_index == 4:
 				_close_settings()
+
 			return
+
+		elif event is InputEventKey and event.pressed and event.keycode == KEY_SPACE:
+			if settings_index == 1:
+				_play_click()
+				_change_settings_value(1)
+				return
 
 		elif event.is_action_pressed("ui_cancel"):
 			_play_click()
@@ -134,7 +141,6 @@ func _process(_delta: float) -> void:
 	if not character:
 		return
 
-	# Mouse parallax (clamped)
 	var vp: Vector2 = get_viewport_rect().size
 	if vp.x <= 0.0 or vp.y <= 0.0:
 		return
@@ -168,17 +174,13 @@ func _update_menu() -> void:
 func _activate_current() -> void:
 	match index:
 		0:
-			# START
 			get_tree().change_scene_to_file("res://Game/Main.tscn")
 		1:
-			# SETTINGS
 			_restore_from_transition()
 			_open_settings()
 		2:
-			# TUTORIAL
 			get_tree().change_scene_to_file("res://Game/tutorial_main.tscn")
 		3:
-			# EXIT
 			get_tree().quit()
 
 func _update_footer() -> void:
@@ -204,11 +206,29 @@ func _refresh_settings_ui() -> void:
 
 	var master_text := "MASTER VOLUME: " + str(Settings.master_volume)
 	var fullscreen_text := "FULLSCREEN: " + ("ON" if Settings.fullscreen else "OFF")
+
+	var resolution_text := "RESOLUTION: " + Settings.get_current_resolution_text()
+	if Settings.fullscreen:
+		resolution_text += "  (FULLSCREEN)"
+
 	var mouse_text := "MOUSE SENS: " + str(snapped(Settings.mouse_sens, 0.0001))
 	var back_text := "BACK"
 
-	var rows: Array[Label] = [master_value, fullscreen_value, mouse_sens_value, back_value]
-	var texts: Array[String] = [master_text, fullscreen_text, mouse_text, back_text]
+	var rows: Array[Label] = [
+		master_value,
+		fullscreen_value,
+		resolution_value,
+		mouse_sens_value,
+		back_value
+	]
+
+	var texts: Array[String] = [
+		master_text,
+		fullscreen_text,
+		resolution_text,
+		mouse_text,
+		back_text
+	]
 
 	for i in range(rows.size()):
 		if i == settings_index:
@@ -226,8 +246,10 @@ func _change_settings_value(direction: int) -> void:
 			if direction != 0:
 				Settings.set_fullscreen(not Settings.fullscreen)
 		2:
-			Settings.set_mouse_sens(Settings.mouse_sens + (0.0002 * direction))
+			Settings.set_resolution_index(Settings.resolution_index + direction)
 		3:
+			Settings.set_mouse_sens(Settings.mouse_sens + (0.0002 * direction))
+		4:
 			pass
 
 	_refresh_settings_ui()
