@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3 uid="uid://db66pbuu3ii4u"]
+[gd_scene load_steps=24 format=3 uid="uid://db66pbuu3ii4u"]
 
 [ext_resource type="Script" uid="uid://pfb6mfm6lhf8" path="res://Game/Game.gd" id="1_0rotx"]
 [ext_resource type="PackedScene" uid="uid://bmh5v3pstny5c" path="res://Levels/arena_tutorial.tscn" id="2_0rotx"]
@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://ce0g720tmhwp6" path="res://Enemies/exception.tscn" id="8_88s0g"]
 [ext_resource type="PackedScene" uid="uid://d2t46kkawn2qv" path="res://Enemies/enemy_bullet.tscn" id="9_hkwxv"]
 [ext_resource type="PackedScene" uid="uid://ff6up5cjcaym" path="res://Pickups/money_cube.tscn" id="10_8lva8"]
+[ext_resource type="PackedScene" uid="uid://dxmupt5kja2oy" path="res://Enemies/enemy_death_fx.tscn" id="10_y6i7r"]
 [ext_resource type="PackedScene" uid="uid://gshswk7putnj" path="res://Interactables/shop_portal.tscn" id="11_vd0t5"]
 [ext_resource type="PackedScene" uid="uid://dqgk2yf0bdgir" path="res://Interactables/terminal.tscn" id="12_0bg76"]
 [ext_resource type="PackedScene" uid="uid://c1oasgfwdd86n" path="res://UI/terminal_overlay.tscn" id="13_rfjwq"]
@@ -37,6 +38,7 @@ turret_scene = ExtResource("6_xcyp1")
 spike_scene = ExtResource("7_eblan")
 exception_scene = ExtResource("8_88s0g")
 enemy_bullet_scene = ExtResource("9_hkwxv")
+enemy_death_fx_scene = ExtResource("10_y6i7r")
 money_cube_scene = ExtResource("10_8lva8")
 shop_portal_scene = ExtResource("11_vd0t5")
 terminal_scene = ExtResource("12_0bg76")

@@ -47,7 +47,7 @@ mesh = SubResource("CylinderMesh_5ufhi")
 surface_material_override/0 = SubResource("StandardMaterial3D_t6jl4")
 
 [node name="SpawnPoint" type="Marker3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -5.022021)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4302757, 0, -5.7022214)
 
 [node name="Label3D" type="Label3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.17668, 0)

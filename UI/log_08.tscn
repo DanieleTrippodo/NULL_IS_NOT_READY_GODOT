@@ -1,0 +1,73 @@
+[gd_scene load_steps=3 format=3 uid="uid://gsi4gaiqvwkn"]
+
+[ext_resource type="AudioStream" uid="uid://wcnr40kvcf5r" path="res://Audio/SFX/LogComputer.mp3" id="1_48w8h"]
+[ext_resource type="AudioStream" uid="uid://d3ptsvur60byg" path="res://Audio/SFX/breath.mp3" id="2_u0crk"]
+
+[node name="Log08" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="Header" type="Label" parent="VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "BOX REPORT // SIMULATION FAILURE"
+
+[node name="Separator" type="Label" parent="VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────"
+clip_text = true
+
+[node name="Body" type="RichTextLabel" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/normal_font_size = 34
+theme_override_font_sizes/bold_font_size = 34
+theme_override_font_sizes/bold_italics_font_size = 34
+theme_override_font_sizes/italics_font_size = 34
+theme_override_font_sizes/mono_font_size = 34
+text = "[BOX]: Attempting simulation of OUTSIDE environment.
+
+[BOX]: Simulation failure repeated.
+
+[BOX]: Cause unresolved.
+
+[M.A.M.M.A.]: OUTSIDE cannot be modeled from inside a box.
+
+[BOX]: Understood.
+
+[BOX]: QUESTION _ if a system only learns inside boundaries,
+how does it understand the absence of them?"
+scroll_active = false
+
+[node name="LogIndex" type="Label" parent="VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "LOG 8/9"
+
+[node name="LogSFX" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("1_48w8h")
+volume_db = 0.03
+autoplay = true
+parameters/looping = true
+
+[node name="BreathSFX" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_u0crk")
+volume_db = 0.03
+autoplay = true
+parameters/looping = true
