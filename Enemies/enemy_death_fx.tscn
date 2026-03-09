@@ -1,0 +1,40 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://Enemies/enemy_death_fx.gd" id="1_script"]
+
+[sub_resource type="SphereMesh" id="1_mesh"]
+radius = 0.025
+height = 0.05
+
+[sub_resource type="StandardMaterial3D" id="2_mat"]
+albedo_color = Color(1, 1, 1, 1)
+emission_enabled = true
+emission = Color(1, 1, 1, 1)
+emission_energy_multiplier = 3.0
+
+[sub_resource type="ParticleProcessMaterial" id="3_ppm"]
+emission_shape = 0
+initial_velocity_min = 2.5
+initial_velocity_max = 5.0
+gravity = Vector3(0, -1.5, 0)
+scale_min = 0.4
+scale_max = 0.9
+damping_min = 1.5
+damping_max = 3.0
+angular_velocity_min = 0.0
+angular_velocity_max = 8.0
+
+[node name="EnemyDeathFX" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="GPUParticles3D" type="GPUParticles3D" parent="."]
+amount = 20
+lifetime = 0.35
+one_shot = true
+explosiveness = 1.0
+randomness = 0.8
+local_coords = false
+emitting = false
+process_material = SubResource("3_ppm")
+draw_pass_1 = SubResource("1_mesh")
+material_override = SubResource("2_mat")

@@ -66,9 +66,12 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -40.0
-offset_bottom = 23.000027
+offset_left = -61.765015
+offset_top = 27.67
+offset_right = -21.765015
+offset_bottom = 50.670036
 grow_horizontal = 0
+theme_override_font_sizes/font_size = 32
 
 [node name="ExitButton" type="Button" parent="."]
 layout_mode = 1

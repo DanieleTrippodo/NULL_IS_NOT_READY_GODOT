@@ -2,8 +2,8 @@
 
 [ext_resource type="Script" uid="uid://mw3fokdvt2in" path="res://UI/main_menu.gd" id="1_p8ccj"]
 [ext_resource type="Shader" uid="uid://1rsa2kuohaem" path="res://UI/main_menu.gdshader" id="2_4cwpn"]
-[ext_resource type="Texture2D" uid="uid://c8tor3856x5ph" path="res://UI/Title.png" id="2_tk8dj"]
 [ext_resource type="Texture2D" uid="uid://dv0jkca5gj5gv" path="res://UI/NullaSprite.png" id="3_d8nwk"]
+[ext_resource type="Texture2D" uid="uid://dm11exnulvw08" path="res://UI/null_is_not_ready_transparent.png" id="3_k0a0m"]
 [ext_resource type="Shader" uid="uid://cbyackngxcatx" path="res://UI/CRT.gdshader" id="5_f40uw"]
 [ext_resource type="AudioStream" uid="uid://btbhp1mjmq6h2" path="res://Audio/BGM/MainMenuBGM.mp3" id="6_8ctay"]
 [ext_resource type="AudioStream" uid="uid://dvfimj2pk5j1s" path="res://Audio/SFX/SwitchSelection.mp3" id="7_k0a0m"]
@@ -94,7 +94,7 @@ size_flags_horizontal = 0
 [node name="Title" type="TextureRect" parent="UI/Center/RowWrap/Row/Left"]
 custom_minimum_size = Vector2(320, 167.175)
 layout_mode = 2
-texture = ExtResource("2_tk8dj")
+texture = ExtResource("3_k0a0m")
 expand_mode = 1
 stretch_mode = 5
 

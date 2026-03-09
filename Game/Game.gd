@@ -11,6 +11,7 @@ extends Node
 @export var exception_scene: PackedScene
 @export var enemy_bullet_scene: PackedScene
 @onready var kill_sfx: AudioStreamPlayer = $KillSfx
+@export var enemy_death_fx_scene: PackedScene
 
 # NEW: money + shop
 @export var money_cube_scene: PackedScene
@@ -28,6 +29,10 @@ extends Node
 @export var terminal_every_n_depth: int = 3
 
 @export var tutorial_mode: bool = false
+
+@export var game_over_overlay_scene: PackedScene
+
+var game_over_overlay: Control = null
 
 var rng := RandomNumberGenerator.new()
 var terminal_instance: Node3D = null
@@ -79,7 +84,6 @@ const WAVE_FREEZE_TIME: float = 0.35
 const KILL_FLASH_TIME := 0.09
 
 func _ready() -> void:
-	
 	rng.randomize()
 	Engine.time_scale = 1.0
 
@@ -92,7 +96,6 @@ func _ready() -> void:
 	restarting = false
 	wave_transitioning = false
 	world_frozen = false
-	
 
 	Signals.request_shoot.connect(_on_request_shoot)
 	Signals.request_pickup.connect(_on_request_pickup)
@@ -101,7 +104,6 @@ func _ready() -> void:
 	Signals.request_recovery_start.connect(_on_request_recovery_start)
 	Signals.request_recovery_stop.connect(_on_request_recovery_stop)
 	Signals.null_dropped.connect(_on_null_dropped)
-	
 
 	Signals.enemy_killed.connect(_on_enemy_killed)
 	Signals.player_died.connect(_on_player_died)
@@ -115,8 +117,7 @@ func _ready() -> void:
 	_setup_wave_button()
 	_set_state(ArenaState.WAIT_START)
 	_setup_terminal_overlay()
-	
-	
+	_setup_game_over_overlay()
 
 func _play_kill_sfx() -> void:
 	if kill_sfx == null:
@@ -179,8 +180,29 @@ func _setup_terminal_overlay() -> void:
 	if terminal_overlay.has_signal("closed"):
 		terminal_overlay.closed.connect(_on_terminal_closed)
 
+func _setup_game_over_overlay() -> void:
+	if game_over_overlay_scene == null:
+		return
+
+	var o := game_over_overlay_scene.instantiate()
+	if o == null:
+		return
+
+	$UIRoot.add_child(o)
+
+	if o is Control:
+		game_over_overlay = o as Control
+
+	if game_over_overlay != null:
+		if game_over_overlay.has_signal("retry_pressed"):
+			game_over_overlay.retry_pressed.connect(_on_game_over_retry_pressed)
+		if game_over_overlay.has_signal("exit_pressed"):
+			game_over_overlay.exit_pressed.connect(_on_game_over_exit_pressed)
 
 func _unhandled_input(event: InputEvent) -> void:
+	if restarting:
+		return
+
 	if event.is_action_pressed("esc"):
 		get_tree().change_scene_to_file("res://UI/main_menu.tscn")
 
@@ -522,7 +544,6 @@ func _on_request_recovery_start() -> void:
 	if null_instance.has_method("start_remote_recovery"):
 		null_instance.call("start_remote_recovery", player)
 
-
 func _on_request_recovery_stop() -> void:
 	if null_instance == null or not is_instance_valid(null_instance):
 		return
@@ -557,6 +578,7 @@ func _on_enemy_killed(enemy: Node) -> void:
 		return
 
 	if is_instance_valid(enemy):
+		_spawn_enemy_death_fx(enemy.global_position)
 		_disable_enemy(enemy)
 		_play_kill_sfx()
 		_flash_enemy(enemy)
@@ -693,15 +715,37 @@ func _set_world_frozen(v: bool) -> void:
 		(shop_portal_instance as Node).set_physics_process(not v)
 
 # ------------------------------------------------------------
-# Player died / restart (uguale alla vecchia)
+# Player died / game over
 # ------------------------------------------------------------
 func _on_player_died() -> void:
 	if restarting:
 		return
+
 	restarting = true
+
 	_cleanup_uncollected_money()
 	_cleanup_shop_portal()
-	call_deferred("_restart_run")
+
+	_set_world_frozen(true)
+
+	var player := _get_player()
+	if player != null:
+		player.set_process_input(false)
+		player.set_process_unhandled_input(false)
+		player.set_physics_process(false)
+
+	if game_over_overlay != null and game_over_overlay.has_method("show_game_over"):
+		await game_over_overlay.show_game_over()
+	else:
+		call_deferred("_restart_run")
+
+func _on_game_over_retry_pressed() -> void:
+	Run.reset()
+	get_tree().reload_current_scene()
+
+func _on_game_over_exit_pressed() -> void:
+	Run.reset()
+	get_tree().change_scene_to_file("res://UI/main_menu.tscn")
 
 func _restart_run() -> void:
 	if hud != null and hud.has_method("fade_out"):
@@ -962,7 +1006,7 @@ func _despawn_terminal() -> void:
 	if terminal_instance != null and is_instance_valid(terminal_instance):
 		terminal_instance.queue_free()
 	terminal_instance = null
-	
+
 func _on_terminal_pressed(log_index: int) -> void:
 	if terminal_overlay == null:
 		return
@@ -1001,3 +1045,11 @@ func _on_terminal_closed() -> void:
 func _queue_free_if_valid(node: Node) -> void:
 	if is_instance_valid(node):
 		node.queue_free()
+
+func _spawn_enemy_death_fx(pos: Vector3) -> void:
+	if enemy_death_fx_scene == null:
+		return
+
+	var fx := enemy_death_fx_scene.instantiate()
+	add_child(fx)
+	fx.global_position = pos

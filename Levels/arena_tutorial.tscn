@@ -99,6 +99,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.051172614, -1.1920929e-07,
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.7480159, 1.1920929e-07, 0.8597269)
 enemy_scene = ExtResource("3_l8gg7")
 
+[node name="Label3D" type="Label3D" parent="Props_MAP/TutorialTips_PUSH"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2082815, -0.069503784)
+text = "PRO TIP: If you push one enemy into another they will both stun each other for double the time."
+autowrap_mode = 3
+
 [node name="TutorialTips_CRITSTATE" parent="Props_MAP" instance=ExtResource("8_cfrca")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.9832997, 0, -9.862774)
 

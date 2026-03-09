@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3 uid="uid://bgwcyyqw3ssa1"]
+[gd_scene load_steps=26 format=3 uid="uid://bgwcyyqw3ssa1"]
 
 [ext_resource type="Script" uid="uid://pfb6mfm6lhf8" path="res://Game/Game.gd" id="1_wd0a0"]
 [ext_resource type="PackedScene" uid="uid://8w3pg480ojvn" path="res://Levels/arena.tscn" id="2_lv82p"]
@@ -12,6 +12,7 @@
 [ext_resource type="PackedScene" uid="uid://d2t46kkawn2qv" path="res://Enemies/enemy_bullet.tscn" id="7_q34ae"]
 [ext_resource type="PackedScene" uid="uid://ce0g720tmhwp6" path="res://Enemies/exception.tscn" id="8_6o7ua"]
 [ext_resource type="PackedScene" uid="uid://ff6up5cjcaym" path="res://Pickups/money_cube.tscn" id="10_x253o"]
+[ext_resource type="PackedScene" uid="uid://dxmupt5kja2oy" path="res://Enemies/enemy_death_fx.tscn" id="11_ijkwl"]
 [ext_resource type="PackedScene" uid="uid://gshswk7putnj" path="res://Interactables/shop_portal.tscn" id="11_krex0"]
 [ext_resource type="PackedScene" uid="uid://dqgk2yf0bdgir" path="res://Interactables/terminal.tscn" id="12_3tq7c"]
 [ext_resource type="PackedScene" uid="uid://c1oasgfwdd86n" path="res://UI/terminal_overlay.tscn" id="13_eg2md"]
@@ -22,6 +23,7 @@
 [ext_resource type="PackedScene" uid="uid://bdnvevac4p2fh" path="res://UI/log_04.tscn" id="17_qvna0"]
 [ext_resource type="PackedScene" uid="uid://cxydsp1rqodpm" path="res://UI/log_05.tscn" id="18_w1287"]
 [ext_resource type="PackedScene" uid="uid://cyhtuqa1pdl7b" path="res://UI/log_06.tscn" id="19_ijkwl"]
+[ext_resource type="PackedScene" uid="uid://v4ewo7pjscrf" path="res://UI/game_over_overlay.tscn" id="21_w1287"]
 
 [sub_resource type="Environment" id="Environment_3xx61"]
 background_mode = 1
@@ -39,11 +41,13 @@ turret_scene = ExtResource("6_3xx61")
 spike_scene = ExtResource("7_f77hp")
 exception_scene = ExtResource("8_6o7ua")
 enemy_bullet_scene = ExtResource("7_q34ae")
+enemy_death_fx_scene = ExtResource("11_ijkwl")
 money_cube_scene = ExtResource("10_x253o")
 shop_portal_scene = ExtResource("11_krex0")
 terminal_scene = ExtResource("12_3tq7c")
 terminal_overlay_scene = ExtResource("13_eg2md")
 terminal_log_scenes = Array[PackedScene]([ExtResource("14_eg2md"), ExtResource("15_b3cwe"), ExtResource("16_wo11f"), ExtResource("17_qvna0"), ExtResource("18_w1287"), ExtResource("19_ijkwl")])
+game_over_overlay_scene = ExtResource("21_w1287")
 money_max = 11
 money_spawn_radius = 5.0
 magnet_radius = 3.0

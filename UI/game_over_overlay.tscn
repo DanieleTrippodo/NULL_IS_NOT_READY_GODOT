@@ -1,0 +1,98 @@
+[gd_scene load_steps=4 format=3 uid="uid://v4ewo7pjscrf"]
+
+[ext_resource type="Script" uid="uid://iamt4sbu23wd" path="res://UI/game_over_overlay.gd" id="1_script"]
+[ext_resource type="Shader" uid="uid://cbyackngxcatx" path="res://UI/CRT.gdshader" id="2_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_crt"]
+shader = ExtResource("2_shader")
+shader_parameter/warp_strength = 0.045
+shader_parameter/vignette_strength = 0.35
+shader_parameter/scanline_strength = 0.16
+shader_parameter/noise_strength = 0.025
+shader_parameter/flicker_strength = 0.02
+shader_parameter/edge_softness = 0.02
+
+[node name="GameOverOverlay" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("1_script")
+
+[node name="BlackBg" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.14767182, 0.14767179, 0.14767185, 1)
+
+[node name="PowerLine" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -2.0
+offset_bottom = 2.0
+grow_horizontal = 2
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="Panel" parent="CenterContainer"]
+custom_minimum_size = Vector2(320, 190)
+layout_mode = 2
+
+[node name="Menu" type="VBoxContainer" parent="CenterContainer/Panel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -120.0
+offset_top = -70.0
+offset_right = 120.0
+offset_bottom = 70.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 14
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="CenterContainer/Panel/Menu"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "SIGNAL LOST"
+horizontal_alignment = 1
+
+[node name="RetryButton" type="Button" parent="CenterContainer/Panel/Menu"]
+custom_minimum_size = Vector2(240, 42)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "RETRY"
+
+[node name="ExitButton" type="Button" parent="CenterContainer/Panel/Menu"]
+custom_minimum_size = Vector2(240, 42)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "EXIT"
+
+[node name="CRTLayer" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_crt")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2

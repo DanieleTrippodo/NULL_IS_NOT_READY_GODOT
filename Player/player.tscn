@@ -17,7 +17,7 @@
 [ext_resource type="Texture2D" uid="uid://c3fpbcv1s842r" path="res://Player/pushAnimation/Frame11.png" id="15_8viyr"]
 [ext_resource type="Texture2D" uid="uid://dodmu4nv3yp52" path="res://Player/pushAnimation/Frame12.png" id="16_pisgm"]
 [ext_resource type="Texture2D" uid="uid://d23i2gw17tmi5" path="res://Player/pushAnimation/Frame13.png" id="17_b1ygp"]
-[ext_resource type="Texture2D" uid="uid://bam2bjgu263yy" path="res://Player/Hand.png" id="18_b1ygp"]
+[ext_resource type="Texture2D" uid="uid://dghif7tb6g2is" path="res://Player/RightHand.png" id="18_n471f"]
 [ext_resource type="Texture2D" uid="uid://bnitp82n0jibx" path="res://Player/ShootRing.png" id="19_o28un"]
 [ext_resource type="Texture2D" uid="uid://br10bb5ejfw30" path="res://Player/RecoveryHnads.png" id="20_n471f"]
 
@@ -117,11 +117,11 @@ frame = 13
 frame_progress = 1.0
 
 [node name="Hand" type="Sprite3D" parent="Head/Camera/ViewModel"]
-transform = Transform3D(0.03, 0, 0, 0, 0.03, 0, 0, 0, 0.03, 0.6909939, -0.06382388, 0.067738324)
+transform = Transform3D(0.085, 0, 0, 0, 0.085, 0, 0, 0, 0.085, 0.5873836, -0.030905247, 0.067738324)
 billboard = 1
 texture_filter = 0
 render_priority = 1
-texture = ExtResource("18_b1ygp")
+texture = ExtResource("18_n471f")
 
 [node name="ShootRing" type="Sprite3D" parent="Head/Camera/ViewModel"]
 transform = Transform3D(0.004, 0, 0, 0, 0.004, 0, 0, 0, 0.004, 0.5839122, 0.039703667, 0.071623564)
