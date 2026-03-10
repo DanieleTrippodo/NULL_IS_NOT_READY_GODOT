@@ -25,14 +25,14 @@ enum PState { NORMAL, KNOCKBACK, DOWNED }
 # (Legacy) lasciato per compatibilità Inspector; non è usato direttamente
 @export var knockback_strength: float = 14.0
 
-@export var knockback_lift: float = 8.0
+@export var knockback_lift: float = 9.0
 @export var knockback_speed: float = 22.0
 @export var knockback_drag_air: float = 6.0
 @export var knockback_drag_ground: float = 10.0
 @export var knockback_max_step: float = 6.0 # clamp anti-scatto (valore più alto = meno clamp)
 
 @export var downed_cam_offset_y: float = -0.75
-@export var knockback_min_time: float = 0.10
+@export var knockback_min_time: float = 0.25
 @export var downed_invuln_seconds: float = 0.5
 
 # -------------------------

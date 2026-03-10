@@ -1,7 +1,9 @@
-[gd_scene load_steps=4 format=3 uid="uid://v4ewo7pjscrf"]
+[gd_scene load_steps=6 format=3 uid="uid://v4ewo7pjscrf"]
 
 [ext_resource type="Script" uid="uid://iamt4sbu23wd" path="res://UI/game_over_overlay.gd" id="1_script"]
 [ext_resource type="Shader" uid="uid://cbyackngxcatx" path="res://UI/CRT.gdshader" id="2_shader"]
+[ext_resource type="AudioStream" uid="uid://dvfimj2pk5j1s" path="res://Audio/SFX/SwitchSelection.mp3" id="3_i51c6"]
+[ext_resource type="AudioStream" uid="uid://bpjq3n43q26wj" path="res://Audio/SFX/onClick.mp3" id="4_c7bxv"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_crt"]
 shader = ExtResource("2_shader")
@@ -123,3 +125,9 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="SfxSwitch" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3_i51c6")
+
+[node name="SfxClick" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("4_c7bxv")

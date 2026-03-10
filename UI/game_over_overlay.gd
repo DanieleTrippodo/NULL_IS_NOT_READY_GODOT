@@ -22,6 +22,9 @@ signal exit_pressed
 @onready var selector_exit: Label = $CenterContainer/MenuRoot/HBoxContainer/ExitGroup/SelectorExit
 @onready var exit_button: Button = $CenterContainer/MenuRoot/HBoxContainer/ExitGroup/ExitButton
 
+@onready var sfx_switch: AudioStreamPlayer = $SfxSwitch
+@onready var sfx_click: AudioStreamPlayer = $SfxClick
+
 var _busy: bool = false
 var _menu_index: int = 0
 
@@ -54,13 +57,17 @@ func _ready() -> void:
 	exit_button.pressed.connect(_on_exit_pressed)
 
 	retry_button.mouse_entered.connect(func() -> void:
-		_menu_index = 0
-		_refresh_menu_selector()
+		if _menu_index != 0:
+			_menu_index = 0
+			_refresh_menu_selector()
+			_play_switch()
 	)
 
 	exit_button.mouse_entered.connect(func() -> void:
-		_menu_index = 1
-		_refresh_menu_selector()
+		if _menu_index != 1:
+			_menu_index = 1
+			_refresh_menu_selector()
+			_play_switch()
 	)
 
 	_refresh_menu_selector()
@@ -79,6 +86,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			vp_left.set_input_as_handled()
 		_menu_index = (_menu_index - 1 + 2) % 2
 		_refresh_menu_selector()
+		_play_switch()
 		return
 
 	if event.is_action_pressed("ui_right"):
@@ -87,6 +95,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			vp_right.set_input_as_handled()
 		_menu_index = (_menu_index + 1) % 2
 		_refresh_menu_selector()
+		_play_switch()
 		return
 
 	if event.is_action_pressed("ui_accept"):
@@ -100,6 +109,18 @@ func _unhandled_input(event: InputEvent) -> void:
 		var vp_cancel := get_viewport()
 		if vp_cancel:
 			vp_cancel.set_input_as_handled()
+
+		if _busy:
+			return
+
+		_busy = true
+		_play_click()
+
+		var delay: float = 0.14
+		if sfx_click and sfx_click.stream != null:
+			delay = min(sfx_click.stream.get_length(), 0.18)
+
+		await get_tree().create_timer(delay).timeout
 		_on_exit_pressed()
 		return
 
@@ -256,6 +277,18 @@ func _refresh_menu_selector() -> void:
 
 
 func _activate_current() -> void:
+	if _busy:
+		return
+
+	_busy = true
+	_play_click()
+
+	var delay: float = 0.14
+	if sfx_click and sfx_click.stream != null:
+		delay = min(sfx_click.stream.get_length(), 0.18)
+
+	await get_tree().create_timer(delay).timeout
+
 	match _menu_index:
 		0:
 			_on_retry_pressed()
@@ -292,3 +325,15 @@ func _has_shader_param(mat: ShaderMaterial, param_name: String) -> bool:
 			return true
 
 	return false
+
+func _play_switch() -> void:
+	if not sfx_switch or sfx_switch.stream == null:
+		return
+	sfx_switch.stop()
+	sfx_switch.play()
+
+func _play_click() -> void:
+	if not sfx_click or sfx_click.stream == null:
+		return
+	sfx_click.stop()
+	sfx_click.play()
