@@ -7,6 +7,7 @@ extends Control
 	$UI/Center/RowWrap/Row/Left/Menu/ItemStart,
 	$UI/Center/RowWrap/Row/Left/Menu/ItemSettings,
 	$UI/Center/RowWrap/Row/Left/Menu/ItemTutorial,
+	$UI/Center/RowWrap/Row/Left/Menu/ItemCredits,
 	$UI/Center/RowWrap/Row/Left/Menu/ItemExit
 ]
 
@@ -20,6 +21,12 @@ extends Control
 @onready var resolution_value: Label = $UI/SettingsPanel/CenterContainer/VBoxContainer/ResolutionValue
 @onready var mouse_sens_value: Label = $UI/SettingsPanel/CenterContainer/VBoxContainer/MouseSensValue
 @onready var back_value: Label = $UI/SettingsPanel/CenterContainer/VBoxContainer/BackValue
+@onready var credits_panel: Control = $UI/CreditsPanel
+@onready var credits_title: Label = $UI/CreditsPanel/CenterContainer/VBoxContainer/Title
+@onready var credits_name_1: Label = $UI/CreditsPanel/CenterContainer/VBoxContainer/CreditsName1
+@onready var credits_name_2: Label = $UI/CreditsPanel/CenterContainer/VBoxContainer/CreditsName2
+@onready var credits_name_3: Label = $UI/CreditsPanel/CenterContainer/VBoxContainer/CreditsName3
+@onready var credits_back_value: Label = $UI/CreditsPanel/CenterContainer/VBoxContainer/BackValue
 
 # =========================
 # AUDIO (nodes under MainMenu root)
@@ -40,6 +47,7 @@ var index: int = 0
 var is_transitioning: bool = false
 var in_settings: bool = false
 var settings_index: int = 0
+var in_credits: bool = false
 
 # Parallax
 var parallax_strength: float = 10.0
@@ -63,9 +71,13 @@ func _ready() -> void:
 	if settings_panel:
 		settings_panel.visible = false
 
+	if credits_panel:
+		credits_panel.visible = false
+
 	_update_menu()
 	_update_footer()
 	_refresh_settings_ui()
+	_refresh_credits_ui()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if is_transitioning:
@@ -113,6 +125,19 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event.is_action_pressed("ui_cancel"):
 			_play_click()
 			_close_settings()
+			return
+
+		return
+
+	if in_credits:
+		if event.is_action_pressed("ui_accept"):
+			_play_click()
+			_close_credits()
+			return
+
+		elif event.is_action_pressed("ui_cancel"):
+			_play_click()
+			_close_credits()
 			return
 
 		return
@@ -181,6 +206,9 @@ func _activate_current() -> void:
 		2:
 			get_tree().change_scene_to_file("res://Game/tutorial_main.tscn")
 		3:
+			_restore_from_transition()
+			_open_credits()
+		4:
 			get_tree().quit()
 
 func _update_footer() -> void:
@@ -302,3 +330,27 @@ func _play_click() -> void:
 		return
 	sfx_click.stop()
 	sfx_click.play()
+
+func _open_credits() -> void:
+	in_credits = true
+	credits_panel.visible = true
+	_refresh_credits_ui()
+
+func _close_credits() -> void:
+	in_credits = false
+	credits_panel.visible = false
+	_update_menu()
+
+func _refresh_credits_ui() -> void:
+	if not credits_panel:
+		return
+
+	credits_title.text = "CREDITS"
+
+	# Sostituisci questi nomi con quelli reali
+	credits_name_1.text = "  Main / Developer: DDD"
+	credits_name_2.text = "  Composer: Petrol4brains"
+	credits_name_3.text = "  Animator: ruba✩"
+
+	credits_back_value.text = "> BACK"
+	credits_back_value.modulate.a = 1.0

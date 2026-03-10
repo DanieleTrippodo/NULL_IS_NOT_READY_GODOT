@@ -117,6 +117,11 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 42
 text = "TUTORIAL // DEBUG"
 
+[node name="ItemCredits" type="Label" parent="UI/Center/RowWrap/Row/Left/Menu"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 42
+text = "CREDITS"
+
 [node name="ItemExit" type="Label" parent="UI/Center/RowWrap/Row/Left/Menu"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 42
@@ -213,7 +218,62 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 48
 text = "BACK"
 
-[node name="Label" type="Label" parent="UI/SettingsPanel"]
+[node name="CreditsPanel" type="Control" parent="UI"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ColorRect" type="ColorRect" parent="UI/CreditsPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.10747976, 0.10747973, 0.10747973, 1)
+
+[node name="CenterContainer" type="CenterContainer" parent="UI/CreditsPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/CreditsPanel/CenterContainer"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Title" type="Label" parent="UI/CreditsPanel/CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 48
+text = "CREDITS"
+
+[node name="CreditsName1" type="Label" parent="UI/CreditsPanel/CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 38
+text = "Main / Developer: DDD"
+
+[node name="CreditsName2" type="Label" parent="UI/CreditsPanel/CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Composer: Petrol4brains"
+
+[node name="CreditsName3" type="Label" parent="UI/CreditsPanel/CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Animator: ruba✩"
+
+[node name="BackValue" type="Label" parent="UI/CreditsPanel/CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 42
+text = "BACK"
+
+[node name="GameJam info" type="Label" parent="UI/CreditsPanel"]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5

@@ -24,7 +24,9 @@ enum PState { NORMAL, KNOCKBACK, DOWNED }
 # -------------------------
 # (Legacy) lasciato per compatibilità Inspector; non è usato direttamente
 @export var knockback_strength: float = 14.0
-
+@export var knockback_gravity_start: float = 7.0
+@export var knockback_gravity_max: float = 20.0
+@export var knockback_gravity_accel: float = 32.0
 @export var knockback_lift: float = 9.0
 @export var knockback_speed: float = 22.0
 @export var knockback_drag_air: float = 6.0
@@ -32,8 +34,12 @@ enum PState { NORMAL, KNOCKBACK, DOWNED }
 @export var knockback_max_step: float = 6.0 # clamp anti-scatto (valore più alto = meno clamp)
 
 @export var downed_cam_offset_y: float = -0.75
-@export var knockback_min_time: float = 0.25
+@export var downed_cam_lerp_speed: float = 10.0
+@export var downed_cam_return_speed: float = 12.0
+@export var knockback_min_time: float = 0.22
 @export var downed_invuln_seconds: float = 0.5
+
+
 
 # -------------------------
 # PUSH (RMB)
@@ -58,6 +64,8 @@ var _push_cd_left: float = 0.0
 var _hand_recovery_default_pos: Vector3
 var _hand_recovery_tween: Tween
 
+var _camera_base_y: float = 0.0
+
 var state: int = PState.NORMAL
 var input_locked: bool = false
 var is_recovering_null: bool = false
@@ -77,6 +85,7 @@ var _cam_base_pos: Vector3
 # timers interni
 var _knock_t: float = 0.0
 var _downed_invuln_t: float = 0.0
+var _knockback_gravity_current: float = 0.0
 
 const GRAVITY: float = 20.0
 
@@ -145,6 +154,7 @@ var _shoot_ring_base_scale: Vector3 = Vector3.ONE
 var _shoot_ring_tween: Tween
 
 func _ready() -> void:
+	_camera_base_y = $Head/Camera.position.y
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	set_process_unhandled_input(true)
 	set_process(true)
@@ -356,6 +366,7 @@ func _physics_process(delta: float) -> void:
 	dash_cd = maxf(dash_cd - delta, 0.0)
 	dash_time_left = maxf(dash_time_left - delta, 0.0)
 	_push_cd_left = maxf(_push_cd_left - delta, 0.0)
+
 	if is_recovering_null:
 		velocity.x = 0.0
 		velocity.z = 0.0
@@ -366,10 +377,10 @@ func _physics_process(delta: float) -> void:
 			velocity.y -= GRAVITY * delta
 
 		move_and_slide()
+		_update_downed_camera(delta)
 		return
 	
 	if input_locked:
-		# tienilo fermo ma “vivo” (animazioni mondo continuano)
 		velocity.x = 0.0
 		velocity.z = 0.0
 		if is_on_floor():
@@ -377,6 +388,7 @@ func _physics_process(delta: float) -> void:
 		else:
 			velocity.y -= GRAVITY * delta
 		move_and_slide()
+		_update_downed_camera(delta)
 		return
 
 	match state:
@@ -386,6 +398,8 @@ func _physics_process(delta: float) -> void:
 			_physics_knockback(delta)
 		PState.DOWNED:
 			_physics_downed(delta)
+
+	_update_downed_camera(delta)
 
 func _physics_normal(delta: float) -> void:
 	var input_dir := Vector3.ZERO
@@ -454,11 +468,15 @@ func _physics_knockback(delta: float) -> void:
 	velocity.x = move_toward(velocity.x, 0.0, drag * delta)
 	velocity.z = move_toward(velocity.z, 0.0, drag * delta)
 
-	# gravità
+	# gravità progressiva solo durante il knockback
 	if is_on_floor():
 		velocity.y = -1.0
 	else:
-		velocity.y -= GRAVITY * delta
+		_knockback_gravity_current = minf(
+			_knockback_gravity_current + knockback_gravity_accel * delta,
+			knockback_gravity_max
+		)
+		velocity.y -= _knockback_gravity_current * delta
 
 	# clamp anti-scatto (evita “teletrasporto” se delta è alto)
 	var h := Vector2(velocity.x, velocity.z)
@@ -508,6 +526,7 @@ func _on_player_hit(knockback_dir: Vector3) -> void:
 
 	state = PState.KNOCKBACK
 	_knock_t = 0.0
+	_knockback_gravity_current = knockback_gravity_start
 
 	var dir := knockback_dir
 	if dir.length() < 0.001:
@@ -524,10 +543,6 @@ func _enter_downed() -> void:
 	Run.survival_mode = true
 	_downed_invuln_t = downed_invuln_seconds
 
-	# camera più bassa (sdraiato)
-	_cam_base_pos = _cam_normal_pos + Vector3(0, downed_cam_offset_y, 0)
-	camera.position = _cam_base_pos
-
 	_set_body_downed(true)
 
 	Signals.survival_mode_changed.emit(true)
@@ -536,9 +551,6 @@ func _exit_downed() -> void:
 	state = PState.NORMAL
 	Run.survival_mode = false
 	_downed_invuln_t = 0.0
-
-	_cam_base_pos = _cam_normal_pos
-	camera.position = _cam_base_pos
 
 	_set_body_downed(false)
 
@@ -825,3 +837,16 @@ func _play_shoot_ring_fx() -> void:
 		shoot_ring.visible = false
 		shoot_ring.scale = _shoot_ring_base_scale
 		shoot_ring.modulate = Color(1, 1, 1, 1)
+
+func _update_downed_camera(delta: float) -> void:
+	if not is_instance_valid(camera):
+		return
+
+	var target_y: float = _camera_base_y
+	var speed: float = downed_cam_return_speed
+
+	if state == PState.DOWNED:
+		target_y = _camera_base_y + downed_cam_offset_y
+		speed = downed_cam_lerp_speed
+
+	camera.position.y = lerpf(camera.position.y, target_y, speed * delta)
