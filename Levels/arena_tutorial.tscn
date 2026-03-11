@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://bmh5v3pstny5c"]
+[gd_scene load_steps=17 format=3 uid="uid://bmh5v3pstny5c"]
 
 [ext_resource type="Texture2D" uid="uid://b0yc6digipfue" path="res://Levels/Floor.jpg" id="1_c58mu"]
 [ext_resource type="AudioStream" uid="uid://df5xncmhnrdsg" path="res://Audio/BGM/TutorialBGM_Empty.mp3" id="2_08727"]
@@ -29,28 +29,29 @@ stencil_flags = 2
 stencil_color = Color(1, 1, 1, 1)
 stencil_outline_thickness = 0.057
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5ufhi"]
-render_priority = 1
-transparency = 1
-shading_mode = 0
-grow = true
-grow_amount = 0.04
-stencil_mode = 3
-stencil_flags = 1
-stencil_compare = 5
-metadata/_stencil_owned = true
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_i73tf"]
-next_pass = SubResource("StandardMaterial3D_5ufhi")
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_08727"]
 shading_mode = 0
 diffuse_mode = 3
 specular_mode = 1
 albedo_color = Color(0, 0, 0, 1)
-texture_filter = 0
-stencil_mode = 1
-stencil_flags = 2
-stencil_color = Color(1, 1, 1, 1)
-stencil_outline_thickness = 0.04
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lon3v"]
+shading_mode = 0
+diffuse_mode = 3
+specular_mode = 1
+albedo_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_i73tf"]
+shading_mode = 0
+diffuse_mode = 3
+specular_mode = 1
+albedo_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cfit7"]
+shading_mode = 0
+diffuse_mode = 3
+specular_mode = 1
+albedo_color = Color(0, 0, 0, 1)
 
 [node name="ArenaTutorial" type="Node3D"]
 
@@ -142,12 +143,12 @@ use_collision = true
 [node name="CSGBox3D6" type="CSGBox3D" parent="BOUND"]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.1328229, 3.6197429, -38.446)
 size = Vector3(0.22314453, 7.3852463, 75.97016)
-material = SubResource("StandardMaterial3D_i73tf")
+material = SubResource("StandardMaterial3D_08727")
 
 [node name="CSGBox3D7" type="CSGBox3D" parent="BOUND"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -37.959366, 3.636034, -0.531662)
 size = Vector3(0.223, 7.385, 76.045)
-material = SubResource("StandardMaterial3D_i73tf")
+material = SubResource("StandardMaterial3D_lon3v")
 
 [node name="CSGBox3D8" type="CSGBox3D" parent="BOUND"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 38.019474, 3.636034, -0.42111588)
@@ -157,4 +158,4 @@ material = SubResource("StandardMaterial3D_i73tf")
 [node name="CSGBox3D9" type="CSGBox3D" parent="BOUND"]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.0062770844, 3.636034, 37.575527)
 size = Vector3(0.223, 7.385, 76.223)
-material = SubResource("StandardMaterial3D_i73tf")
+material = SubResource("StandardMaterial3D_cfit7")

@@ -349,7 +349,7 @@ func _refresh_credits_ui() -> void:
 
 	# Sostituisci questi nomi con quelli reali
 	credits_name_1.text = "  Main / Developer: DDD"
-	credits_name_2.text = "  Composer: Petrol4brains"
+	credits_name_2.text = "  Composer: Niko Chantzis"
 	credits_name_3.text = "  Animator: ruba✩"
 
 	credits_back_value.text = "> BACK"
