@@ -67,6 +67,18 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
 mesh = SubResource("BoxMesh_l8gg7")
 surface_material_override/0 = SubResource("StandardMaterial3D_nywap")
 
+[node name="Floor2" type="StaticBody3D" parent="."]
+transform = Transform3D(2.545, 0, 0, 0, 2.545, 0, 0, 0, 2.545, 0, 0, 76.083664)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("BoxShape3D_h6fp6")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+mesh = SubResource("BoxMesh_l8gg7")
+surface_material_override/0 = SubResource("StandardMaterial3D_nywap")
+
 [node name="SpawnPoints" type="Node3D" parent="."]
 
 [node name="Spawn_1" type="Marker3D" parent="SpawnPoints"]
@@ -79,7 +91,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.716835, 0, -8)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 12.90403)
 
 [node name="PlayerSpawn" type="Marker3D" parent="SpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.072753906)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 54.764755)
 
 [node name="TerminalSpawn" type="Marker3D" parent="SpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.9070253, 0.11398608, -3.6019473)
@@ -131,10 +143,15 @@ transform = Transform3D(-2.84124e-09, 0, 0.06499999, 0, 0.06499998, 0, -0.064999
 texture_filter = 0
 texture = ExtResource("7_lhwux")
 
-[node name="Label3D" type="Label3D" parent="Props_MAP"]
+[node name="CharacterTutorial" type="Label3D" parent="Props_MAP"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.137003, -9.72377)
 text = "Character Tutorial"
 font_size = 286
+
+[node name="CharacterTutorial2" type="Label3D" parent="Props_MAP"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6.4044743, 52.58574)
+text = "TUTORIAL"
+font_size = 711
 
 [node name="BOUND" type="CSGCombiner3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.33259964)
@@ -156,6 +173,31 @@ size = Vector3(0.223, 7.385, 76.266)
 material = SubResource("StandardMaterial3D_i73tf")
 
 [node name="CSGBox3D9" type="CSGBox3D" parent="BOUND"]
-transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.0062770844, 3.636034, 37.575527)
-size = Vector3(0.223, 7.385, 76.223)
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -21.262424, 3.636034, 37.575527)
+size = Vector3(0.223, 7.385, 33.685596)
+material = SubResource("StandardMaterial3D_cfit7")
+
+[node name="CSGBox3D10" type="CSGBox3D" parent="BOUND"]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 21.171803, 3.636034, 37.575527)
+size = Vector3(0.223, 7.385, 33.685596)
+material = SubResource("StandardMaterial3D_cfit7")
+
+[node name="CSGBox3D11" type="CSGBox3D" parent="BOUND"]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -0.33751178, 3.636034, 57.972122)
+size = Vector3(0.223, 7.385, 14.504214)
+material = SubResource("StandardMaterial3D_cfit7")
+
+[node name="CSGBox3D12" type="CSGBox3D" parent="BOUND"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.544952, 3.636034, 47.862442)
+size = Vector3(0.223, 7.385, 20.519419)
+material = SubResource("StandardMaterial3D_lon3v")
+
+[node name="CSGBox3D13" type="CSGBox3D" parent="BOUND"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.710384, 3.636034, 47.862442)
+size = Vector3(0.223, 7.385, 20.519419)
+material = SubResource("StandardMaterial3D_lon3v")
+
+[node name="CSGBox3D14" type="CSGBox3D" parent="BOUND"]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -0.18830323, 6.043168, 37.576702)
+size = Vector3(0.223, 2.9636817, 12.536051)
 material = SubResource("StandardMaterial3D_cfit7")

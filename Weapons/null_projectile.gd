@@ -7,6 +7,7 @@ enum State { FIRED, DROPPED }
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
 @onready var projectile_mesh: MeshInstance3D = $MeshInstance3D
 
+
 var state: int = State.FIRED
 var velocity: Vector3 = Vector3.ZERO
 var traveled: float = 0.0
@@ -40,11 +41,18 @@ const HIT_NUDGE: float = 0.05
 @export var recovery_accel_time: float = 5.0
 @export var recovery_pickup_radius: float = 1.0
 
+@export_group("Stealer Ricochet")
+@export var stealer_ricochet_time: float = 0.10
+@export var stealer_ricochet_speed_mult: float = 0.9
+
 var _ghost_timer: float = 0.0
 
 var _remote_recovering: bool = false
 var _recovery_target: Node3D = null
 var _recovery_hold_time: float = 0.0
+
+var _pending_drop_after_ricochet: bool = false
+var _ricochet_drop_left: float = 0.0
 
 
 func is_dropped() -> bool:
@@ -83,7 +91,7 @@ func fire(origin: Vector3, direction: Vector3, size_mult_in: float = 1.0) -> voi
 	global_position = origin + dir * (0.6 + 0.25 * size_mult)
 
 	# In survival: perk ignorati
-	var spd_mult := 1.0 if Run.survival_mode else Run.null_speed_mult
+	var spd_mult: float = 1.0 if Run.survival_mode else Run.null_speed_mult
 	velocity = dir * (Constants.NULL_SPEED * spd_mult)
 
 	state = State.FIRED
@@ -94,6 +102,9 @@ func fire(origin: Vector3, direction: Vector3, size_mult_in: float = 1.0) -> voi
 	_remote_recovering = false
 	_recovery_target = null
 	_recovery_hold_time = 0.0
+
+	_pending_drop_after_ricochet = false
+	_ricochet_drop_left = 0.0
 
 	bounces_left = 0 if Run.survival_mode else Run.null_bounces
 	pierce_left = 0 if Run.survival_mode else Run.null_pierce
@@ -106,11 +117,17 @@ func _physics_process(delta: float) -> void:
 	t += delta
 
 	if not _recent_hit.is_empty():
-		var keys := _recent_hit.keys()
+		var keys: Array = _recent_hit.keys()
 		for k in keys:
 			_recent_hit[k] = float(_recent_hit[k]) - delta
 			if float(_recent_hit[k]) <= 0.0:
 				_recent_hit.erase(k)
+
+	if _pending_drop_after_ricochet:
+		_ricochet_drop_left -= delta
+		if _ricochet_drop_left <= 0.0:
+			_drop()
+			return
 
 	if state == State.DROPPED:
 		pickup_indicator.position.y = 0.7 + sin(t * 6.0) * 0.08
@@ -138,8 +155,8 @@ func _physics_process(delta: float) -> void:
 				var accel_t: float = clamp(_recovery_hold_time / recovery_accel_time, 0.0, 1.0)
 				var current_speed: float = lerp(recovery_pull_speed_min, recovery_pull_speed_max, accel_t)
 
-				var step: float = current_speed * delta
-				global_position += to_target.normalized() * min(step, dist)
+				var pull_step: float = current_speed * delta
+				global_position += to_target.normalized() * min(pull_step, dist)
 
 		return
 
@@ -157,13 +174,13 @@ func _physics_process(delta: float) -> void:
 	var substeps: int = _compute_substeps(step_len)
 	var seg: Vector3 = step / float(substeps)
 
-	var space := get_world_3d().direct_space_state
+	var space: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
 
 	for _i in range(substeps):
 		var from_pos: Vector3 = global_position
 		var to_pos: Vector3 = from_pos + seg
 
-		var query := PhysicsRayQueryParameters3D.create(from_pos, to_pos)
+		var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(from_pos, to_pos)
 		query.exclude = [get_rid()]
 		query.collide_with_areas = false
 		query.collide_with_bodies = true
@@ -207,43 +224,43 @@ func _apply_homing(delta: float) -> void:
 	if not Run.homing_nudge:
 		return
 
-	var speed := velocity.length()
+	var speed: float = velocity.length()
 	if speed <= 0.00001:
 		return
 
-	var current_dir := velocity / speed
-	var target := _find_nearest_enemy()
+	var current_dir: Vector3 = velocity / speed
+	var target: Node3D = _find_nearest_enemy()
 	if target == null:
 		return
 
-	var to := (target.global_position - global_position)
+	var to: Vector3 = target.global_position - global_position
 	if to.length_squared() <= 0.00001:
 		return
-	var desired_dir := to.normalized()
+	var desired_dir: Vector3 = to.normalized()
 
 	var dotv: float = clampf(current_dir.dot(desired_dir), -1.0, 1.0)
-	var angle := acos(dotv)
-	var max_angle := deg_to_rad(Run.homing_max_angle_deg)
+	var angle: float = acos(dotv)
+	var max_angle: float = deg_to_rad(Run.homing_max_angle_deg)
 	if angle > max_angle:
 		return
 
 	var tturn: float = clampf(Run.homing_turn_speed * delta, 0.0, 1.0)
-	var new_dir := current_dir.slerp(desired_dir, tturn).normalized()
+	var new_dir: Vector3 = current_dir.slerp(desired_dir, tturn).normalized()
 	velocity = new_dir * speed
 
 
 func _find_nearest_enemy() -> Node3D:
 	var best: Node3D = null
-	var best_d2 := INF
+	var best_d2: float = INF
 
 	for n in get_tree().get_nodes_in_group("enemy"):
 		if not (n is Node3D):
 			continue
-		var e := n as Node3D
-		var iid := e.get_instance_id()
+		var e: Node3D = n as Node3D
+		var iid: int = e.get_instance_id()
 		if _recent_hit.has(iid):
 			continue
-		var d2 := e.global_position.distance_squared_to(global_position)
+		var d2: float = e.global_position.distance_squared_to(global_position)
 		if d2 < best_d2:
 			best_d2 = d2
 			best = e
@@ -267,14 +284,14 @@ func _try_hit_enemy_at(pos: Vector3) -> bool:
 	if collision_shape == null or collision_shape.shape == null:
 		return false
 
-	var w := get_world_3d()
+	var w: World3D = get_world_3d()
 	if w == null:
 		return false
 
 	var params := PhysicsShapeQueryParameters3D.new()
 	params.shape = collision_shape.shape
 
-	var xform := global_transform
+	var xform: Transform3D = global_transform
 	xform.origin = pos
 	params.transform = xform
 
@@ -301,14 +318,47 @@ func _handle_enemy_hit(enemy_node: Node) -> bool:
 	if enemy_node == null:
 		return false
 
-	var iid := enemy_node.get_instance_id()
+	var iid: int = enemy_node.get_instance_id()
 	if _recent_hit.has(iid):
 		return false
 
 	_recent_hit[iid] = RECENT_HIT_TIME
+
+	# Caso speciale: Stealer -> rimbalza davvero per un attimo, poi cade
+	if enemy_node.is_in_group("stealer"):
+		var bounce_vel: Vector3 = velocity
+		if bounce_vel.length() <= 0.001:
+			bounce_vel = -global_transform.basis.z * Constants.NULL_SPEED
+
+		var normal: Vector3 = global_position - (enemy_node as Node3D).global_position
+		normal.y = 0.0
+
+		if normal.length() <= 0.001:
+			normal = -bounce_vel
+			normal.y = 0.0
+
+		if normal.length() <= 0.001:
+			normal = Vector3.BACK
+		else:
+			normal = normal.normalized()
+
+		var bounced: Vector3 = bounce_vel.bounce(normal)
+		if bounced.length() <= 0.001:
+			bounced = normal * bounce_vel.length()
+
+		velocity = bounced.normalized() * maxf(
+			bounce_vel.length() * stealer_ricochet_speed_mult,
+			Constants.NULL_SPEED * 0.55
+		)
+
+		global_position += normal * HIT_NUDGE
+
+		_pending_drop_after_ricochet = true
+		_ricochet_drop_left = stealer_ricochet_time
+		return false
+
 	Signals.enemy_killed.emit(enemy_node)
 
-	# Se durante il segnale qualcuno ha già chiamato pickup()/queue_free(), fermati.
 	if is_queued_for_deletion():
 		return true
 
@@ -338,6 +388,9 @@ func _drop() -> void:
 	_remote_recovering = false
 	_recovery_target = null
 	_recovery_hold_time = 0.0
+
+	_pending_drop_after_ricochet = false
+	_ricochet_drop_left = 0.0
 
 	state = State.DROPPED
 	velocity = Vector3.ZERO
@@ -393,7 +446,7 @@ func _spawn_ghost_afterimage() -> void:
 		ghost_mat = projectile_mesh.material_override.duplicate(true)
 		ghost.material_override = ghost_mat
 	elif projectile_mesh.get_surface_override_material_count() > 0:
-		var src_mat := projectile_mesh.get_surface_override_material(0)
+		var src_mat: Material = projectile_mesh.get_surface_override_material(0)
 		if src_mat != null:
 			ghost_mat = src_mat.duplicate(true)
 			ghost.set_surface_override_material(0, ghost_mat)
@@ -401,20 +454,20 @@ func _spawn_ghost_afterimage() -> void:
 	get_tree().current_scene.add_child(ghost)
 
 	var end_scale: Vector3 = ghost.scale * ghost_end_scale_mult
-	var tween := ghost.create_tween()
+	var tween: Tween = ghost.create_tween()
 	tween.set_parallel(true)
 	tween.tween_property(ghost, "scale", end_scale, ghost_lifetime)
 
 	if ghost_mat is StandardMaterial3D:
-		var sm := ghost_mat as StandardMaterial3D
+		var sm: StandardMaterial3D = ghost_mat as StandardMaterial3D
 		sm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		var c := sm.albedo_color
+		var c: Color = sm.albedo_color
 		sm.albedo_color = Color(c.r, c.g, c.b, start_alpha)
 		tween.tween_property(sm, "albedo_color", Color(c.r, c.g, c.b, 0.0), ghost_lifetime)
 	elif ghost_mat is BaseMaterial3D:
-		var bm := ghost_mat as BaseMaterial3D
+		var bm: BaseMaterial3D = ghost_mat as BaseMaterial3D
 		bm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		var c2 := bm.albedo_color
+		var c2: Color = bm.albedo_color
 		bm.albedo_color = Color(c2.r, c2.g, c2.b, start_alpha)
 		tween.tween_property(bm, "albedo_color", Color(c2.r, c2.g, c2.b, 0.0), ghost_lifetime)
 	else:

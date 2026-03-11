@@ -3,69 +3,45 @@ extends Node
 
 enum PerkRarity { COMMON, RARE, EPIC }
 
+# ------------------------------------------------------------
+# WRAPPER DATABASE (compatibilità col codice attuale)
+# ------------------------------------------------------------
 func get_perk_rarity(id: String) -> int:
-	# Mappa rarità (puoi rifinirla quando vuoi)
-	match id:
-		"DASH_UNLOCK", "CHARGE_SHOT", "SWAP_WITH_NULL":
-			return PerkRarity.EPIC
-		"PIERCE_1", "HOMING_NUDGE", "PULL_TO_HAND", "DROP_SHOCKWAVE", "SLOWMO_RECOVERY", "CHARGE_PLUS":
-			return PerkRarity.RARE
-		_:
-			return PerkRarity.COMMON
+	return UpdatesDB.get_rarity(id)
 
 func get_perk_title_static(id: String) -> String:
-	# Titoli usati in carta/tooltip (non applica il perk)
-	match id:
-		"NULL_BOUNCE": return "NULL BOUNCE"
-		"BOUNCE_STACK": return "BOUNCE STACK"
-		"JUMP_UNLOCK": return "JUMP UNLOCK"
-		"JUMP_POWER": return "HIGHER JUMP"
-		"LONG_JUMP": return "LONG JUMP"
-		"FLIGHT_BURST": return "FLIGHT (5s)"
-		"MAGNET_PICKUP": return "MAGNET"
-		"SPRINT": return "SPEED UP"
-		"PANIC_BOOST": return "PANIC BOOST"
-		"SLOW_TURRETS": return "SLOW TURRETS"
-		"NULL_SPEED": return "NULL SPEED"
-		"NULL_RANGE": return "NULL RANGE"
-		"PIERCE_1": return "PIERCE"
-		"HOMING_NUDGE": return "HOMING NUDGE"
-		"DASH_UNLOCK": return "DASH UNLOCK"
-		"CHARGE_SHOT": return "CHARGE SHOT"
-		"CHARGE_PLUS": return "CHARGE+"
-		"PULL_TO_HAND": return "PULL TO HAND"
-		"SWAP_WITH_NULL": return "SWAP"
-		"DROP_SHOCKWAVE": return "DROP SHOCKWAVE"
-		"SLOWMO_RECOVERY": return "SLOWMO RECOVERY"
-		_: return id
+	return UpdatesDB.get_title(id)
 
 func get_perk_desc_static(id: String) -> String:
-	match id:
-		"NULL_BOUNCE": return "Il NULL rimbalza 1 volta."
-		"BOUNCE_STACK": return "+1 rimbalzo (max %d)." % max_null_bounces
-		"JUMP_UNLOCK": return "Ora puoi saltare (Space)."
-		"JUMP_POWER": return "Salto più alto."
-		"LONG_JUMP": return "Più controllo/velocità in aria."
-		"FLIGHT_BURST": return "Vola per 5 secondi (Space)."
-		"MAGNET_PICKUP": return "Pickup automatico del NULL vicino."
-		"SPRINT": return "Velocità movimento +15%."
-		"PANIC_BOOST": return "+20% velocità quando NULL: NOT READY."
-		"SLOW_TURRETS": return "Turret sparano più lentamente."
-		"NULL_SPEED": return "Il NULL vola più veloce."
-		"NULL_RANGE": return "Il NULL va più lontano."
-		"PIERCE_1": return "Il NULL può uccidere 2 nemici in linea."
-		"HOMING_NUDGE": return "Leggera correzione verso il bersaglio vicino."
-		"DASH_UNLOCK": return "Scatto rapido con Shift."
-		"CHARGE_SHOT": return "Tieni premuto per caricare, rilascia per un NULL più grande."
-		"CHARGE_PLUS": return "Migliora la carica (tempo o scala, a seconda dello stato)."
-		"PULL_TO_HAND": return "Tieni premuto Interact per richiamare il NULL (0.6s)."
-		"SWAP_WITH_NULL": return "Scambia posizione col NULL droppato (Q)."
-		"DROP_SHOCKWAVE": return "Se missi, il drop respinge i chaser vicini."
-		"SLOWMO_RECOVERY": return "Rallenta il tempo quando il NULL è a terra."
-		_: return ""
+	return UpdatesDB.get_desc(id)
+
+func get_perk_icon_path(id: String) -> String:
+	return UpdatesDB.get_icon_path(id)
+
+func roll_price_for_rarity(rarity: int, rng: RandomNumberGenerator) -> int:
+	var pool: Array[String] = []
+	for id in perk_pool:
+		if UpdatesDB.get_rarity(id) == rarity:
+			pool.append(id)
+
+	if pool.is_empty():
+		match rarity:
+			PerkRarity.COMMON:
+				return rng.randi_range(2, 4)
+			PerkRarity.RARE:
+				return rng.randi_range(5, 8)
+			PerkRarity.EPIC:
+				return rng.randi_range(9, 14)
+			_:
+				return 3
+
+	var chosen_id := pool[rng.randi_range(0, pool.size() - 1)]
+	return UpdatesDB.roll_price_for_id(chosen_id, depth, rng)
+
+func rarity_name(r: int) -> String:
+	return UpdatesDB.rarity_name(r)
 
 func get_perk_preview_lines(id: String) -> Array[String]:
-	# Ritorna più righe "valore finale" (non delta prima/dopo)
 	var lines: Array[String] = []
 
 	match id:
@@ -152,34 +128,10 @@ func get_perk_preview_lines(id: String) -> Array[String]:
 
 	return lines
 
-func get_perk_icon_path(id: String) -> String:
-	# Se hai icone per-perk: res://Art/Cards/Icons/<ID>.png
-	var specific := "res://Art/Cards/Icons/%s.png" % id
-	if ResourceLoader.exists(specific):
-		return specific
-	# fallback base
-	return "res://Art/Cards/Icons/icon_base.png"
 
-func roll_price_for_rarity(rarity: int, rng: RandomNumberGenerator) -> int:
-	# Base random by rarity
-	var base := 3
-	match rarity:
-		PerkRarity.COMMON: base = rng.randi_range(2, 4)
-		PerkRarity.RARE: base = rng.randi_range(5, 8)
-		PerkRarity.EPIC: base = rng.randi_range(9, 14)
-
-	# Scaling moltiplicativo su depth
-	var mult := 1.0 + float(max(depth - 1, 0)) * 0.12
-	mult = clamp(mult, 1.0, 3.5) # evita prezzi folli
-	return int(round(base * mult))
-
-func rarity_name(r: int) -> String:
-	match r:
-		PerkRarity.COMMON: return "COMMON"
-		PerkRarity.RARE: return "RARE"
-		PerkRarity.EPIC: return "EPIC"
-	return "?"
-
+# ------------------------------------------------------------
+# ECONOMIA / RUN
+# ------------------------------------------------------------
 var money: int = 0
 
 # Per gestire cambio scena Shop <-> Arena senza resettare la run
@@ -187,20 +139,21 @@ var returning_from_shop: bool = false
 var spawn_player_random: bool = false
 
 # Offerte generate per questa visita allo shop
-var shop_offers: Array = []  # array di Dictionary
+var shop_offers: Array = []
 
 var depth: int = 1
 var terminal_logs_read: Array[bool] = []
 var null_ready: bool = true
-var null_dropped: bool = false # true solo quando il NULL è a terra (DROPPED)
+var null_dropped: bool = false
 var survival_mode: bool = false
 
+
 # ------------------------------------------------------------
-# Perks (stato run)
+# STATO GAMEPLAY RUNTIME (letto dal resto del gioco)
 # ------------------------------------------------------------
 var null_bounces: int = 0
 var jump_enabled: bool = true
-var jump_velocity: float = 7.0
+var jump_velocity: float = 8.0
 var flight_time_left: float = 0.0
 
 var pickup_magnet: bool = false
@@ -213,15 +166,13 @@ var null_speed_mult: float = 1.0
 var null_range_mult: float = 1.0
 var dash_enabled: bool = false
 
-# Charge shot perk
+# Charge shot
 var charge_shot_enabled: bool = false
 var charge_shot_seconds: float = 3.0
 var charge_shot_scale: float = 1.5
 var charge_shake_strength: float = 0.05
 
-# ------------------------------------------------------------
-# Nuovi perk A (recovery / risk)
-# ------------------------------------------------------------
+# Recovery / risk
 var pull_to_hand: bool = false
 var pull_channel_seconds: float = 0.6
 var pull_max_distance: float = 14.0
@@ -243,23 +194,26 @@ var shockwave_strength: float = 10.0
 var slowmo_recovery: bool = false
 var slowmo_scale: float = 0.85
 
-# ------------------------------------------------------------
-# Nuovi perk B (shot modifiers)
-# ------------------------------------------------------------
-var null_pierce: int = 0 # 1 = uccide 2 nemici in linea (pierce 1)
-
+# Shot modifiers
+var null_pierce: int = 0
 var homing_nudge: bool = false
 var homing_max_angle_deg: float = 6.0
-var homing_turn_speed: float = 10.0 # più alto = correzione più rapida
+var homing_turn_speed: float = 10.0
 
 var max_null_bounces: int = 3
 
+
 # ------------------------------------------------------------
-# Perk feedback
+# FEEDBACK UI
 # ------------------------------------------------------------
 var last_perk_title: String = ""
 var last_perk_desc: String = ""
 
+
+# ------------------------------------------------------------
+# POOL SHOP ATTUALE
+# (lasciamo questo invariato per compatibilità)
+# ------------------------------------------------------------
 var perk_pool: Array[String] = [
 	"NULL_BOUNCE",
 	"BOUNCE_STACK",
@@ -290,8 +244,31 @@ var perk_pool: Array[String] = [
 	"SLOWMO_RECOVERY"
 ]
 
+
+# ------------------------------------------------------------
+# R.A.M. / INVENTARIO NUOVO
+# ------------------------------------------------------------
+var ram_cols: int = 6
+var ram_rows: int = 4
+
+# griglia [y][x] -> instance_id oppure -1
+var ram_grid: Array = []
+
+# tutti gli Update posseduti nella run
+# ogni elemento:
+# {
+#   "instance_id": int,
+#   "update_id": String,
+#   "rotation": int,
+#   "equipped": bool,
+#   "grid_pos": Vector2i
+# }
+var owned_updates: Array[Dictionary] = []
+
+var _next_update_instance_id: int = 1
+
+
 func _ready() -> void:
-	# Mantieni Run.null_ready e Run.null_dropped coerenti con i segnali.
 	var cb1 := Callable(self, "_on_null_ready_changed")
 	if not Signals.null_ready_changed.is_connected(cb1):
 		Signals.null_ready_changed.connect(cb1)
@@ -300,18 +277,27 @@ func _ready() -> void:
 	if not Signals.null_dropped.is_connected(cb2):
 		Signals.null_dropped.connect(cb2)
 
+	_build_empty_ram_grid()
+
+
 func _on_null_ready_changed(is_ready: bool) -> void:
 	null_ready = is_ready
 	if is_ready:
 		null_dropped = false
 
+
 func _on_null_dropped(_pos: Vector3) -> void:
 	null_dropped = true
 
+
+# ------------------------------------------------------------
+# MONEY
+# ------------------------------------------------------------
 func add_money(v: int) -> void:
 	money += max(0, v)
 	if Signals.has_signal("money_changed"):
 		Signals.money_changed.emit(money)
+
 
 func spend_money(v: int) -> bool:
 	if v <= 0:
@@ -324,19 +310,34 @@ func spend_money(v: int) -> bool:
 	return true
 
 
+# ------------------------------------------------------------
+# RESET RUN
+# ------------------------------------------------------------
 func reset() -> void:
-	
 	money = 0
 	returning_from_shop = false
 	spawn_player_random = false
 	shop_offers.clear()
 	terminal_logs_read.clear()
-	
+
 	survival_mode = false
 	depth = 1
 	null_ready = true
 	null_dropped = false
 
+	swap_cd_left = 0.0
+
+	last_perk_title = ""
+	last_perk_desc = ""
+
+	owned_updates.clear()
+	_next_update_instance_id = 1
+	_build_empty_ram_grid()
+
+	_reset_runtime_stats_to_base()
+
+
+func _reset_runtime_stats_to_base() -> void:
 	null_bounces = 0
 
 	jump_enabled = true
@@ -359,19 +360,396 @@ func reset() -> void:
 	charge_shake_strength = 0.05
 
 	pull_to_hand = false
+	pull_channel_seconds = 0.6
+	pull_max_distance = 14.0
+	pull_cancel_move_dist = 0.75
+	pull_move_mult = 0.35
+
 	swap_with_null = false
-	swap_cd_left = 0.0
+	swap_cooldown = 6.0
+	swap_max_distance = 35.0
+
 	panic_boost = false
+	panic_speed_mult = 1.2
+
 	drop_shockwave = false
+	shockwave_radius = 6.0
+	shockwave_strength = 10.0
+
 	slowmo_recovery = false
+	slowmo_scale = 0.85
 
 	null_pierce = 0
 	homing_nudge = false
+	homing_max_angle_deg = 6.0
+	homing_turn_speed = 10.0
 
-	last_perk_title = ""
-	last_perk_desc = ""
-	terminal_logs_read.clear()
 
+func _build_empty_ram_grid() -> void:
+	ram_grid.clear()
+	for y in range(ram_rows):
+		var row: Array = []
+		for x in range(ram_cols):
+			row.append(-1)
+		ram_grid.append(row)
+
+
+# ------------------------------------------------------------
+# OWNED UPDATES
+# ------------------------------------------------------------
+func add_owned_update(update_id: String) -> Dictionary:
+	if not UpdatesDB.has_update(update_id):
+		return {}
+
+	var inst := {
+		"instance_id": _next_update_instance_id,
+		"update_id": update_id,
+		"rotation": 0,
+		"equipped": false,
+		"grid_pos": Vector2i(-1, -1)
+	}
+
+	_next_update_instance_id += 1
+	owned_updates.append(inst)
+	return inst.duplicate(true)
+
+
+func get_owned_updates() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for item in owned_updates:
+		out.append(item.duplicate(true))
+	return out
+
+
+func get_unequipped_updates() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for item in owned_updates:
+		if not bool(item.get("equipped", false)):
+			out.append(item.duplicate(true))
+	return out
+
+
+func get_equipped_updates() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for item in owned_updates:
+		if bool(item.get("equipped", false)):
+			out.append(item.duplicate(true))
+	return out
+
+
+func get_owned_update_index_by_instance_id(instance_id: int) -> int:
+	for i in range(owned_updates.size()):
+		if int(owned_updates[i].get("instance_id", -1)) == instance_id:
+			return i
+	return -1
+
+
+func get_owned_update_by_instance_id(instance_id: int) -> Dictionary:
+	var idx := get_owned_update_index_by_instance_id(instance_id)
+	if idx == -1:
+		return {}
+	return owned_updates[idx].duplicate(true)
+
+
+func is_update_equipped(instance_id: int) -> bool:
+	var idx := get_owned_update_index_by_instance_id(instance_id)
+	if idx == -1:
+		return false
+	return bool(owned_updates[idx].get("equipped", false))
+
+
+func count_owned_update(update_id: String) -> int:
+	var n := 0
+	for item in owned_updates:
+		if str(item.get("update_id", "")) == update_id:
+			n += 1
+	return n
+
+
+func count_equipped_update(update_id: String) -> int:
+	var n := 0
+	for item in owned_updates:
+		if str(item.get("update_id", "")) == update_id and bool(item.get("equipped", false)):
+			n += 1
+	return n
+
+
+# ------------------------------------------------------------
+# SHAPE / ROTATION HELPERS
+# ------------------------------------------------------------
+func get_ram_cells_for_update(update_id: String, rotation: int = 0) -> Array[Vector2i]:
+	var base_cells: Array = UpdatesDB.get_cells(update_id)
+
+	var typed_cells: Array[Vector2i] = []
+	for c in base_cells:
+		if c is Vector2i:
+			typed_cells.append(c)
+
+	return _rotate_cells_to_fit_positive_space(typed_cells, rotation)
+
+
+func get_ram_size_for_update(update_id: String, rotation: int = 0) -> Vector2i:
+	var cells := get_ram_cells_for_update(update_id, rotation)
+	return _get_cells_bounds(cells)
+
+
+func _rotate_cells_to_fit_positive_space(cells: Array[Vector2i], rotation: int) -> Array[Vector2i]:
+	var rot := wrapi(rotation, 0, 4)
+	var rotated: Array[Vector2i] = []
+
+	for c in cells:
+		var p := c
+		match rot:
+			0:
+				p = Vector2i(c.x, c.y)
+			1:
+				p = Vector2i(-c.y, c.x)
+			2:
+				p = Vector2i(-c.x, -c.y)
+			3:
+				p = Vector2i(c.y, -c.x)
+		rotated.append(p)
+
+	var min_x := 999999
+	var min_y := 999999
+	for p in rotated:
+		min_x = min(min_x, p.x)
+		min_y = min(min_y, p.y)
+
+	var normalized: Array[Vector2i] = []
+	for p in rotated:
+		normalized.append(Vector2i(p.x - min_x, p.y - min_y))
+
+	return normalized
+
+
+func _get_cells_bounds(cells: Array[Vector2i]) -> Vector2i:
+	if cells.is_empty():
+		return Vector2i.ONE
+
+	var max_x := 0
+	var max_y := 0
+	for c in cells:
+		max_x = max(max_x, c.x)
+		max_y = max(max_y, c.y)
+
+	return Vector2i(max_x + 1, max_y + 1)
+
+
+# ------------------------------------------------------------
+# R.A.M. GRID HELPERS
+# ------------------------------------------------------------
+func get_ram_grid_copy() -> Array:
+	var out: Array = []
+	for row in ram_grid:
+		out.append((row as Array).duplicate(true))
+	return out
+
+
+func clear_ram_grid() -> void:
+	_build_empty_ram_grid()
+	for i in range(owned_updates.size()):
+		owned_updates[i]["equipped"] = false
+		owned_updates[i]["grid_pos"] = Vector2i(-1, -1)
+		owned_updates[i]["rotation"] = 0
+	rebuild_equipped_updates_effects()
+
+
+func remove_update_from_ram(instance_id: int) -> bool:
+	var idx := get_owned_update_index_by_instance_id(instance_id)
+	if idx == -1:
+		return false
+
+	var was_equipped := bool(owned_updates[idx].get("equipped", false))
+	if not was_equipped:
+		return true
+
+	for y in range(ram_rows):
+		for x in range(ram_cols):
+			if int(ram_grid[y][x]) == instance_id:
+				ram_grid[y][x] = -1
+
+	owned_updates[idx]["equipped"] = false
+	owned_updates[idx]["grid_pos"] = Vector2i(-1, -1)
+
+	rebuild_equipped_updates_effects()
+	return true
+
+
+func can_place_update_instance(instance_id: int, origin: Vector2i, rotation: int = 0) -> bool:
+	var item := get_owned_update_by_instance_id(instance_id)
+	if item.is_empty():
+		return false
+
+	var update_id := str(item.get("update_id", ""))
+	var cells := get_ram_cells_for_update(update_id, rotation)
+
+	for c in cells:
+		var gx := origin.x + c.x
+		var gy := origin.y + c.y
+
+		if gx < 0 or gx >= ram_cols or gy < 0 or gy >= ram_rows:
+			return false
+
+		var cell_value := int(ram_grid[gy][gx])
+		if cell_value != -1 and cell_value != instance_id:
+			return false
+
+	return true
+
+
+func equip_update_instance(instance_id: int, origin: Vector2i, rotation: int = 0) -> bool:
+	var idx := get_owned_update_index_by_instance_id(instance_id)
+	if idx == -1:
+		return false
+
+	remove_update_from_ram(instance_id)
+
+	if not can_place_update_instance(instance_id, origin, rotation):
+		return false
+
+	var update_id := str(owned_updates[idx].get("update_id", ""))
+	var cells := get_ram_cells_for_update(update_id, rotation)
+
+	for c in cells:
+		var gx := origin.x + c.x
+		var gy := origin.y + c.y
+		ram_grid[gy][gx] = instance_id
+
+	owned_updates[idx]["equipped"] = true
+	owned_updates[idx]["grid_pos"] = origin
+	owned_updates[idx]["rotation"] = wrapi(rotation, 0, 4)
+
+	rebuild_equipped_updates_effects()
+	return true
+
+
+func move_equipped_update(instance_id: int, new_origin: Vector2i) -> bool:
+	var item := get_owned_update_by_instance_id(instance_id)
+	if item.is_empty():
+		return false
+
+	var rot := int(item.get("rotation", 0))
+	return equip_update_instance(instance_id, new_origin, rot)
+
+
+func rotate_equipped_update(instance_id: int) -> bool:
+	var item := get_owned_update_by_instance_id(instance_id)
+	if item.is_empty():
+		return false
+
+	var update_id := str(item.get("update_id", ""))
+	if not UpdatesDB.is_rotatable(update_id):
+		return false
+
+	var current_rot := int(item.get("rotation", 0))
+	var next_rot := wrapi(current_rot + 1, 0, 4)
+	var grid_pos: Vector2i = item.get("grid_pos", Vector2i(-1, -1)) as Vector2i
+
+	if grid_pos == Vector2i(-1, -1):
+		var idx := get_owned_update_index_by_instance_id(instance_id)
+		if idx == -1:
+			return false
+		owned_updates[idx]["rotation"] = next_rot
+		return true
+
+	return equip_update_instance(instance_id, grid_pos, next_rot)
+
+
+# ------------------------------------------------------------
+# REBUILD ATTIVI DAL CONTENUTO R.A.M.
+# ------------------------------------------------------------
+func rebuild_equipped_updates_effects() -> void:
+	var prev_flight_time := flight_time_left
+	var prev_swap_cd := swap_cd_left
+
+	_reset_runtime_stats_to_base()
+
+	for item in owned_updates:
+		if bool(item.get("equipped", false)):
+			var update_id := str(item.get("update_id", ""))
+			_apply_equipped_update_effect(update_id)
+
+	# manteniamo un po' di stato runtime che non deve resettarsi brutalmente
+	flight_time_left = max(flight_time_left, prev_flight_time)
+	swap_cd_left = prev_swap_cd
+
+
+func _apply_equipped_update_effect(id: String) -> void:
+	match id:
+		"NULL_BOUNCE":
+			null_bounces = max(null_bounces, 1)
+
+		"BOUNCE_STACK":
+			null_bounces = min(null_bounces + 1, max_null_bounces)
+
+		"JUMP_UNLOCK":
+			jump_enabled = true
+
+		"JUMP_POWER":
+			jump_velocity = min(jump_velocity + 2.0, 12.0)
+
+		"LONG_JUMP":
+			air_speed_mult = min(air_speed_mult + 0.5, 2.0)
+
+		"FLIGHT_BURST":
+			# abilita la logica del perk; il timer viene usato quando attivato in player
+			flight_time_left = max(flight_time_left, 0.0)
+
+		"MAGNET_PICKUP":
+			pickup_magnet = true
+
+		"SPRINT":
+			move_speed_mult = min(move_speed_mult + 0.15, 1.5)
+
+		"PANIC_BOOST":
+			panic_boost = true
+
+		"SLOW_TURRETS":
+			turret_interval_mult = max(turret_interval_mult - 0.1, 0.7)
+
+		"NULL_SPEED":
+			null_speed_mult = min(null_speed_mult + 0.2, 1.8)
+
+		"NULL_RANGE":
+			null_range_mult = min(null_range_mult + 0.2, 1.8)
+
+		"PIERCE_1":
+			null_pierce = max(null_pierce, 1)
+
+		"HOMING_NUDGE":
+			homing_nudge = true
+
+		"DASH_UNLOCK":
+			dash_enabled = true
+
+		"CHARGE_SHOT":
+			charge_shot_enabled = true
+
+		"CHARGE_PLUS":
+			if charge_shot_enabled:
+				if charge_shot_seconds > 2.0:
+					charge_shot_seconds = max(charge_shot_seconds - 0.5, 2.0)
+				else:
+					charge_shot_scale = min(charge_shot_scale + 0.25, 2.25)
+
+		"PULL_TO_HAND":
+			pull_to_hand = true
+
+		"SWAP_WITH_NULL":
+			swap_with_null = true
+
+		"DROP_SHOCKWAVE":
+			drop_shockwave = true
+
+		"SLOWMO_RECOVERY":
+			slowmo_recovery = true
+
+
+# ------------------------------------------------------------
+# LEGACY SHOP / PERK FLOW
+# (resta finché non convertiamo lo shop allo step 3)
+# ------------------------------------------------------------
 func grant_random_perk(rng: RandomNumberGenerator) -> bool:
 	var available := []
 	for id in perk_pool:
@@ -384,6 +762,7 @@ func grant_random_perk(rng: RandomNumberGenerator) -> bool:
 	var pick: String = available[rng.randi_range(0, available.size() - 1)]
 	_apply(pick)
 	return true
+
 
 func _can_take(id: String) -> bool:
 	match id:
@@ -446,6 +825,7 @@ func _can_take(id: String) -> bool:
 
 		_:
 			return true
+
 
 func _apply(id: String) -> void:
 	match id:
@@ -552,3 +932,6 @@ func _apply(id: String) -> void:
 			slowmo_recovery = true
 			last_perk_title = "SLOWMO RECOVERY"
 			last_perk_desc = "Rallenta il tempo quando il NULL è a terra."
+
+	if Signals.has_signal("perk_granted"):
+		Signals.perk_granted.emit(last_perk_title, last_perk_desc)

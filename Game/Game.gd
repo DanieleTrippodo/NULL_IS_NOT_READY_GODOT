@@ -7,6 +7,7 @@ extends Node
 @export var null_projectile_scene: PackedScene
 @export var chaser_scene: PackedScene
 @export var turret_scene: PackedScene
+@export var stealer_scene: PackedScene
 @export var spike_scene: PackedScene
 @export var exception_scene: PackedScene
 @export var enemy_bullet_scene: PackedScene
@@ -103,6 +104,7 @@ func _ready() -> void:
 	Signals.request_swap.connect(_on_request_swap)
 	Signals.request_recovery_start.connect(_on_request_recovery_start)
 	Signals.request_recovery_stop.connect(_on_request_recovery_stop)
+	Signals.request_force_drop_null.connect(_on_request_force_drop_null)
 	Signals.null_dropped.connect(_on_null_dropped)
 
 	Signals.enemy_killed.connect(_on_enemy_killed)
@@ -383,11 +385,20 @@ func _spawn_wave() -> void:
 
 	var exceptions: int = 0
 	if d >= 4:
-		var p_elite := clampf(0.12 + float(d - 4) * 0.03, 0.0, 0.45)
+		var p_elite: float = clampf(0.12 + float(d - 4) * 0.03, 0.0, 0.45)
 		if rng.randf() < p_elite:
 			exceptions = 1
 
-	var chasers: int = max(1, total - turrets - spikes - exceptions)
+	var stealers: int = 0
+	if d >= 3 and stealer_scene != null:
+		var p_stealer: float = clampf(0.30 + float(d - 3) * 0.06, 0.0, 0.70)
+		if rng.randf() < p_stealer:
+			stealers = 1
+
+		if d >= 8 and rng.randf() < 0.20:
+			stealers += 1
+
+	var chasers: int = max(1, total - turrets - spikes - exceptions - stealers)
 
 	var player := _get_player()
 	var used: Array[int] = []
@@ -435,7 +446,15 @@ func _spawn_wave() -> void:
 		if ex != null and player != null and ex.has_method("set_target"):
 			ex.call("set_target", player)
 
-	enemies_alive = chasers + turrets + spikes + exceptions
+	for n in range(stealers):
+		var idx5 := _pick_spawn_index(spawns.size(), used)
+		used.append(idx5)
+
+		var st := _spawn_enemy(stealer_scene, spawns[idx5].global_position)
+		if st != null and player != null and st.has_method("set_target"):
+			st.call("set_target", player)
+
+	enemies_alive = chasers + turrets + spikes + exceptions + stealers
 
 	if player != null:
 		_place_player_safe(player, spawns)
@@ -489,6 +508,32 @@ func _on_request_shoot(origin: Vector3, direction: Vector3, _extra: Variant = nu
 		proj.call("fire", origin, direction)
 	else:
 		proj.global_position = origin
+
+func _on_request_force_drop_null(pos: Vector3) -> void:
+	if restarting or wave_transitioning:
+		return
+	if world_frozen:
+		return
+	if not Run.null_ready:
+		return
+
+	Run.null_ready = false
+	Run.null_dropped = false
+	Signals.null_ready_changed.emit(false)
+
+	var p := null_projectile_scene.instantiate()
+	if not (p is Node3D):
+		Run.null_ready = true
+		Signals.null_ready_changed.emit(true)
+		return
+
+	var proj := p as Node3D
+	world.add_child(proj)
+	null_instance = proj
+	proj.global_position = pos
+
+	if proj.has_method("_drop"):
+		proj.call("_drop")
 
 func _on_request_pickup() -> void:
 	if restarting or wave_transitioning:
@@ -604,10 +649,16 @@ func _on_enemy_killed(enemy: Node) -> void:
 	_set_state(ArenaState.POST_WAVE)
 
 	_spawn_money_rain()
-	_spawn_shop_portal()
 
+	# prima torniamo in SAFE, poi decidiamo cosa spawnare
 	_set_state(ArenaState.WAIT_START)
-	_maybe_spawn_terminal()
+
+	if _should_spawn_shop_for_current_depth():
+		_despawn_terminal()
+		_spawn_shop_portal()
+	else:
+		_cleanup_shop_portal()
+		_maybe_spawn_terminal()
 
 func _force_null_return() -> void:
 	if null_instance != null and is_instance_valid(null_instance):
@@ -1053,3 +1104,8 @@ func _spawn_enemy_death_fx(pos: Vector3) -> void:
 	var fx := enemy_death_fx_scene.instantiate()
 	add_child(fx)
 	fx.global_position = pos
+
+func _should_spawn_shop_for_current_depth() -> bool:
+	if tutorial_mode:
+		return false
+	return Run.depth > 1 and (Run.depth % 5) == 0

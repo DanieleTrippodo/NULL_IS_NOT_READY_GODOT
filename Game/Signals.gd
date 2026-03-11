@@ -13,6 +13,7 @@ signal request_recovery_stop
 
 # Combat / run
 signal enemy_killed(enemy: Node)
+signal request_force_drop_null(pos: Vector3)
 
 signal player_hit(knockback_dir: Vector3)
 signal player_died()

@@ -1,0 +1,42 @@
+[gd_scene load_steps=7 format=3 uid="uid://bk7xksmg5s47w"]
+
+[ext_resource type="Script" uid="uid://cdnj71fr8uuei" path="res://Enemies/stealer.gd" id="1_00vey"]
+[ext_resource type="Texture2D" uid="uid://dry8f6r7b15o0" path="res://Enemies/ChaserSprite/WalkAnimationChaser/EnemyWalk_0001.png" id="2_blpd8"]
+[ext_resource type="Texture2D" uid="uid://c41r21j6hfanh" path="res://Enemies/ChaserSprite/WalkAnimationChaser/EnemyWalk_0002.png" id="3_tfb80"]
+[ext_resource type="Texture2D" uid="uid://4nwad2kyx41p" path="res://Enemies/ChaserSprite/WalkAnimationChaser/EnemyWalk_0003.png" id="4_pc5v0"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_pfkvt"]
+radius = 0.33984375
+height = 1.1564941
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_vwusi"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_blpd8")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_tfb80")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_pc5v0")
+}],
+"loop": true,
+"name": &"walk",
+"speed": 8.0
+}]
+
+[node name="Stealer" type="CharacterBody3D" groups=["enemy", "stealer"]]
+script = ExtResource("1_00vey")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.03479004, 0)
+shape = SubResource("CapsuleShape3D_pfkvt")
+
+[node name="AnimatedSprite3D" type="AnimatedSprite3D" parent="."]
+transform = Transform3D(0.305, 0, 0, 0, 0.305, 0, 0, 0, 0.305, 0, 0, 0)
+billboard = 2
+sprite_frames = SubResource("SpriteFrames_vwusi")
+animation = &"walk"
+autoplay = "walk"
+frame_progress = 0.3719876

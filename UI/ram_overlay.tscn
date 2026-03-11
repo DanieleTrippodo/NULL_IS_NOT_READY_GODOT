@@ -1,0 +1,130 @@
+[gd_scene load_steps=2 format=3 uid="uid://dshf11466t0ds"]
+
+[ext_resource type="Script" uid="uid://dnetug1pik3q8" path="res://UI/ram_overlay.gd" id="1_script"]
+
+[node name="RAMOverlay" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("1_script")
+
+[node name="Dim" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.9490196)
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.08
+anchor_top = 0.12
+anchor_right = 0.92
+anchor_bottom = 0.88
+
+[node name="Title" type="Label" parent="Panel"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -62.5
+offset_top = -62.055
+offset_right = 62.49997
+offset_bottom = -9.055
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 52
+text = "R.A.M."
+
+[node name="Help" type="Label" parent="Panel"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 70.55
+offset_top = 14.445007
+offset_right = -67.57593
+offset_bottom = 43.445007
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 28
+text = "TAB close  |  Left Click place/remove  |  R rotate  |  Click item to pick"
+autowrap_mode = 2
+
+[node name="HSplit" type="HBoxContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 40.23
+offset_right = -20.0
+offset_bottom = -31.24997
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 0
+
+[node name="Left" type="VBoxContainer" parent="Panel/HSplit"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="GridTitle" type="Label" parent="Panel/HSplit/Left"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Installed Updates"
+
+[node name="Grid" type="Control" parent="Panel/HSplit/Left"]
+custom_minimum_size = Vector2(420, 320)
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 1
+
+[node name="MidSpacer" type="Control" parent="Panel/HSplit"]
+custom_minimum_size = Vector2(24, 0)
+layout_mode = 2
+
+[node name="Right" type="VBoxContainer" parent="Panel/HSplit"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="InventoryTitle" type="Label" parent="Panel/HSplit/Right"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Stored Updates"
+
+[node name="Scroll" type="ScrollContainer" parent="Panel/HSplit/Right"]
+custom_minimum_size = Vector2(300, 260)
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="InventoryList" type="VBoxContainer" parent="Panel/HSplit/Right/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="Desc" type="RichTextLabel" parent="Panel/HSplit/Right"]
+custom_minimum_size = Vector2(0, 120)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/normal_font_size = 20
+theme_override_font_sizes/bold_font_size = 24
+theme_override_font_sizes/bold_italics_font_size = 24
+theme_override_font_sizes/italics_font_size = 24
+theme_override_font_sizes/mono_font_size = 24
+bbcode_enabled = true
+text = "[b]R.A.M.[/b]
+Store Updates here to activate them."
+fit_content = true
+scroll_active = false

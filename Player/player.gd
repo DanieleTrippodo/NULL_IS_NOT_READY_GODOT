@@ -39,8 +39,6 @@ enum PState { NORMAL, KNOCKBACK, DOWNED }
 @export var knockback_min_time: float = 0.22
 @export var downed_invuln_seconds: float = 0.5
 
-
-
 # -------------------------
 # PUSH (RMB)
 # -------------------------
@@ -63,6 +61,12 @@ var _push_cd_left: float = 0.0
 
 var _hand_recovery_default_pos: Vector3
 var _hand_recovery_tween: Tween
+
+@export_group("External Push")
+@export var external_push_decay_ground: float = 8.0
+@export var external_push_decay_air: float = 5.0
+
+var _external_push: Vector3 = Vector3.ZERO
 
 var _camera_base_y: float = 0.0
 
@@ -158,8 +162,10 @@ func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	set_process_unhandled_input(true)
 	set_process(true)
+
 	if hand_recovery != null:
 		_hand_recovery_default_pos = hand_recovery.position
+
 	_update_hand_mode_visual()
 
 	add_to_group("player")
@@ -189,21 +195,18 @@ func _ready() -> void:
 		_shoot_ring_base_scale = shoot_ring.scale
 		shoot_ring.visible = false
 		shoot_ring.modulate = Color(1, 1, 1, 1)
-		
-	
-
 
 func _unhandled_input(event: InputEvent) -> void:
 	if input_locked:
 		return
-	
+
 	if is_recovering_null:
 		if event.is_action_released("swap"):
 			is_recovering_null = false
 			_update_hand_mode_visual()
 			Signals.request_recovery_stop.emit()
 		return
-	
+
 	# mouse look sempre abilitato (anche in downed)
 	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
 		_hand_look_input = event.relative
@@ -221,7 +224,6 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if event.is_action_pressed("ui_cancel"):
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-	
 
 	if state == PState.KNOCKBACK:
 		return
@@ -229,11 +231,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("push"):
 		_try_push()
 
-	# In KNOCKBACK: niente sparo (come richiesto)
+	# In KNOCKBACK: niente sparo
 	if state == PState.KNOCKBACK:
 		return
 
-	# DOWNED: puoi sparare ma senza perk (niente charge)
+	# DOWNED: puoi sparare ma senza perk
 	if state == PState.DOWNED:
 		if event.is_action_pressed("swap"):
 			if Run.null_dropped:
@@ -253,7 +255,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.is_action_pressed("interact"):
 			Signals.request_pickup.emit()
 
-		# DOWNED: puoi sparare, ma senza charge/perk
 		if event.is_action_pressed("shoot"):
 			if Run.null_ready:
 				var origin_d: Vector3 = camera.global_transform.origin
@@ -275,7 +276,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				_charging = false
 				var origin2: Vector3 = camera.global_transform.origin
 				var dir2: Vector3 = -camera.global_transform.basis.z
-				var size_mult := 1.0
+				var size_mult: float = 1.0
 				if _charge_time >= Run.charge_shot_seconds:
 					size_mult = Run.charge_shot_scale
 				_play_hand_shoot_anim()
@@ -292,7 +293,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("interact"):
 		Signals.request_pickup.emit()
 
-	# SWAP (perk) - Q
+	# SWAP (perk)
 	if event.is_action_pressed("swap"):
 		if Run.null_dropped:
 			is_recovering_null = true
@@ -310,7 +311,6 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func set_input_locked(v: bool) -> void:
 	input_locked = v
-	# opzionale: azzera charge se stavi caricando
 	if input_locked:
 		_charging = false
 		_charge_time = 0.0
@@ -347,8 +347,31 @@ func _play_hand_recovery_enter_anim() -> void:
 	if hand_recovery != null:
 		hand_recovery.visible = is_recovering_null
 
+func force_drop_null() -> void:
+	if not Run.null_ready:
+		return
+
+	_charging = false
+	_charge_time = 0.0
+
+	var drop_pos: Vector3 = global_position + Vector3(0.0, 0.35, 0.0)
+	Signals.request_force_drop_null.emit(drop_pos)
+
+func apply_external_push(dir: Vector3, strength: float, lift: float = 0.0) -> void:
+	var flat_dir: Vector3 = dir
+	flat_dir.y = 0.0
+
+	if flat_dir.length() < 0.001:
+		flat_dir = -global_transform.basis.z
+	else:
+		flat_dir = flat_dir.normalized()
+
+	_external_push += flat_dir * strength
+
+	if lift > 0.0:
+		velocity.y = maxf(velocity.y, lift)
+
 func _process(delta: float) -> void:
-	# charge timer (solo fuori survival)
 	if Run.charge_shot_enabled and _charging and not Run.survival_mode:
 		_charge_time += delta
 
@@ -356,37 +379,43 @@ func _process(delta: float) -> void:
 	_update_body_effects(delta)
 
 func _physics_process(delta: float) -> void:
-	# timers
 	if state == PState.KNOCKBACK:
 		_knock_t += delta
 	if state == PState.DOWNED:
 		_downed_invuln_t = maxf(_downed_invuln_t - delta, 0.0)
 
-	# dash timers (solo NORMAL, ma aggiorniamo comunque)
 	dash_cd = maxf(dash_cd - delta, 0.0)
 	dash_time_left = maxf(dash_time_left - delta, 0.0)
 	_push_cd_left = maxf(_push_cd_left - delta, 0.0)
 
 	if is_recovering_null:
-		velocity.x = 0.0
-		velocity.z = 0.0
+		velocity.x = _external_push.x
+		velocity.z = _external_push.z
 
 		if is_on_floor():
 			velocity.y = -1.0
 		else:
 			velocity.y -= GRAVITY * delta
+
+		var push_decay_recovery: float = external_push_decay_ground if is_on_floor() else external_push_decay_air
+		_external_push = _external_push.move_toward(Vector3.ZERO, push_decay_recovery * delta)
 
 		move_and_slide()
 		_update_downed_camera(delta)
 		return
-	
+
 	if input_locked:
-		velocity.x = 0.0
-		velocity.z = 0.0
+		velocity.x = _external_push.x
+		velocity.z = _external_push.z
+
 		if is_on_floor():
 			velocity.y = -1.0
 		else:
 			velocity.y -= GRAVITY * delta
+
+		var push_decay_locked: float = external_push_decay_ground if is_on_floor() else external_push_decay_air
+		_external_push = _external_push.move_toward(Vector3.ZERO, push_decay_locked * delta)
+
 		move_and_slide()
 		_update_downed_camera(delta)
 		return
@@ -402,7 +431,7 @@ func _physics_process(delta: float) -> void:
 	_update_downed_camera(delta)
 
 func _physics_normal(delta: float) -> void:
-	var input_dir := Vector3.ZERO
+	var input_dir: Vector3 = Vector3.ZERO
 	if Input.is_action_pressed("move_forward"):
 		input_dir.z -= 1.0
 	if Input.is_action_pressed("move_back"):
@@ -413,7 +442,7 @@ func _physics_normal(delta: float) -> void:
 		input_dir.x += 1.0
 	input_dir = input_dir.normalized()
 
-	var dir := (transform.basis * input_dir)
+	var dir: Vector3 = transform.basis * input_dir
 	dir.y = 0.0
 	dir = dir.normalized()
 
@@ -421,10 +450,9 @@ func _physics_normal(delta: float) -> void:
 	if not is_on_floor():
 		speed *= Run.air_speed_mult
 
-	velocity.x = dir.x * speed
-	velocity.z = dir.z * speed
+	velocity.x = dir.x * speed + _external_push.x
+	velocity.z = dir.z * speed + _external_push.z
 
-	# DASH (perk)
 	if Run.dash_enabled and has_dash and dash_cd <= 0.0 and Input.is_action_just_pressed("dash"):
 		var fwd: Vector3 = -global_transform.basis.z
 		fwd.y = 0.0
@@ -437,7 +465,6 @@ func _physics_normal(delta: float) -> void:
 		velocity.x += dash_vel.x
 		velocity.z += dash_vel.z
 
-	# flight / gravity
 	var flying: bool = Run.flight_time_left > 0.0
 	if flying:
 		Run.flight_time_left = maxf(Run.flight_time_left - delta, 0.0)
@@ -457,18 +484,21 @@ func _physics_normal(delta: float) -> void:
 		else:
 			velocity.y -= GRAVITY * delta
 
+	var push_decay: float = external_push_decay_ground if is_on_floor() else external_push_decay_air
+	_external_push = _external_push.move_toward(Vector3.ZERO, push_decay * delta)
+
 	move_and_slide()
 
 func _physics_knockback(delta: float) -> void:
-	# drag graduale (aria / terra)
-	var drag := knockback_drag_air
+	_external_push = _external_push.move_toward(Vector3.ZERO, knockback_drag_ground * delta)
+
+	var drag: float = knockback_drag_air
 	if is_on_floor():
 		drag = knockback_drag_ground
 
 	velocity.x = move_toward(velocity.x, 0.0, drag * delta)
 	velocity.z = move_toward(velocity.z, 0.0, drag * delta)
 
-	# gravità progressiva solo durante il knockback
 	if is_on_floor():
 		velocity.y = -1.0
 	else:
@@ -478,8 +508,7 @@ func _physics_knockback(delta: float) -> void:
 		)
 		velocity.y -= _knockback_gravity_current * delta
 
-	# clamp anti-scatto (evita “teletrasporto” se delta è alto)
-	var h := Vector2(velocity.x, velocity.z)
+	var h: Vector2 = Vector2(velocity.x, velocity.z)
 	var max_h: float = knockback_max_step / maxf(delta, 0.001)
 	if h.length() > max_h:
 		h = h.normalized() * max_h
@@ -488,19 +517,20 @@ func _physics_knockback(delta: float) -> void:
 
 	move_and_slide()
 
-	# entra in DOWNED solo dopo atterraggio + un minimo tempo
 	if is_on_floor() and _knock_t >= knockback_min_time:
 		_enter_downed()
 
 func _physics_downed(delta: float) -> void:
-	# immobilizzato: zero movimento orizzontale
-	velocity.x = 0.0
-	velocity.z = 0.0
+	velocity.x = _external_push.x
+	velocity.z = _external_push.z
 
 	if is_on_floor():
 		velocity.y = -1.0
 	else:
 		velocity.y -= GRAVITY * delta
+
+	var push_decay: float = external_push_decay_ground if is_on_floor() else external_push_decay_air
+	_external_push = _external_push.move_toward(Vector3.ZERO, push_decay * delta)
 
 	move_and_slide()
 
@@ -509,31 +539,29 @@ func _on_player_hit(knockback_dir: Vector3) -> void:
 		is_recovering_null = false
 		_update_hand_mode_visual()
 		Signals.request_recovery_stop.emit()
-	# durante knockback ignoriamo hit extra (più fair)
+
 	if state == PState.KNOCKBACK:
 		return
 
-	# se DOWNED: seconda hit = morte (dopo invuln)
 	if state == PState.DOWNED:
 		if _downed_invuln_t > 0.0:
 			return
 		Signals.player_died.emit()
 		return
 
-	# NORMAL -> entra in knockback
 	_charging = false
 	_charge_time = 0.0
+	_external_push = Vector3.ZERO
 
 	state = PState.KNOCKBACK
 	_knock_t = 0.0
 	_knockback_gravity_current = knockback_gravity_start
 
-	var dir := knockback_dir
+	var dir: Vector3 = knockback_dir
 	if dir.length() < 0.001:
 		dir = -global_transform.basis.z
 	dir = dir.normalized()
 
-	# aggiunge spinta (più naturale di sovrascrivere tutto)
 	velocity.x += dir.x * knockback_speed
 	velocity.z += dir.z * knockback_speed
 	velocity.y = maxf(velocity.y, knockback_lift)
@@ -544,7 +572,6 @@ func _enter_downed() -> void:
 	_downed_invuln_t = downed_invuln_seconds
 
 	_set_body_downed(true)
-
 	Signals.survival_mode_changed.emit(true)
 
 func _exit_downed() -> void:
@@ -553,7 +580,6 @@ func _exit_downed() -> void:
 	_downed_invuln_t = 0.0
 
 	_set_body_downed(false)
-
 	Signals.survival_mode_changed.emit(false)
 
 func _set_body_downed(downed: bool) -> void:
@@ -563,40 +589,33 @@ func _set_body_downed(downed: bool) -> void:
 		body_down_sprite.visible = downed
 
 func _on_enemy_killed(_enemy: Node) -> void:
-	# se uccidi mentre sei DOWNED -> recover immediato
 	if state == PState.DOWNED:
 		_exit_downed()
 
 func _try_push() -> void:
-	# Cooldown
 	if _push_cd_left > 0.0:
 		return
 
-	# Consuma cooldown SUBITO
 	_push_cd_left = push_cooldown
-
-	# Animazione sempre
 	_play_push_anim()
 
-	# Forward camera
 	var fwd: Vector3 = -camera.global_transform.basis.z
 	fwd.y = 0.0
 	if fwd.length() < 0.001:
 		return
 	fwd = fwd.normalized()
 
-	# Cono
-	var half_angle_rad := deg_to_rad(push_cone_deg * 0.5)
-	var cos_limit := cos(half_angle_rad)
+	var half_angle_rad: float = deg_to_rad(push_cone_deg * 0.5)
+	var cos_limit: float = cos(half_angle_rad)
 
-	var any_hit := false
+	var any_hit: bool = false
 
 	for e in get_tree().get_nodes_in_group("enemy"):
 		if not (e is Node3D):
 			continue
 
-		var en := e as Node3D
-		var to := en.global_position - global_position
+		var en: Node3D = e as Node3D
+		var to: Vector3 = en.global_position - global_position
 
 		if to.length() > push_range:
 			continue
@@ -605,7 +624,7 @@ func _try_push() -> void:
 		if to.length() < 0.001:
 			continue
 
-		var dir_to := to.normalized()
+		var dir_to: Vector3 = to.normalized()
 
 		if fwd.dot(dir_to) < cos_limit:
 			continue
@@ -634,7 +653,6 @@ func _update_hand_effects(delta: float) -> void:
 	if not is_instance_valid(hand):
 		return
 
-	# Se sta andando il recoil di sparo, lasciamo priorità al tween
 	if is_instance_valid(_hand_tween) and _hand_tween.is_running():
 		_hand_look_input = _hand_look_input.lerp(Vector2.ZERO, delta * hand_sway_return_speed)
 		return
@@ -642,9 +660,6 @@ func _update_hand_effects(delta: float) -> void:
 	var target_pos: Vector3 = _hand_base_pos
 	var target_rot: Vector3 = _hand_base_rot
 
-	# -------------------------
-	# IDLE FLOAT
-	# -------------------------
 	if hand_idle_enabled:
 		_hand_idle_t += delta * hand_idle_speed
 
@@ -654,9 +669,6 @@ func _update_hand_effects(delta: float) -> void:
 		target_pos.y += idle_y
 		target_rot.z += idle_rot_z
 
-	# -------------------------
-	# WALK BOB
-	# -------------------------
 	if hand_bob_enabled:
 		var move_input: Vector2 = Vector2.ZERO
 		if Input.is_action_pressed("move_forward"):
@@ -687,9 +699,6 @@ func _update_hand_effects(delta: float) -> void:
 		else:
 			_hand_bob_t = lerpf(_hand_bob_t, 0.0, delta * 4.0)
 
-	# -------------------------
-	# LOOK SWAY (forte ma controllato)
-	# -------------------------
 	if hand_sway_enabled:
 		var look: Vector2 = _hand_look_input.clamp(
 			Vector2(-120.0, -120.0),

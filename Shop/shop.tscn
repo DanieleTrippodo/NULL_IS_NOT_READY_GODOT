@@ -52,14 +52,16 @@ layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.12900001
 anchor_top = 0.112
-anchor_right = 0.87600005
-anchor_bottom = 0.67700005
+anchor_right = 0.89100003
+anchor_bottom = 0.79200006
 offset_left = -0.32000732
 offset_top = -0.1760025
-offset_right = 0.32000732
-offset_bottom = 0.18395996
+offset_right = -0.43200684
+offset_bottom = -0.21606445
 grow_horizontal = 2
+grow_vertical = 2
 theme_override_constants/separation = 55
+alignment = 1
 
 [node name="MoneyLabelShop" type="Label" parent="."]
 layout_mode = 1

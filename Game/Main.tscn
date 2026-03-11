@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=3 uid="uid://bgwcyyqw3ssa1"]
+[gd_scene load_steps=30 format=3 uid="uid://bgwcyyqw3ssa1"]
 
 [ext_resource type="Script" uid="uid://pfb6mfm6lhf8" path="res://Game/Game.gd" id="1_wd0a0"]
 [ext_resource type="PackedScene" uid="uid://8w3pg480ojvn" path="res://Levels/arena.tscn" id="2_lv82p"]
@@ -10,9 +10,10 @@
 [ext_resource type="PackedScene" uid="uid://bhkaynd3qjg8j" path="res://UI/hud.tscn" id="6_g5pn2"]
 [ext_resource type="PackedScene" uid="uid://bivvuwcjgan2n" path="res://Enemies/spike.tscn" id="7_f77hp"]
 [ext_resource type="PackedScene" uid="uid://d2t46kkawn2qv" path="res://Enemies/enemy_bullet.tscn" id="7_q34ae"]
+[ext_resource type="PackedScene" uid="uid://bk7xksmg5s47w" path="res://Enemies/stealer.tscn" id="8_3pgyt"]
 [ext_resource type="PackedScene" uid="uid://ce0g720tmhwp6" path="res://Enemies/exception.tscn" id="8_6o7ua"]
 [ext_resource type="PackedScene" uid="uid://ff6up5cjcaym" path="res://Pickups/money_cube.tscn" id="10_x253o"]
-[ext_resource type="PackedScene" uid="uid://dxmupt5kja2oy" path="res://Enemies/enemy_death_fx.tscn" id="11_ijkwl"]
+[ext_resource type="PackedScene" path="res://Enemies/enemy_death_fx.tscn" id="11_ijkwl"]
 [ext_resource type="PackedScene" uid="uid://gshswk7putnj" path="res://Interactables/shop_portal.tscn" id="11_krex0"]
 [ext_resource type="PackedScene" uid="uid://dqgk2yf0bdgir" path="res://Interactables/terminal.tscn" id="12_3tq7c"]
 [ext_resource type="PackedScene" uid="uid://c1oasgfwdd86n" path="res://UI/terminal_overlay.tscn" id="13_eg2md"]
@@ -41,6 +42,7 @@ player_scene = ExtResource("3_w1egk")
 null_projectile_scene = ExtResource("4_rchnd")
 chaser_scene = ExtResource("5_rl4yr")
 turret_scene = ExtResource("6_3xx61")
+stealer_scene = ExtResource("8_3pgyt")
 spike_scene = ExtResource("7_f77hp")
 exception_scene = ExtResource("8_6o7ua")
 enemy_bullet_scene = ExtResource("7_q34ae")
