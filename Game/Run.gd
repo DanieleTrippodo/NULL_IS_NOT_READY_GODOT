@@ -1,10 +1,9 @@
-# res://Game/Run.gd
 extends Node
 
 enum PerkRarity { COMMON, RARE, EPIC }
 
 # ------------------------------------------------------------
-# WRAPPER DATABASE (compatibilità col codice attuale)
+# DATABASE WRAPPERS
 # ------------------------------------------------------------
 func get_perk_rarity(id: String) -> int:
 	return UpdatesDB.get_rarity(id)
@@ -35,7 +34,7 @@ func roll_price_for_rarity(rarity: int, rng: RandomNumberGenerator) -> int:
 			_:
 				return 3
 
-	var chosen_id := pool[rng.randi_range(0, pool.size() - 1)]
+	var chosen_id: String = pool[rng.randi_range(0, pool.size() - 1)]
 	return UpdatesDB.roll_price_for_id(chosen_id, depth, rng)
 
 func rarity_name(r: int) -> String:
@@ -123,6 +122,14 @@ func get_perk_preview_lines(id: String) -> Array[String]:
 		"SLOWMO_RECOVERY":
 			lines.append("Slowmo scale: %.2f" % slowmo_scale)
 
+		"RAM_PATCH":
+			lines.append("R.A.M.: %dx%d -> %dx%d" % [
+				ram_cols,
+				ram_rows,
+				ram_cols + 1,
+				ram_rows + 1
+			])
+
 		_:
 			pass
 
@@ -130,15 +137,13 @@ func get_perk_preview_lines(id: String) -> Array[String]:
 
 
 # ------------------------------------------------------------
-# ECONOMIA / RUN
+# ECONOMY / RUN
 # ------------------------------------------------------------
 var money: int = 0
 
-# Per gestire cambio scena Shop <-> Arena senza resettare la run
 var returning_from_shop: bool = false
 var spawn_player_random: bool = false
 
-# Offerte generate per questa visita allo shop
 var shop_offers: Array = []
 
 var depth: int = 1
@@ -149,7 +154,7 @@ var survival_mode: bool = false
 
 
 # ------------------------------------------------------------
-# STATO GAMEPLAY RUNTIME (letto dal resto del gioco)
+# GAMEPLAY RUNTIME STATE
 # ------------------------------------------------------------
 var null_bounces: int = 0
 var jump_enabled: bool = true
@@ -204,15 +209,14 @@ var max_null_bounces: int = 3
 
 
 # ------------------------------------------------------------
-# FEEDBACK UI
+# UI FEEDBACK
 # ------------------------------------------------------------
 var last_perk_title: String = ""
 var last_perk_desc: String = ""
 
 
 # ------------------------------------------------------------
-# POOL SHOP ATTUALE
-# (lasciamo questo invariato per compatibilità)
+# SHOP POOL
 # ------------------------------------------------------------
 var perk_pool: Array[String] = [
 	"NULL_BOUNCE",
@@ -241,21 +245,24 @@ var perk_pool: Array[String] = [
 	"PULL_TO_HAND",
 	"SWAP_WITH_NULL",
 	"DROP_SHOCKWAVE",
-	"SLOWMO_RECOVERY"
+	"SLOWMO_RECOVERY",
+
+	"RAM_PATCH"
 ]
 
 
 # ------------------------------------------------------------
-# R.A.M. / INVENTARIO NUOVO
+# R.A.M.
 # ------------------------------------------------------------
+var ram_base_cols: int = 6
+var ram_base_rows: int = 4
+
 var ram_cols: int = 6
 var ram_rows: int = 4
 
-# griglia [y][x] -> instance_id oppure -1
+# [y][x] -> instance_id or -1
 var ram_grid: Array = []
 
-# tutti gli Update posseduti nella run
-# ogni elemento:
 # {
 #   "instance_id": int,
 #   "update_id": String,
@@ -277,6 +284,7 @@ func _ready() -> void:
 	if not Signals.null_dropped.is_connected(cb2):
 		Signals.null_dropped.connect(cb2)
 
+	_refresh_ram_dimensions()
 	_build_empty_ram_grid()
 
 
@@ -332,6 +340,8 @@ func reset() -> void:
 
 	owned_updates.clear()
 	_next_update_instance_id = 1
+
+	_refresh_ram_dimensions()
 	_build_empty_ram_grid()
 
 	_reset_runtime_stats_to_base()
@@ -385,6 +395,35 @@ func _reset_runtime_stats_to_base() -> void:
 	homing_turn_speed = 10.0
 
 
+# ------------------------------------------------------------
+# R.A.M. DIMENSIONS
+# ------------------------------------------------------------
+func get_equipped_ram_patch_count() -> int:
+	return count_equipped_update("RAM_PATCH")
+
+
+func _refresh_ram_dimensions() -> void:
+	var patch_count: int = get_equipped_ram_patch_count()
+	ram_cols = ram_base_cols + patch_count
+	ram_rows = ram_base_rows + patch_count
+
+
+func get_ram_total_slots() -> int:
+	return ram_cols * ram_rows
+
+
+func get_ram_active_slots() -> int:
+	return get_ram_total_slots()
+
+
+func get_ram_max_slots() -> int:
+	return get_ram_total_slots()
+
+
+func is_ram_cell_active(cell: Vector2i) -> bool:
+	return cell.x >= 0 and cell.x < ram_cols and cell.y >= 0 and cell.y < ram_rows
+
+
 func _build_empty_ram_grid() -> void:
 	ram_grid.clear()
 	for y in range(ram_rows):
@@ -394,6 +433,38 @@ func _build_empty_ram_grid() -> void:
 		ram_grid.append(row)
 
 
+func _resize_ram_grid_preserve_contents(new_cols: int, new_rows: int) -> void:
+	var old_grid: Array = get_ram_grid_copy()
+	var old_rows: int = ram_grid.size()
+	var old_cols: int = 0
+	if old_rows > 0:
+		old_cols = (ram_grid[0] as Array).size()
+
+	ram_cols = new_cols
+	ram_rows = new_rows
+	_build_empty_ram_grid()
+
+	var copy_rows: int = min(old_rows, new_rows)
+	var copy_cols: int = min(old_cols, new_cols)
+
+	for y in range(copy_rows):
+		for x in range(copy_cols):
+			ram_grid[y][x] = old_grid[y][x]
+
+
+func _send_all_equipped_updates_back_to_inventory() -> void:
+	for y in range(ram_grid.size()):
+		for x in range((ram_grid[y] as Array).size()):
+			ram_grid[y][x] = -1
+
+	for i in range(owned_updates.size()):
+		owned_updates[i]["equipped"] = false
+		owned_updates[i]["grid_pos"] = Vector2i(-1, -1)
+
+	_refresh_ram_dimensions()
+	_build_empty_ram_grid()
+
+
 # ------------------------------------------------------------
 # OWNED UPDATES
 # ------------------------------------------------------------
@@ -401,7 +472,7 @@ func add_owned_update(update_id: String) -> Dictionary:
 	if not UpdatesDB.has_update(update_id):
 		return {}
 
-	var inst := {
+	var inst: Dictionary = {
 		"instance_id": _next_update_instance_id,
 		"update_id": update_id,
 		"rotation": 0,
@@ -445,21 +516,21 @@ func get_owned_update_index_by_instance_id(instance_id: int) -> int:
 
 
 func get_owned_update_by_instance_id(instance_id: int) -> Dictionary:
-	var idx := get_owned_update_index_by_instance_id(instance_id)
+	var idx: int = get_owned_update_index_by_instance_id(instance_id)
 	if idx == -1:
 		return {}
 	return owned_updates[idx].duplicate(true)
 
 
 func is_update_equipped(instance_id: int) -> bool:
-	var idx := get_owned_update_index_by_instance_id(instance_id)
+	var idx: int = get_owned_update_index_by_instance_id(instance_id)
 	if idx == -1:
 		return false
 	return bool(owned_updates[idx].get("equipped", false))
 
 
 func count_owned_update(update_id: String) -> int:
-	var n := 0
+	var n: int = 0
 	for item in owned_updates:
 		if str(item.get("update_id", "")) == update_id:
 			n += 1
@@ -467,7 +538,7 @@ func count_owned_update(update_id: String) -> int:
 
 
 func count_equipped_update(update_id: String) -> int:
-	var n := 0
+	var n: int = 0
 	for item in owned_updates:
 		if str(item.get("update_id", "")) == update_id and bool(item.get("equipped", false)):
 			n += 1
@@ -477,7 +548,7 @@ func count_equipped_update(update_id: String) -> int:
 # ------------------------------------------------------------
 # SHAPE / ROTATION HELPERS
 # ------------------------------------------------------------
-func get_ram_cells_for_update(update_id: String, rotation: int = 0) -> Array[Vector2i]:
+func get_ram_cells_for_update(update_id: String, item_rotation: int = 0) -> Array[Vector2i]:
 	var base_cells: Array = UpdatesDB.get_cells(update_id)
 
 	var typed_cells: Array[Vector2i] = []
@@ -485,20 +556,20 @@ func get_ram_cells_for_update(update_id: String, rotation: int = 0) -> Array[Vec
 		if c is Vector2i:
 			typed_cells.append(c)
 
-	return _rotate_cells_to_fit_positive_space(typed_cells, rotation)
+	return _rotate_cells_to_fit_positive_space(typed_cells, item_rotation)
 
 
-func get_ram_size_for_update(update_id: String, rotation: int = 0) -> Vector2i:
-	var cells := get_ram_cells_for_update(update_id, rotation)
+func get_ram_size_for_update(update_id: String, item_rotation: int = 0) -> Vector2i:
+	var cells: Array[Vector2i] = get_ram_cells_for_update(update_id, item_rotation)
 	return _get_cells_bounds(cells)
 
 
-func _rotate_cells_to_fit_positive_space(cells: Array[Vector2i], rotation: int) -> Array[Vector2i]:
-	var rot := wrapi(rotation, 0, 4)
+func _rotate_cells_to_fit_positive_space(cells: Array[Vector2i], item_rotation: int) -> Array[Vector2i]:
+	var rot: int = wrapi(item_rotation, 0, 4)
 	var rotated: Array[Vector2i] = []
 
 	for c in cells:
-		var p := c
+		var p: Vector2i = c
 		match rot:
 			0:
 				p = Vector2i(c.x, c.y)
@@ -510,8 +581,8 @@ func _rotate_cells_to_fit_positive_space(cells: Array[Vector2i], rotation: int) 
 				p = Vector2i(c.y, -c.x)
 		rotated.append(p)
 
-	var min_x := 999999
-	var min_y := 999999
+	var min_x: int = 999999
+	var min_y: int = 999999
 	for p in rotated:
 		min_x = min(min_x, p.x)
 		min_y = min(min_y, p.y)
@@ -527,8 +598,8 @@ func _get_cells_bounds(cells: Array[Vector2i]) -> Vector2i:
 	if cells.is_empty():
 		return Vector2i.ONE
 
-	var max_x := 0
-	var max_y := 0
+	var max_x: int = 0
+	var max_y: int = 0
 	for c in cells:
 		max_x = max(max_x, c.x)
 		max_y = max(max_y, c.y)
@@ -547,6 +618,7 @@ func get_ram_grid_copy() -> Array:
 
 
 func clear_ram_grid() -> void:
+	_refresh_ram_dimensions()
 	_build_empty_ram_grid()
 	for i in range(owned_updates.size()):
 		owned_updates[i]["equipped"] = false
@@ -556,12 +628,21 @@ func clear_ram_grid() -> void:
 
 
 func remove_update_from_ram(instance_id: int) -> bool:
-	var idx := get_owned_update_index_by_instance_id(instance_id)
+	var idx: int = get_owned_update_index_by_instance_id(instance_id)
 	if idx == -1:
 		return false
 
-	var was_equipped := bool(owned_updates[idx].get("equipped", false))
+	var was_equipped: bool = bool(owned_updates[idx].get("equipped", false))
 	if not was_equipped:
+		return true
+
+	var update_id: String = str(owned_updates[idx].get("update_id", ""))
+
+	# Removing RAM_PATCH collapses the grid:
+	# everything returns to inventory and dimensions shrink.
+	if update_id == "RAM_PATCH":
+		_send_all_equipped_updates_back_to_inventory()
+		rebuild_equipped_updates_effects()
 		return true
 
 	for y in range(ram_rows):
@@ -576,78 +657,109 @@ func remove_update_from_ram(instance_id: int) -> bool:
 	return true
 
 
-func can_place_update_instance(instance_id: int, origin: Vector2i, rotation: int = 0) -> bool:
-	var item := get_owned_update_by_instance_id(instance_id)
+func can_place_update_instance(instance_id: int, origin: Vector2i, item_rotation: int = 0) -> bool:
+	var item: Dictionary = get_owned_update_by_instance_id(instance_id)
 	if item.is_empty():
 		return false
 
-	var update_id := str(item.get("update_id", ""))
-	var cells := get_ram_cells_for_update(update_id, rotation)
+	var update_id: String = str(item.get("update_id", ""))
+	var cells: Array[Vector2i] = get_ram_cells_for_update(update_id, item_rotation)
 
+	# If we're placing a fresh RAM_PATCH, it still needs to fit
+	# inside the current grid before expanding it.
 	for c in cells:
-		var gx := origin.x + c.x
-		var gy := origin.y + c.y
+		var gx: int = origin.x + c.x
+		var gy: int = origin.y + c.y
 
 		if gx < 0 or gx >= ram_cols or gy < 0 or gy >= ram_rows:
 			return false
 
-		var cell_value := int(ram_grid[gy][gx])
+		var cell_value: int = int(ram_grid[gy][gx])
 		if cell_value != -1 and cell_value != instance_id:
 			return false
 
 	return true
 
 
-func equip_update_instance(instance_id: int, origin: Vector2i, rotation: int = 0) -> bool:
-	var idx := get_owned_update_index_by_instance_id(instance_id)
+func equip_update_instance(instance_id: int, origin: Vector2i, item_rotation: int = 0) -> bool:
+	var idx: int = get_owned_update_index_by_instance_id(instance_id)
 	if idx == -1:
 		return false
 
 	remove_update_from_ram(instance_id)
 
-	if not can_place_update_instance(instance_id, origin, rotation):
+	if not can_place_update_instance(instance_id, origin, item_rotation):
 		return false
 
-	var update_id := str(owned_updates[idx].get("update_id", ""))
-	var cells := get_ram_cells_for_update(update_id, rotation)
+	var update_id: String = str(owned_updates[idx].get("update_id", ""))
+	var cells: Array[Vector2i] = get_ram_cells_for_update(update_id, item_rotation)
 
 	for c in cells:
-		var gx := origin.x + c.x
-		var gy := origin.y + c.y
+		var gx: int = origin.x + c.x
+		var gy: int = origin.y + c.y
 		ram_grid[gy][gx] = instance_id
 
 	owned_updates[idx]["equipped"] = true
 	owned_updates[idx]["grid_pos"] = origin
-	owned_updates[idx]["rotation"] = wrapi(rotation, 0, 4)
+	owned_updates[idx]["rotation"] = wrapi(item_rotation, 0, 4)
+
+	var old_cols: int = ram_cols
+	var old_rows: int = ram_rows
 
 	rebuild_equipped_updates_effects()
+
+	# If equipping RAM_PATCH changed grid dimensions, preserve existing contents.
+	if update_id == "RAM_PATCH":
+		if ram_cols != old_cols or ram_rows != old_rows:
+			_resize_ram_grid_preserve_contents(ram_cols, ram_rows)
+
+			# redraw all equipped items into the resized grid
+			for y in range(ram_rows):
+				for x in range(ram_cols):
+					ram_grid[y][x] = -1
+
+			for equipped_item in owned_updates:
+				if not bool(equipped_item.get("equipped", false)):
+					continue
+
+				var equipped_update_id: String = str(equipped_item.get("update_id", ""))
+				var equipped_origin: Vector2i = equipped_item.get("grid_pos", Vector2i(-1, -1)) as Vector2i
+				var equipped_rotation: int = int(equipped_item.get("rotation", 0))
+				var equipped_cells: Array[Vector2i] = get_ram_cells_for_update(equipped_update_id, equipped_rotation)
+
+				for ec in equipped_cells:
+					var ex: int = equipped_origin.x + ec.x
+					var ey: int = equipped_origin.y + ec.y
+					if ex >= 0 and ex < ram_cols and ey >= 0 and ey < ram_rows:
+						ram_grid[ey][ex] = int(equipped_item.get("instance_id", -1))
+
 	return true
 
 
 func move_equipped_update(instance_id: int, new_origin: Vector2i) -> bool:
-	var item := get_owned_update_by_instance_id(instance_id)
+	var item: Dictionary = get_owned_update_by_instance_id(instance_id)
 	if item.is_empty():
 		return false
 
-	var rot := int(item.get("rotation", 0))
-	return equip_update_instance(instance_id, new_origin, rot)
+	var item_rotation: int = int(item.get("rotation", 0))
+	return equip_update_instance(instance_id, new_origin, item_rotation)
 
 
 func rotate_equipped_update(instance_id: int) -> bool:
-	var item := get_owned_update_by_instance_id(instance_id)
+	var item: Dictionary = get_owned_update_by_instance_id(instance_id)
 	if item.is_empty():
 		return false
 
-	var update_id := str(item.get("update_id", ""))
+	var update_id: String = str(item.get("update_id", ""))
 	if not UpdatesDB.is_rotatable(update_id):
 		return false
 
-	var current_rot := int(item.get("rotation", 0))
-	var next_rot := wrapi(current_rot + 1, 0, 4)
+	var current_rot: int = int(item.get("rotation", 0))
+	var next_rot: int = wrapi(current_rot + 1, 0, 4)
 	var grid_pos: Vector2i = item.get("grid_pos", Vector2i(-1, -1)) as Vector2i
 
 	if grid_pos == Vector2i(-1, -1):
-		var idx := get_owned_update_index_by_instance_id(instance_id)
+		var idx: int = get_owned_update_index_by_instance_id(instance_id)
 		if idx == -1:
 			return false
 		owned_updates[idx]["rotation"] = next_rot
@@ -657,20 +769,20 @@ func rotate_equipped_update(instance_id: int) -> bool:
 
 
 # ------------------------------------------------------------
-# REBUILD ATTIVI DAL CONTENUTO R.A.M.
+# REBUILD ACTIVE EFFECTS
 # ------------------------------------------------------------
 func rebuild_equipped_updates_effects() -> void:
-	var prev_flight_time := flight_time_left
-	var prev_swap_cd := swap_cd_left
+	var prev_flight_time: float = flight_time_left
+	var prev_swap_cd: float = swap_cd_left
 
 	_reset_runtime_stats_to_base()
+	_refresh_ram_dimensions()
 
 	for item in owned_updates:
 		if bool(item.get("equipped", false)):
-			var update_id := str(item.get("update_id", ""))
+			var update_id: String = str(item.get("update_id", ""))
 			_apply_equipped_update_effect(update_id)
 
-	# manteniamo un po' di stato runtime che non deve resettarsi brutalmente
 	flight_time_left = max(flight_time_left, prev_flight_time)
 	swap_cd_left = prev_swap_cd
 
@@ -693,7 +805,6 @@ func _apply_equipped_update_effect(id: String) -> void:
 			air_speed_mult = min(air_speed_mult + 0.5, 2.0)
 
 		"FLIGHT_BURST":
-			# abilita la logica del perk; il timer viene usato quando attivato in player
 			flight_time_left = max(flight_time_left, 0.0)
 
 		"MAGNET_PICKUP":
@@ -745,13 +856,16 @@ func _apply_equipped_update_effect(id: String) -> void:
 		"SLOWMO_RECOVERY":
 			slowmo_recovery = true
 
+		"RAM_PATCH":
+			# R.A.M. size is handled by _refresh_ram_dimensions()
+			pass
+
 
 # ------------------------------------------------------------
 # LEGACY SHOP / PERK FLOW
-# (resta finché non convertiamo lo shop allo step 3)
 # ------------------------------------------------------------
 func grant_random_perk(rng: RandomNumberGenerator) -> bool:
-	var available := []
+	var available: Array[String] = []
 	for id in perk_pool:
 		if _can_take(id):
 			available.append(id)
@@ -764,67 +878,8 @@ func grant_random_perk(rng: RandomNumberGenerator) -> bool:
 	return true
 
 
-func _can_take(id: String) -> bool:
-	match id:
-		"DASH_UNLOCK":
-			return not dash_enabled
-		"CHARGE_SHOT":
-			return not charge_shot_enabled
-
-		"NULL_BOUNCE":
-			return null_bounces < 1
-		"BOUNCE_STACK":
-			return null_bounces >= 1 and null_bounces < max_null_bounces
-
-		"LONG_JUMP":
-			return jump_enabled and air_speed_mult < 2.0
-		"JUMP_POWER":
-			return jump_enabled and jump_velocity < 12.0
-
-		"FLIGHT_BURST":
-			return true
-
-		"MAGNET_PICKUP":
-			return not pickup_magnet
-
-		"SPRINT":
-			return move_speed_mult < 1.5
-
-		"PANIC_BOOST":
-			return not panic_boost
-
-		"SLOW_TURRETS":
-			return turret_interval_mult > 0.7
-
-		"NULL_SPEED":
-			return null_speed_mult < 1.8
-
-		"NULL_RANGE":
-			return null_range_mult < 1.8
-
-		"PIERCE_1":
-			return null_pierce < 1
-
-		"HOMING_NUDGE":
-			return not homing_nudge
-
-		"CHARGE_PLUS":
-			return charge_shot_enabled and (charge_shot_seconds > 2.0 or charge_shot_scale < 2.25)
-
-		"PULL_TO_HAND":
-			return not pull_to_hand
-
-		"SWAP_WITH_NULL":
-			return not swap_with_null
-
-		"DROP_SHOCKWAVE":
-			return not drop_shockwave
-
-		"SLOWMO_RECOVERY":
-			return not slowmo_recovery
-
-		_:
-			return true
+func _can_take(_id: String) -> bool:
+	return true
 
 
 func _apply(id: String) -> void:
@@ -832,106 +887,110 @@ func _apply(id: String) -> void:
 		"NULL_BOUNCE":
 			null_bounces = 1
 			last_perk_title = "NULL BOUNCE"
-			last_perk_desc = "Il NULL rimbalza 1 volta."
+			last_perk_desc = "Your NULL projectile bounces once."
 
 		"BOUNCE_STACK":
 			null_bounces = min(null_bounces + 1, max_null_bounces)
 			last_perk_title = "BOUNCE STACK"
-			last_perk_desc = "+1 rimbalzo (max %d)." % max_null_bounces
+			last_perk_desc = "Adds +1 extra bounce."
 
 		"JUMP_POWER":
 			jump_velocity = min(jump_velocity + 2.0, 12.0)
 			last_perk_title = "HIGHER JUMP"
-			last_perk_desc = "Salto più alto."
+			last_perk_desc = "Increases jump height."
 
 		"LONG_JUMP":
 			air_speed_mult = min(air_speed_mult + 0.5, 2.0)
 			last_perk_title = "LONG JUMP"
-			last_perk_desc = "Più controllo/velocità in aria."
+			last_perk_desc = "Improves air control and aerial speed."
 
 		"FLIGHT_BURST":
 			flight_time_left = 5.0
 			last_perk_title = "FLIGHT (5s)"
-			last_perk_desc = "Vola per 5 secondi (Space)."
+			last_perk_desc = "Allows flight for 5 seconds."
 
 		"MAGNET_PICKUP":
 			pickup_magnet = true
 			last_perk_title = "MAGNET"
-			last_perk_desc = "Pickup automatico del NULL vicino."
+			last_perk_desc = "Automatically picks up nearby NULL drops."
 
 		"SPRINT":
 			move_speed_mult = min(move_speed_mult + 0.15, 1.5)
 			last_perk_title = "SPEED UP"
-			last_perk_desc = "Velocità movimento +15%."
+			last_perk_desc = "Increases movement speed by 15%."
 
 		"PANIC_BOOST":
 			panic_boost = true
 			last_perk_title = "PANIC BOOST"
-			last_perk_desc = "+20% velocità quando NULL: NOT READY."
+			last_perk_desc = "Gain bonus speed while NULL is not ready."
 
 		"SLOW_TURRETS":
 			turret_interval_mult = max(turret_interval_mult - 0.1, 0.7)
 			last_perk_title = "SLOW TURRETS"
-			last_perk_desc = "Turret sparano più lentamente."
+			last_perk_desc = "Enemy turrets fire more slowly."
 
 		"NULL_SPEED":
 			null_speed_mult = min(null_speed_mult + 0.2, 1.8)
 			last_perk_title = "NULL SPEED"
-			last_perk_desc = "Il NULL vola più veloce."
+			last_perk_desc = "Makes the NULL projectile travel faster."
 
 		"NULL_RANGE":
 			null_range_mult = min(null_range_mult + 0.2, 1.8)
 			last_perk_title = "NULL RANGE"
-			last_perk_desc = "Il NULL va più lontano."
+			last_perk_desc = "Increases NULL projectile travel distance."
 
 		"PIERCE_1":
 			null_pierce = 1
 			last_perk_title = "PIERCE"
-			last_perk_desc = "Il NULL può uccidere 2 nemici in linea."
+			last_perk_desc = "Lets NULL kill two enemies in a line."
 
 		"HOMING_NUDGE":
 			homing_nudge = true
 			last_perk_title = "HOMING NUDGE"
-			last_perk_desc = "Leggera correzione verso il bersaglio vicino."
+			last_perk_desc = "Adds slight target correction to NULL."
 
 		"DASH_UNLOCK":
 			dash_enabled = true
 			last_perk_title = "DASH UNLOCK"
-			last_perk_desc = "Scatto rapido con Shift."
+			last_perk_desc = "Unlocks dash movement."
 
 		"CHARGE_SHOT":
 			charge_shot_enabled = true
 			last_perk_title = "CHARGE SHOT"
-			last_perk_desc = "Tieni premuto per caricare, rilascia per un NULL più grande."
+			last_perk_desc = "Hold the shot to fire a larger charged NULL."
 
 		"CHARGE_PLUS":
 			if charge_shot_seconds > 2.0:
 				charge_shot_seconds = max(charge_shot_seconds - 0.5, 2.0)
-				last_perk_desc = "Tempo di carica -0.5s (min 2.0s)."
+				last_perk_desc = "Charge time reduced by 0.5s."
 			else:
 				charge_shot_scale = min(charge_shot_scale + 0.25, 2.25)
-				last_perk_desc = "Colpo caricato più grande (+0.25x)."
+				last_perk_desc = "Charged shot scale increased."
 			last_perk_title = "CHARGE+"
 
 		"PULL_TO_HAND":
 			pull_to_hand = true
 			last_perk_title = "PULL TO HAND"
-			last_perk_desc = "Tieni premuto Interact per richiamare il NULL (0.6s)."
+			last_perk_desc = "Hold interact to pull NULL back to your hand."
 
 		"SWAP_WITH_NULL":
 			swap_with_null = true
 			last_perk_title = "SWAP"
-			last_perk_desc = "Scambia posizione col NULL droppato (Q)."
+			last_perk_desc = "Swap positions with a dropped NULL."
 
 		"DROP_SHOCKWAVE":
 			drop_shockwave = true
 			last_perk_title = "DROP SHOCKWAVE"
-			last_perk_desc = "Se missi, il drop respinge i chaser vicini."
+			last_perk_desc = "Dropped NULL emits a shockwave on miss."
 
 		"SLOWMO_RECOVERY":
 			slowmo_recovery = true
 			last_perk_title = "SLOWMO RECOVERY"
-			last_perk_desc = "Rallenta il tempo quando il NULL è a terra."
+			last_perk_desc = "Slows time while NULL is on the ground."
+
+		"RAM_PATCH":
+			last_perk_title = "RAM PATCH"
+			last_perk_desc = "Adds +1 row and +1 column to your R.A.M. grid."
 
 	if Signals.has_signal("perk_granted"):
 		Signals.perk_granted.emit(last_perk_title, last_perk_desc)

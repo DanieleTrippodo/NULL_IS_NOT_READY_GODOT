@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3 uid="uid://dshf11466t0ds"]
+[gd_scene load_steps=2 format=3 uid="uid://b62rky3munmod"]
 
 [ext_resource type="Script" uid="uid://dnetug1pik3q8" path="res://UI/ram_overlay.gd" id="1_script"]
 
@@ -19,44 +19,65 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.9490196)
+color = Color(0, 0, 0, 0.52)
 
 [node name="Panel" type="Panel" parent="."]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.08
-anchor_top = 0.12
-anchor_right = 0.92
-anchor_bottom = 0.88
+anchor_left = 0.07
+anchor_top = 0.1
+anchor_right = 0.93
+anchor_bottom = 0.9
 
 [node name="Title" type="Label" parent="Panel"]
 layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -62.5
-offset_top = -62.055
-offset_right = 62.49997
-offset_bottom = -9.055
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 20.0
+offset_top = 14.0
+offset_right = -220.0
+offset_bottom = 48.0
 grow_horizontal = 2
-theme_override_font_sizes/font_size = 52
-text = "R.A.M."
+theme_override_font_sizes/font_size = 26
+text = "R.A.M. CONFIGURATION"
+
+[node name="RamUsage" type="Label" parent="Panel"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -220.0
+offset_top = 18.0
+offset_right = -20.0
+offset_bottom = 44.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 26
+text = "RAM USED: 0 / 24"
+horizontal_alignment = 2
 
 [node name="Help" type="Label" parent="Panel"]
 layout_mode = 1
-anchors_preset = 12
-anchor_top = 1.0
+anchors_preset = 10
 anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 70.55
-offset_top = 14.445007
-offset_right = -67.57593
-offset_bottom = 43.445007
+offset_left = 20.0
+offset_top = 52.0
+offset_right = -20.0
+offset_bottom = 90.0
 grow_horizontal = 2
-grow_vertical = 0
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 18
 text = "TAB close  |  Left Click place/remove  |  R rotate  |  Click item to pick"
 autowrap_mode = 2
+
+[node name="DividerTop" type="ColorRect" parent="Panel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 20.0
+offset_top = 96.0
+offset_right = -20.0
+offset_bottom = 98.0
+grow_horizontal = 2
+color = Color(1, 1, 1, 0.08)
 
 [node name="HSplit" type="HBoxContainer" parent="Panel"]
 layout_mode = 1
@@ -64,12 +85,12 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 20.0
-offset_top = 40.23
+offset_top = 110.0
 offset_right = -20.0
-offset_bottom = -31.24997
+offset_bottom = -20.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 0
+theme_override_constants/separation = 18
 
 [node name="Left" type="VBoxContainer" parent="Panel/HSplit"]
 layout_mode = 2
@@ -79,52 +100,97 @@ theme_override_constants/separation = 8
 
 [node name="GridTitle" type="Label" parent="Panel/HSplit/Left"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 26
 text = "Installed Updates"
 
-[node name="Grid" type="Control" parent="Panel/HSplit/Left"]
+[node name="GridSub" type="Label" parent="Panel/HSplit/Left"]
+modulate = Color(1, 1, 1, 0.65)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Place Updates here to activate them."
+
+[node name="GridFrame" type="PanelContainer" parent="Panel/HSplit/Left"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="GridMargin" type="MarginContainer" parent="Panel/HSplit/Left/GridFrame"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="Grid" type="Control" parent="Panel/HSplit/Left/GridFrame/GridMargin"]
 custom_minimum_size = Vector2(420, 320)
 layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 1
 
 [node name="MidSpacer" type="Control" parent="Panel/HSplit"]
-custom_minimum_size = Vector2(24, 0)
+custom_minimum_size = Vector2(8, 0)
 layout_mode = 2
 
 [node name="Right" type="VBoxContainer" parent="Panel/HSplit"]
-custom_minimum_size = Vector2(300, 0)
+custom_minimum_size = Vector2(320, 0)
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 8
+theme_override_constants/separation = 10
 
 [node name="InventoryTitle" type="Label" parent="Panel/HSplit/Right"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 26
 text = "Stored Updates"
 
-[node name="Scroll" type="ScrollContainer" parent="Panel/HSplit/Right"]
-custom_minimum_size = Vector2(300, 260)
+[node name="InventorySub" type="Label" parent="Panel/HSplit/Right"]
+modulate = Color(1, 1, 1, 0.65)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Owned but not currently equipped."
+
+[node name="ScrollFrame" type="PanelContainer" parent="Panel/HSplit/Right"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ScrollMargin" type="MarginContainer" parent="Panel/HSplit/Right/ScrollFrame"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="Scroll" type="ScrollContainer" parent="Panel/HSplit/Right/ScrollFrame/ScrollMargin"]
+custom_minimum_size = Vector2(300, 240)
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="InventoryList" type="VBoxContainer" parent="Panel/HSplit/Right/Scroll"]
+[node name="InventoryList" type="VBoxContainer" parent="Panel/HSplit/Right/ScrollFrame/ScrollMargin/Scroll"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 6
 
-[node name="Desc" type="RichTextLabel" parent="Panel/HSplit/Right"]
+[node name="DescFrame" type="PanelContainer" parent="Panel/HSplit/Right"]
+custom_minimum_size = Vector2(0, 140)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="DescMargin" type="MarginContainer" parent="Panel/HSplit/Right/DescFrame"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="Desc" type="RichTextLabel" parent="Panel/HSplit/Right/DescFrame/DescMargin"]
 custom_minimum_size = Vector2(0, 120)
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_font_sizes/normal_font_size = 20
+theme_override_font_sizes/normal_font_size = 18
 theme_override_font_sizes/bold_font_size = 24
-theme_override_font_sizes/bold_italics_font_size = 24
-theme_override_font_sizes/italics_font_size = 24
-theme_override_font_sizes/mono_font_size = 24
 bbcode_enabled = true
 text = "[b]R.A.M.[/b]
-Store Updates here to activate them."
+Store Updates here to activate them.
+
+Click an item from the list, then place it into the grid."
 fit_content = true
 scroll_active = false

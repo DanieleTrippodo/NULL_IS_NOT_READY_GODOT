@@ -28,13 +28,14 @@ const UPDATE_IDS: Array[String] = [
 	"PULL_TO_HAND",
 	"SWAP_WITH_NULL",
 	"DROP_SHOCKWAVE",
-	"SLOWMO_RECOVERY"
+	"SLOWMO_RECOVERY",
+	"RAM_PATCH"
 ]
 
 const DATA := {
 	"NULL_BOUNCE": {
 		"title": "NULL BOUNCE",
-		"desc": "Il NULL rimbalza 1 volta.",
+		"desc": "Your NULL projectile bounces once.",
 		"rarity": UpdateRarity.COMMON,
 		"base_price_min": 2,
 		"base_price_max": 4,
@@ -47,20 +48,20 @@ const DATA := {
 
 	"BOUNCE_STACK": {
 		"title": "BOUNCE STACK",
-		"desc": "+1 rimbalzo (stackabile).",
+		"desc": "Adds +1 extra bounce.",
 		"rarity": UpdateRarity.RARE,
 		"base_price_min": 5,
 		"base_price_max": 8,
 		"rotatable": true,
 		"size": Vector2i(2, 2),
 		"cells": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1)],
-		"tradeoff_desc": "Occupa più spazio di un bounce base.",
+		"tradeoff_desc": "Takes more space than the base bounce upgrade.",
 		"icon_path": "res://Art/Cards/Icons/BOUNCE_STACK.png"
 	},
 
 	"JUMP_UNLOCK": {
 		"title": "JUMP UNLOCK",
-		"desc": "Ora puoi saltare (legacy/compatibilità).",
+		"desc": "Enables jumping. Kept for legacy compatibility.",
 		"rarity": UpdateRarity.COMMON,
 		"base_price_min": 2,
 		"base_price_max": 4,
@@ -73,163 +74,163 @@ const DATA := {
 
 	"JUMP_POWER": {
 		"title": "HIGHER JUMP",
-		"desc": "Salto più alto.",
+		"desc": "Increases jump height.",
 		"rarity": UpdateRarity.COMMON,
 		"base_price_min": 2,
 		"base_price_max": 4,
 		"rotatable": true,
 		"size": Vector2i(2, 2),
 		"cells": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(1, 1)],
-		"tradeoff_desc": "Forma scomoda ma efficiente.",
+		"tradeoff_desc": "Efficient, but the shape is awkward.",
 		"icon_path": "res://Art/Cards/Icons/JUMP_POWER.png"
 	},
 
 	"LONG_JUMP": {
 		"title": "LONG JUMP",
-		"desc": "Più controllo/velocità in aria.",
+		"desc": "Improves air control and aerial speed.",
 		"rarity": UpdateRarity.COMMON,
 		"base_price_min": 2,
 		"base_price_max": 4,
 		"rotatable": true,
 		"size": Vector2i(3, 1),
 		"cells": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0)],
-		"tradeoff_desc": "Allungato, comodo ma richiede spazio lineare.",
+		"tradeoff_desc": "Easy to understand, but needs long horizontal space.",
 		"icon_path": "res://Art/Cards/Icons/LONG_JUMP.png"
 	},
 
 	"FLIGHT_BURST": {
 		"title": "FLIGHT (5s)",
-		"desc": "Vola per 5 secondi (Space).",
+		"desc": "Allows flight for 5 seconds.",
 		"rarity": UpdateRarity.RARE,
 		"base_price_min": 5,
 		"base_price_max": 8,
 		"rotatable": true,
 		"size": Vector2i(2, 3),
 		"cells": [Vector2i(0, 0), Vector2i(0, 1), Vector2i(0, 2), Vector2i(1, 1)],
-		"tradeoff_desc": "Potente ma verticale e ingombrante.",
+		"tradeoff_desc": "Powerful, but tall and space-hungry.",
 		"icon_path": "res://Art/Cards/Icons/FLIGHT_BURST.png"
 	},
 
 	"MAGNET_PICKUP": {
 		"title": "MAGNET",
-		"desc": "Pickup automatico del NULL vicino.",
+		"desc": "Automatically picks up nearby NULL drops.",
 		"rarity": UpdateRarity.COMMON,
 		"base_price_min": 2,
 		"base_price_max": 4,
 		"rotatable": false,
 		"size": Vector2i(2, 2),
 		"cells": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)],
-		"tradeoff_desc": "Compatto, ma occupa un blocco pieno.",
+		"tradeoff_desc": "Compact, but still consumes a full block.",
 		"icon_path": "res://Art/Cards/Icons/MAGNET_PICKUP.png"
 	},
 
 	"SPRINT": {
 		"title": "SPEED UP",
-		"desc": "Velocità movimento +15%.",
+		"desc": "Increases movement speed by 15%.",
 		"rarity": UpdateRarity.COMMON,
 		"base_price_min": 2,
 		"base_price_max": 4,
 		"rotatable": true,
 		"size": Vector2i(3, 2),
 		"cells": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0), Vector2i(1, 1)],
-		"tradeoff_desc": "Ottimo buff, ma forma un po' antipatica.",
+		"tradeoff_desc": "Strong general boost, but awkward to fit.",
 		"icon_path": "res://Art/Cards/Icons/SPRINT.png"
 	},
 
 	"PANIC_BOOST": {
 		"title": "PANIC BOOST",
-		"desc": "+20% velocità quando NULL: NOT READY.",
+		"desc": "Gain bonus speed while NULL is not ready.",
 		"rarity": UpdateRarity.RARE,
 		"base_price_min": 5,
 		"base_price_max": 8,
 		"rotatable": true,
 		"size": Vector2i(3, 2),
 		"cells": [Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1), Vector2i(1, 0)],
-		"tradeoff_desc": "Forte solo nei momenti di crisi.",
+		"tradeoff_desc": "Strong under pressure, but useless while stable.",
 		"icon_path": "res://Art/Cards/Icons/PANIC_BOOST.png"
 	},
 
 	"SLOW_TURRETS": {
 		"title": "SLOW TURRETS",
-		"desc": "Turret sparano più lentamente.",
+		"desc": "Enemy turrets fire more slowly.",
 		"rarity": UpdateRarity.COMMON,
 		"base_price_min": 2,
 		"base_price_max": 4,
 		"rotatable": true,
 		"size": Vector2i(2, 3),
 		"cells": [Vector2i(0, 0), Vector2i(0, 1), Vector2i(1, 1), Vector2i(1, 2)],
-		"tradeoff_desc": "Buono contro arena dense di turret.",
+		"tradeoff_desc": "Great in turret-heavy arenas.",
 		"icon_path": "res://Art/Cards/Icons/SLOW_TURRETS.png"
 	},
 
 	"NULL_SPEED": {
 		"title": "NULL SPEED",
-		"desc": "Il NULL vola più veloce.",
+		"desc": "Makes the NULL projectile travel faster.",
 		"rarity": UpdateRarity.COMMON,
 		"base_price_min": 2,
 		"base_price_max": 4,
 		"rotatable": true,
 		"size": Vector2i(2, 1),
 		"cells": [Vector2i(0, 0), Vector2i(1, 0)],
-		"tradeoff_desc": "Piccolo e facile da infilare.",
+		"tradeoff_desc": "Small and easy to fit.",
 		"icon_path": "res://Art/Cards/Icons/NULL_SPEED.png"
 	},
 
 	"NULL_RANGE": {
 		"title": "NULL RANGE",
-		"desc": "Il NULL va più lontano.",
+		"desc": "Increases NULL projectile travel distance.",
 		"rarity": UpdateRarity.COMMON,
 		"base_price_min": 2,
 		"base_price_max": 4,
 		"rotatable": true,
 		"size": Vector2i(3, 1),
 		"cells": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0)],
-		"tradeoff_desc": "Economico ma lineare.",
+		"tradeoff_desc": "Cheap, but wants a long line of free space.",
 		"icon_path": "res://Art/Cards/Icons/NULL_RANGE.png"
 	},
 
 	"PIERCE_1": {
 		"title": "PIERCE",
-		"desc": "Il NULL può uccidere 2 nemici in linea.",
+		"desc": "Lets NULL kill two enemies in a line.",
 		"rarity": UpdateRarity.RARE,
 		"base_price_min": 5,
 		"base_price_max": 8,
 		"rotatable": true,
 		"size": Vector2i(3, 2),
 		"cells": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0), Vector2i(2, 1)],
-		"tradeoff_desc": "Danno situazionale, shape poco amichevole.",
+		"tradeoff_desc": "Situational damage, awkward shape.",
 		"icon_path": "res://Art/Cards/Icons/PIERCE_1.png"
 	},
 
 	"HOMING_NUDGE": {
 		"title": "HOMING NUDGE",
-		"desc": "Leggera correzione verso il bersaglio vicino.",
+		"desc": "Adds slight target correction to NULL.",
 		"rarity": UpdateRarity.RARE,
 		"base_price_min": 5,
 		"base_price_max": 8,
 		"rotatable": true,
 		"size": Vector2i(2, 3),
 		"cells": [Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1), Vector2i(1, 2)],
-		"tradeoff_desc": "Preciso, ma più ingombrante del previsto.",
+		"tradeoff_desc": "Helpful, but bulkier than it looks.",
 		"icon_path": "res://Art/Cards/Icons/HOMING_NUDGE.png"
 	},
 
 	"DASH_UNLOCK": {
 		"title": "DASH UNLOCK",
-		"desc": "Scatto rapido con Shift.",
+		"desc": "Unlocks dash movement.",
 		"rarity": UpdateRarity.EPIC,
 		"base_price_min": 9,
 		"base_price_max": 14,
 		"rotatable": true,
 		"size": Vector2i(3, 2),
 		"cells": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(1, 1), Vector2i(2, 1)],
-		"tradeoff_desc": "Molto forte, shape a zig-zag.",
+		"tradeoff_desc": "Very strong, but the zig-zag shape is awkward.",
 		"icon_path": "res://Art/Cards/Icons/DASH_UNLOCK.png"
 	},
 
 	"CHARGE_SHOT": {
 		"title": "CHARGE SHOT",
-		"desc": "Tieni premuto per caricare, rilascia per un NULL più grande.",
+		"desc": "Hold the shot to fire a larger charged NULL.",
 		"rarity": UpdateRarity.EPIC,
 		"base_price_min": 9,
 		"base_price_max": 14,
@@ -240,52 +241,52 @@ const DATA := {
 			Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1),
 			Vector2i(1, 2)
 		],
-		"tradeoff_desc": "Potente, ma si mangia mezzo cervello. Letteralmente.",
+		"tradeoff_desc": "Extremely strong, but expensive in both money and space.",
 		"icon_path": "res://Art/Cards/Icons/CHARGE_SHOT.png"
 	},
 
 	"CHARGE_PLUS": {
 		"title": "CHARGE+",
-		"desc": "Migliora la carica.",
+		"desc": "Improves charged shots.",
 		"rarity": UpdateRarity.RARE,
 		"base_price_min": 5,
 		"base_price_max": 8,
 		"rotatable": true,
 		"size": Vector2i(2, 2),
 		"cells": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(1, 1)],
-		"tradeoff_desc": "Richiede CHARGE SHOT per rendere davvero.",
+		"tradeoff_desc": "Only shines if you already use CHARGE SHOT.",
 		"icon_path": "res://Art/Cards/Icons/CHARGE_PLUS.png"
 	},
 
 	"PULL_TO_HAND": {
 		"title": "PULL TO HAND",
-		"desc": "Tieni premuto Interact per richiamare il NULL.",
+		"desc": "Hold interact to pull NULL back to your hand.",
 		"rarity": UpdateRarity.RARE,
 		"base_price_min": 5,
 		"base_price_max": 8,
 		"rotatable": true,
 		"size": Vector2i(2, 3),
 		"cells": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(1, 1), Vector2i(1, 2)],
-		"tradeoff_desc": "Comodo, ma costoso in spazio verticale.",
+		"tradeoff_desc": "Very useful, but vertical and awkward to place.",
 		"icon_path": "res://Art/Cards/Icons/PULL_TO_HAND.png"
 	},
 
 	"SWAP_WITH_NULL": {
 		"title": "SWAP",
-		"desc": "Scambia posizione col NULL droppato (Q).",
+		"desc": "Swap positions with a dropped NULL.",
 		"rarity": UpdateRarity.EPIC,
 		"base_price_min": 9,
 		"base_price_max": 14,
 		"rotatable": true,
 		"size": Vector2i(3, 2),
 		"cells": [Vector2i(0, 0), Vector2i(2, 0), Vector2i(1, 1), Vector2i(2, 1)],
-		"tradeoff_desc": "Molto forte, shape asimmetrica e poco comoda.",
+		"tradeoff_desc": "Very strong repositioning tool, but messy to fit.",
 		"icon_path": "res://Art/Cards/Icons/SWAP_WITH_NULL.png"
 	},
 
 	"DROP_SHOCKWAVE": {
 		"title": "DROP SHOCKWAVE",
-		"desc": "Se missi, il drop respinge i chaser vicini.",
+		"desc": "Dropped NULL emits a shockwave on miss.",
 		"rarity": UpdateRarity.RARE,
 		"base_price_min": 5,
 		"base_price_max": 8,
@@ -296,21 +297,34 @@ const DATA := {
 			Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1),
 			Vector2i(1, 2)
 		],
-		"tradeoff_desc": "Situazionale ma salva run.",
+		"tradeoff_desc": "Situational, but can save a run.",
 		"icon_path": "res://Art/Cards/Icons/DROP_SHOCKWAVE.png"
 	},
 
 	"SLOWMO_RECOVERY": {
 		"title": "SLOWMO RECOVERY",
-		"desc": "Rallenta il tempo quando il NULL è a terra.",
+		"desc": "Slows time while NULL is on the ground.",
 		"rarity": UpdateRarity.RARE,
 		"base_price_min": 5,
 		"base_price_max": 8,
 		"rotatable": false,
 		"size": Vector2i(2, 2),
 		"cells": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1)],
-		"tradeoff_desc": "Difensivo, shape compatta.",
+		"tradeoff_desc": "Defensive and compact.",
 		"icon_path": "res://Art/Cards/Icons/SLOWMO_RECOVERY.png"
+	},
+
+	"RAM_PATCH": {
+		"title": "RAM PATCH",
+		"desc": "Adds +1 row and +1 column to your R.A.M. grid.",
+		"rarity": UpdateRarity.EPIC,
+		"base_price_min": 11,
+		"base_price_max": 16,
+		"rotatable": true,
+		"size": Vector2i(2, 3),
+		"cells": [Vector2i(0, 0), Vector2i(0, 1), Vector2i(1, 1), Vector2i(1, 2)],
+		"tradeoff_desc": "Extremely convenient, so the shape is intentionally awkward and the price is high.",
+		"icon_path": "res://Art/Cards/Icons/RAM_PATCH.png"
 	}
 }
 
@@ -362,7 +376,7 @@ static func get_cells(id: String) -> Array:
 
 static func get_icon_path(id: String) -> String:
 	if DATA.has(id):
-		var specific := str(DATA[id].get("icon_path", ""))
+		var specific: String = str(DATA[id].get("icon_path", ""))
 		if specific != "" and ResourceLoader.exists(specific):
 			return specific
 
@@ -387,11 +401,11 @@ static func roll_price_for_id(id: String, depth: int, rng: RandomNumberGenerator
 	if not DATA.has(id):
 		return 3
 
-	var min_price := int(DATA[id].get("base_price_min", 2))
-	var max_price := int(DATA[id].get("base_price_max", 4))
-	var base := rng.randi_range(min_price, max_price)
+	var min_price: int = int(DATA[id].get("base_price_min", 2))
+	var max_price: int = int(DATA[id].get("base_price_max", 4))
+	var base: int = rng.randi_range(min_price, max_price)
 
-	var mult := 1.0 + float(max(depth - 1, 0)) * 0.12
+	var mult: float = 1.0 + float(max(depth - 1, 0)) * 0.12
 	mult = clamp(mult, 1.0, 3.5)
 
 	return int(round(base * mult))
