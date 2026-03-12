@@ -1,0 +1,27 @@
+[gd_scene load_steps=4 format=3 uid="uid://35ghfkb6ldrl"]
+
+[ext_resource type="Script" uid="uid://dgb8hmllv08wc" path="res://Enemies/drifter_turret.gd" id="1_drifter"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_drifter"]
+radius = 0.45
+
+[sub_resource type="SphereMesh" id="SphereMesh_drifter"]
+radius = 0.45
+height = 0.9
+radial_segments = 12
+rings = 8
+
+[node name="DrifterTurret" type="CharacterBody3D" groups=["enemy"]]
+script = ExtResource("1_drifter")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_drifter")
+
+[node name="Body" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_drifter")
+
+[node name="Muzzle" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, -0.6)
+
+[node name="RayOrigin" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)

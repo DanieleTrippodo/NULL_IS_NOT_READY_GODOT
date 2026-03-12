@@ -1,7 +1,9 @@
-# res://Enemies/Turret.gd
+# res://Enemies/turret.gd
 extends CharacterBody3D
 
 @export var fire_interval: float = 1.6
+@export var bullet_speed: float = 18.0
+
 @export var knock_decay: float = 22.0
 @export var push_collision_window: float = 0.28
 @export var push_collision_min_speed: float = 3.0
@@ -145,7 +147,9 @@ func _physics_process(delta: float) -> void:
 
 	_try_push_enemy_collision()
 
-	if target == null or bullet_scene == null:
+	if target == null or not is_instance_valid(target):
+		return
+	if bullet_scene == null:
 		return
 
 	timer += delta
@@ -165,4 +169,4 @@ func _physics_process(delta: float) -> void:
 	# spawn bullet leggermente avanti/sopra
 	var origin: Vector3 = global_position + Vector3(0, 0.8, 0) + dir * 0.6
 	if b.has_method("fire"):
-		b.fire(origin, dir, 18.0)
+		b.fire(origin, dir, bullet_speed, self)

@@ -7,6 +7,7 @@ extends Node
 @export var null_projectile_scene: PackedScene
 @export var chaser_scene: PackedScene
 @export var turret_scene: PackedScene
+@export var drifter_turret_scene: PackedScene
 @export var stealer_scene: PackedScene
 @export var spike_scene: PackedScene
 @export var exception_scene: PackedScene
@@ -383,6 +384,15 @@ func _spawn_wave() -> void:
 	var turrets: int = clampi(floori(float(d) / 3.0), 0, 3)
 	var spikes: int = clampi(floori(float(d) / 2.0), 0, 4)
 
+	var drifters: int = 0
+	if d >= 4 and drifter_turret_scene != null:
+		var p_drifter: float = clampf(0.22 + float(d - 4) * 0.05, 0.0, 0.70)
+		if rng.randf() < p_drifter:
+			drifters = 1
+
+		if d >= 9 and rng.randf() < 0.18:
+			drifters += 1
+
 	var exceptions: int = 0
 	if d >= 4:
 		var p_elite: float = clampf(0.12 + float(d - 4) * 0.03, 0.0, 0.45)
@@ -398,7 +408,7 @@ func _spawn_wave() -> void:
 		if d >= 8 and rng.randf() < 0.20:
 			stealers += 1
 
-	var chasers: int = max(1, total - turrets - spikes - exceptions - stealers)
+	var chasers: int = max(1, total - turrets - drifters - spikes - exceptions - stealers)
 
 	var player := _get_player()
 	var used: Array[int] = []
@@ -430,6 +440,25 @@ func _spawn_wave() -> void:
 					base_interval = float(v)
 				t.call("set_fire_interval", base_interval * Run.turret_interval_mult)
 
+	for j2 in range(drifters):
+		var idx_d := _pick_spawn_index(spawns.size(), used)
+		used.append(idx_d)
+
+		var dt := _spawn_enemy(drifter_turret_scene, spawns[idx_d].global_position)
+		if dt != null and player != null:
+			if dt.has_method("set_target"):
+				dt.call("set_target", player)
+
+			if enemy_bullet_scene != null and dt.has_method("set_bullet_scene"):
+				dt.call("set_bullet_scene", enemy_bullet_scene)
+
+			if dt.has_method("set_fire_interval"):
+				var base_interval_d: float = 1.9
+				var vd: Variant = dt.get("fire_interval")
+				if typeof(vd) != TYPE_NIL:
+					base_interval_d = float(vd)
+				dt.call("set_fire_interval", base_interval_d * Run.turret_interval_mult)
+
 	for k in range(spikes):
 		var idx3 := _pick_spawn_index(spawns.size(), used)
 		used.append(idx3)
@@ -454,7 +483,7 @@ func _spawn_wave() -> void:
 		if st != null and player != null and st.has_method("set_target"):
 			st.call("set_target", player)
 
-	enemies_alive = chasers + turrets + spikes + exceptions + stealers
+	enemies_alive = chasers + turrets + drifters + spikes + exceptions + stealers
 
 	if player != null:
 		_place_player_safe(player, spawns)

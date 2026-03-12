@@ -1,16 +1,25 @@
-[gd_scene load_steps=4 format=3 uid="uid://dcwn63iuwth1h"]
+[gd_scene load_steps=5 format=3 uid="uid://dcwn63iuwth1h"]
 
 [ext_resource type="Script" uid="uid://divqcc47k0vod" path="res://Enemies/turret.gd" id="1_4aa1m"]
+[ext_resource type="Texture2D" uid="uid://60vwpn2xujuj" path="res://Enemies/TurretSprite/TurretSprite.png" id="2_t1pys"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_bbjqg"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_4aa1m"]
+size = Vector3(1, 1.5640869, 1.1563721)
 
 [node name="Turret" type="CharacterBody3D" groups=["enemy"]]
 script = ExtResource("1_4aa1m")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("BoxMesh_bbjqg")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.73319817, -0.039001465)
 shape = SubResource("BoxShape3D_4aa1m")
+
+[node name="TurretSprite" type="Sprite3D" parent="."]
+transform = Transform3D(0.225, 0, 0, 0, 0.225, 0, 0, 0, 0.225, 0, 0.84169555, 0)
+billboard = 2
+texture = ExtResource("2_t1pys")

@@ -599,17 +599,34 @@ func _try_push() -> void:
 	_push_cd_left = push_cooldown
 	_play_push_anim()
 
-	var fwd: Vector3 = -camera.global_transform.basis.z
-	fwd.y = 0.0
-	if fwd.length() < 0.001:
+	var cam_origin: Vector3 = camera.global_transform.origin
+
+	# Forward reale della camera (serve per riflettere i bullet dove guarda il player)
+	var full_fwd: Vector3 = -camera.global_transform.basis.z
+	if full_fwd.length() < 0.001:
 		return
-	fwd = fwd.normalized()
+	full_fwd = full_fwd.normalized()
+
+	# Forward sul piano XZ (manteniamo il push dei nemici come prima)
+	var flat_fwd: Vector3 = full_fwd
+	flat_fwd.y = 0.0
+	if flat_fwd.length() < 0.001:
+		flat_fwd = Vector3(full_fwd.x, 0.0, full_fwd.z)
+		if flat_fwd.length() < 0.001:
+			flat_fwd = -global_transform.basis.z
+			flat_fwd.y = 0.0
+			if flat_fwd.length() < 0.001:
+				return
+	flat_fwd = flat_fwd.normalized()
 
 	var half_angle_rad: float = deg_to_rad(push_cone_deg * 0.5)
 	var cos_limit: float = cos(half_angle_rad)
 
 	var any_hit: bool = false
 
+	# -------------------------
+	# PUSH SUI NEMICI
+	# -------------------------
 	for e in get_tree().get_nodes_in_group("enemy"):
 		if not (e is Node3D):
 			continue
@@ -625,12 +642,41 @@ func _try_push() -> void:
 			continue
 
 		var dir_to: Vector3 = to.normalized()
-
-		if fwd.dot(dir_to) < cos_limit:
+		if flat_fwd.dot(dir_to) < cos_limit:
 			continue
 
 		if e.has_method("apply_push"):
-			e.apply_push(fwd, push_strength, push_lift, push_stun_seconds)
+			e.apply_push(flat_fwd, push_strength, push_lift, push_stun_seconds)
+			any_hit = true
+
+	# -------------------------
+	# PUSH SUI PROIETTILI NEMICI
+	# -------------------------
+	for b in get_tree().get_nodes_in_group("enemy_bullet"):
+		if not (b is Node3D):
+			continue
+
+		var bullet: Node3D = b as Node3D
+		var to_bullet: Vector3 = bullet.global_position - cam_origin
+		var dist: float = to_bullet.length()
+
+		if dist > push_range:
+			continue
+
+		if dist < 0.001:
+			continue
+
+		var dir_to_bullet: Vector3 = to_bullet.normalized()
+		if full_fwd.dot(dir_to_bullet) < cos_limit:
+			continue
+
+		if b.has_method("reflect"):
+			var reflected_speed: float = 0.0
+
+			if b.has_method("get_speed"):
+				reflected_speed = b.get_speed()
+
+			b.reflect(full_fwd, reflected_speed)
 			any_hit = true
 
 	if any_hit and is_instance_valid(push_sfx):
