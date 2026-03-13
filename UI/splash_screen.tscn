@@ -25,6 +25,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_20jiu")
 settle_seconds = 6.0
+skip_hint_visible_seconds = 2.8
 
 [node name="DDD Logo" type="TextureRect" parent="."]
 layout_mode = 1
@@ -60,3 +61,18 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
+
+[node name="SkipHint" type="Label" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 25.69
+offset_top = -49.525024
+offset_right = 227.69
+offset_bottom = -24.525024
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.5370113, 0.5370113, 0.5370113, 1)
+theme_override_font_sizes/font_size = 24
+text = "press \"SPACE\" to skip"

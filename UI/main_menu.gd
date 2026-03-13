@@ -26,6 +26,8 @@ extends Control
 @onready var credits_name_1: Label = $UI/CreditsPanel/CenterContainer/VBoxContainer/CreditsName1
 @onready var credits_name_2: Label = $UI/CreditsPanel/CenterContainer/VBoxContainer/CreditsName2
 @onready var credits_name_3: Label = $UI/CreditsPanel/CenterContainer/VBoxContainer/CreditsName3
+@onready var special_thanks_title: Label = $UI/CreditsPanel/CenterContainer/VBoxContainer/SpecialThanksTitle
+@onready var special_thanks_1: Label = $UI/CreditsPanel/CenterContainer/VBoxContainer/LaSpecialThanks1bel
 @onready var credits_back_value: Label = $UI/CreditsPanel/CenterContainer/VBoxContainer/BackValue
 
 # =========================
@@ -351,6 +353,13 @@ func _refresh_credits_ui() -> void:
 	credits_name_1.text = "  Main / Developer: DDD"
 	credits_name_2.text = "  Composer: Niko Chantzis"
 	credits_name_3.text = "  Animator: arina"
+	
+	# Special thanks section
+	special_thanks_title.text = "SPECIAL THANKS"
+	special_thanks_title.modulate.a = 0.95
+
+	special_thanks_1.text = "  Playtesting: Adircas"
+
 
 	credits_back_value.text = "> BACK"
 	credits_back_value.modulate.a = 1.0
