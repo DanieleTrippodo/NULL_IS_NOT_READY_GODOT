@@ -35,7 +35,7 @@ enum State {
 @export_group("Push Death")
 @export var push_death_delay: float = 0.08
 
-@onready var _sprite: AnimatedSprite3D = $AnimatedSprite3D
+@onready var _sprite: Sprite3D = $Sprite3D
 
 var _state: int = State.ORBIT_PLAYER
 var _knock: Vector3 = Vector3.ZERO
@@ -44,16 +44,11 @@ var _push_death_left: float = -1.0
 var _steal_cd_left: float = 0.0
 
 var _orbit_sign: float = 1.0
-var _orbit_angle_offset: float = 0.0
 var _orbit_retarget_left: float = 0.0
 var _orbit_target_pos: Vector3 = Vector3.ZERO
 
 
 func _ready() -> void:
-	if _sprite:
-		_sprite.play("walk")
-
-	# fallback: se piazzato manualmente nella scena, trova da solo il player
 	if target == null:
 		var players := get_tree().get_nodes_in_group("player")
 		if players.size() > 0 and players[0] is Node3D:

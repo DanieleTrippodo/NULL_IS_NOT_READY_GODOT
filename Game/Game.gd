@@ -61,6 +61,7 @@ var spawned_money: Array[Node3D] = []
 
 @export var magnet_radius: float = 2.2
 @export var auto_wave_delay: float = 0.35
+@export var end_wave_collect_delay: float = 0.80
 
 const PLAYER_SAFE_RADIUS: float = 4.0
 const ENEMY_SPAWN_MIN_RADIUS: float = 1.8
@@ -220,13 +221,18 @@ func _physics_process(_delta: float) -> void:
 					_on_request_pickup()
 
 # ------------------------------------------------------------
-# Wave button
+# Wave button / block flow
 # ------------------------------------------------------------
+func _is_shop_checkpoint_depth() -> bool:
+	if tutorial_mode:
+		return false
+	return Run.depth > 1 and (((Run.depth - 1) % 5) == 0)
+
 func _should_show_wave_button() -> bool:
 	if tutorial_mode:
 		return arena_state == ArenaState.WAIT_START
 
-	return arena_state == ArenaState.WAIT_START and _should_spawn_shop_for_current_depth()
+	return arena_state == ArenaState.WAIT_START and (Run.depth == 1 or _is_shop_checkpoint_depth())
 
 func _refresh_wave_button() -> void:
 	if wave_button == null:
@@ -276,6 +282,32 @@ func _queue_auto_start_next_wave() -> void:
 
 func _auto_start_next_wave_async() -> void:
 	await get_tree().create_timer(auto_wave_delay).timeout
+
+	if tutorial_mode:
+		return
+	if restarting or wave_transitioning:
+		return
+	if arena_state != ArenaState.WAIT_START:
+		return
+	if _should_show_wave_button():
+		return
+
+	_start_next_wave()
+
+func _queue_post_wave_auto_continue() -> void:
+	if tutorial_mode:
+		return
+	if restarting or wave_transitioning:
+		return
+	if arena_state != ArenaState.WAIT_START:
+		return
+	if _should_show_wave_button():
+		return
+
+	call_deferred("_post_wave_auto_continue_async")
+
+func _post_wave_auto_continue_async() -> void:
+	await get_tree().create_timer(end_wave_collect_delay).timeout
 
 	if tutorial_mode:
 		return
@@ -711,13 +743,13 @@ func _on_enemy_killed(enemy: Node) -> void:
 	_set_state(ArenaState.POST_WAVE)
 	_set_state(ArenaState.WAIT_START)
 
-	if _should_spawn_shop_for_current_depth():
+	if _is_shop_checkpoint_depth():
 		_spawn_shop_portal()
 		_maybe_spawn_terminal_in_shop()
 	else:
 		_cleanup_shop_portal()
 		_despawn_terminal()
-		_queue_auto_start_next_wave()
+		_queue_post_wave_auto_continue()
 
 func _force_null_return() -> void:
 	if null_instance != null and is_instance_valid(null_instance):
@@ -1068,7 +1100,8 @@ func _get_pending_terminal_log_index_for_shop() -> int:
 			if Run.terminal_logs_read[i] == null:
 				Run.terminal_logs_read[i] = false
 
-	var unlocked_count := int(floor(float(Run.depth) / float(terminal_every_n_depth)))
+	var completed_depth: int = maxi(Run.depth - 1, 0)
+	var unlocked_count: int = int(floor(float(completed_depth) / float(terminal_every_n_depth)))
 	var max_index: int = mini(unlocked_count - 1, terminal_log_scenes.size() - 1)
 
 	if max_index < 0:
@@ -1086,7 +1119,7 @@ func _maybe_spawn_terminal_in_shop() -> void:
 	if arena_state != ArenaState.WAIT_START:
 		return
 
-	if not _should_spawn_shop_for_current_depth():
+	if not _is_shop_checkpoint_depth():
 		return
 
 	var log_index := _get_pending_terminal_log_index_for_shop()
@@ -1166,8 +1199,3 @@ func _spawn_enemy_death_fx(pos: Vector3) -> void:
 	var fx := enemy_death_fx_scene.instantiate()
 	add_child(fx)
 	fx.global_position = pos
-
-func _should_spawn_shop_for_current_depth() -> bool:
-	if tutorial_mode:
-		return false
-	return Run.depth > 1 and (Run.depth % 5) == 0
