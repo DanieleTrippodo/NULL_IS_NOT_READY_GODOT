@@ -15,7 +15,7 @@ extends Node
 @onready var kill_sfx: AudioStreamPlayer = $KillSfx
 @export var enemy_death_fx_scene: PackedScene
 
-# NEW: money + shop
+# money + shop
 @export var money_cube_scene: PackedScene
 @export var shop_portal_scene: PackedScene
 
@@ -31,7 +31,6 @@ extends Node
 @export var terminal_every_n_depth: int = 3
 
 @export var tutorial_mode: bool = false
-
 @export var game_over_overlay_scene: PackedScene
 
 var game_over_overlay: Control = null
@@ -48,9 +47,6 @@ var restarting: bool = false
 var wave_transitioning: bool = false
 var world_frozen: bool = false
 
-# -----------------------------
-# Manual waves + safe + shop
-# -----------------------------
 enum ArenaState { WAIT_START, IN_WAVE, POST_WAVE }
 var arena_state: int = ArenaState.WAIT_START
 
@@ -58,24 +54,18 @@ var wave_button: Node = null
 var shop_portal_instance: Node3D = null
 var spawned_money: Array[Node3D] = []
 
-@export var money_min: int = 2
-@export var money_max: int = 8
-@export var money_spawn_interval: float = 0.08
-@export var money_spawn_radius: float = 4.0
+@export var enemy_money_drop_min: int = 0
+@export var enemy_money_drop_max: int = 2
+@export var money_spawn_interval: float = 0.04
+@export var money_drop_scatter_radius: float = 0.9
 
-# Magnet tuning (se usi perk)
 @export var magnet_radius: float = 2.2
+@export var auto_wave_delay: float = 0.35
 
-# -----------------------------
-# Spawn safety constants (come nella vecchia)
-# -----------------------------
 const PLAYER_SAFE_RADIUS: float = 4.0
 const ENEMY_SPAWN_MIN_RADIUS: float = 1.8
 const ENEMY_SPAWN_PLAYER_MIN_RADIUS: float = 3.0
 
-# -----------------------------
-# Floor raycast constants (come nella vecchia)
-# -----------------------------
 const FLOOR_RAY_UP: float = 10.0
 const FLOOR_RAY_DOWN: float = 80.0
 const FLOOR_EPS: float = 0.03
@@ -89,7 +79,6 @@ func _ready() -> void:
 	rng.randomize()
 	Engine.time_scale = 1.0
 
-	# IMPORTANT: se torni dallo shop NON resettare la run
 	if not Run.returning_from_shop:
 		Run.reset()
 	else:
@@ -122,10 +111,12 @@ func _ready() -> void:
 	_setup_terminal_overlay()
 	_setup_game_over_overlay()
 
+	if not tutorial_mode:
+		_queue_auto_start_next_wave()
+
 func _play_kill_sfx() -> void:
 	if kill_sfx == null:
 		return
-	# Piccolo random per evitare “mitraglietta” identica
 	kill_sfx.pitch_scale = rng.randf_range(0.92, 1.08)
 	kill_sfx.play()
 
@@ -141,7 +132,6 @@ func _flash_enemy(enemy: Node) -> void:
 	var mesh := mesh_node as MeshInstance3D
 	var prev_mat := mesh.material_override
 
-	# Materiale flash (unshaded + emission)
 	var mat := StandardMaterial3D.new()
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mat.emission_enabled = true
@@ -150,7 +140,6 @@ func _flash_enemy(enemy: Node) -> void:
 
 	mesh.material_override = mat
 
-	# Fade-out rapido e ripristino
 	var tw := get_tree().create_tween()
 	tw.tween_property(mat, "albedo_color:a", 0.0, KILL_FLASH_TIME)
 	tw.tween_callback(func():
@@ -162,11 +151,9 @@ func _disable_enemy(enemy: Node) -> void:
 	if enemy == null:
 		return
 
-	# Stop logica
 	enemy.set_physics_process(false)
 	enemy.set_process(false)
 
-	# Spegni collisione se presente
 	var cs := enemy.find_child("CollisionShape3D", true, false)
 	if cs != null and cs is CollisionShape3D:
 		(cs as CollisionShape3D).disabled = true
@@ -174,12 +161,15 @@ func _disable_enemy(enemy: Node) -> void:
 func _setup_terminal_overlay() -> void:
 	if terminal_overlay_scene == null:
 		return
+
 	var o := terminal_overlay_scene.instantiate()
 	if not (o is CanvasLayer):
 		return
+
 	terminal_overlay = o as CanvasLayer
 	$UIRoot.add_child(terminal_overlay)
 	terminal_overlay.visible = false
+
 	if terminal_overlay.has_signal("closed"):
 		terminal_overlay.closed.connect(_on_terminal_closed)
 
@@ -214,17 +204,14 @@ func _physics_process(_delta: float) -> void:
 		Engine.time_scale = 1.0
 		return
 
-	# cleanup ref proiettile (se si è auto-distrutto)
 	if null_instance != null and not is_instance_valid(null_instance):
 		null_instance = null
 
-	# Slowmo recovery (se lo usi)
 	if Run.slowmo_recovery and Run.null_dropped:
 		Engine.time_scale = Run.slowmo_scale
 	else:
 		Engine.time_scale = 1.0
 
-	# Perk: magnet pickup (auto)
 	if Run.pickup_magnet and Run.null_dropped:
 		if null_instance != null and is_instance_valid(null_instance):
 			var player := _get_player()
@@ -233,16 +220,35 @@ func _physics_process(_delta: float) -> void:
 					_on_request_pickup()
 
 # ------------------------------------------------------------
-# Wave button (E)
+# Wave button
 # ------------------------------------------------------------
+func _should_show_wave_button() -> bool:
+	if tutorial_mode:
+		return arena_state == ArenaState.WAIT_START
+
+	return arena_state == ArenaState.WAIT_START and _should_spawn_shop_for_current_depth()
+
+func _refresh_wave_button() -> void:
+	if wave_button == null:
+		return
+
+	var active := _should_show_wave_button()
+	wave_button.set("enabled", active)
+
+	if wave_button is Node3D:
+		(wave_button as Node3D).visible = active
+
 func _setup_wave_button() -> void:
 	if arena_instance == null:
 		return
+
 	wave_button = arena_instance.get_node_or_null("WaveStartButton")
 	if wave_button != null and wave_button.has_signal("pressed"):
 		var cb := Callable(self, "_on_wave_button_pressed")
 		if not wave_button.pressed.is_connected(cb):
 			wave_button.pressed.connect(cb)
+
+	_refresh_wave_button()
 
 func _on_wave_button_pressed() -> void:
 	if restarting or wave_transitioning:
@@ -254,8 +260,33 @@ func _on_wave_button_pressed() -> void:
 
 func _set_state(s: int) -> void:
 	arena_state = s
-	if wave_button != null:
-		wave_button.set("enabled", s == ArenaState.WAIT_START)
+	_refresh_wave_button()
+
+func _queue_auto_start_next_wave() -> void:
+	if tutorial_mode:
+		return
+	if restarting or wave_transitioning:
+		return
+	if arena_state != ArenaState.WAIT_START:
+		return
+	if _should_show_wave_button():
+		return
+
+	call_deferred("_auto_start_next_wave_async")
+
+func _auto_start_next_wave_async() -> void:
+	await get_tree().create_timer(auto_wave_delay).timeout
+
+	if tutorial_mode:
+		return
+	if restarting or wave_transitioning:
+		return
+	if arena_state != ArenaState.WAIT_START:
+		return
+	if _should_show_wave_button():
+		return
+
+	_start_next_wave()
 
 func _start_next_wave() -> void:
 	_despawn_terminal()
@@ -266,11 +297,12 @@ func _start_next_wave() -> void:
 	await _wave_transition()
 
 # ------------------------------------------------------------
-# Transizione wave (usa quella vecchia che funzionava)
+# Wave transition
 # ------------------------------------------------------------
 func _wave_transition() -> void:
 	if restarting or wave_transitioning:
 		return
+
 	wave_transitioning = true
 
 	await _freeze_and_fade(true)
@@ -297,7 +329,7 @@ func _swap_arena_for_current_depth() -> void:
 		player.global_position = _place_body_on_floor(player, spawn_pos)
 
 # ------------------------------------------------------------
-# Spawn arena/player
+# Spawn arena / player
 # ------------------------------------------------------------
 func _spawn_arena(scene_to_spawn: PackedScene = null) -> void:
 	_free_children(arena_root)
@@ -350,6 +382,7 @@ func _spawn_player() -> void:
 
 	var player := p as Node3D
 	var spawn_pos := _get_player_spawn_pos()
+
 	if Run.spawn_player_random:
 		Run.spawn_player_random = false
 		spawn_pos = _get_random_arena_pos()
@@ -358,7 +391,7 @@ func _spawn_player() -> void:
 	player.set_physics_process(not world_frozen)
 
 # ------------------------------------------------------------
-# Spawn wave (è la tua versione vecchia, non la tocchiamo)
+# Spawn wave
 # ------------------------------------------------------------
 func _spawn_wave() -> void:
 	if restarting:
@@ -389,7 +422,6 @@ func _spawn_wave() -> void:
 		var p_drifter: float = clampf(0.22 + float(d - 4) * 0.05, 0.0, 0.70)
 		if rng.randf() < p_drifter:
 			drifters = 1
-
 		if d >= 9 and rng.randf() < 0.18:
 			drifters += 1
 
@@ -404,7 +436,6 @@ func _spawn_wave() -> void:
 		var p_stealer: float = clampf(0.30 + float(d - 3) * 0.06, 0.0, 0.70)
 		if rng.randf() < p_stealer:
 			stealers = 1
-
 		if d >= 8 and rng.randf() < 0.20:
 			stealers += 1
 
@@ -498,8 +529,6 @@ func _spawn_enemy(scene: PackedScene, desired_pos: Vector3) -> Node3D:
 
 	var body := n as Node3D
 	enemies_root.add_child(body)
-
-	# IMPORTANT: come nella vecchia (abilita/disabilita AI in base al freeze)
 	body.set_physics_process(not world_frozen)
 
 	var final_pos := _pick_enemy_spawn_position(body, desired_pos)
@@ -508,7 +537,7 @@ func _spawn_enemy(scene: PackedScene, desired_pos: Vector3) -> Node3D:
 	return body
 
 # ------------------------------------------------------------
-# SHOOT / NULL (compatibile)
+# NULL / player requests
 # ------------------------------------------------------------
 func _on_request_shoot(origin: Vector3, direction: Vector3, _extra: Variant = null) -> void:
 	if restarting or wave_transitioning:
@@ -532,7 +561,6 @@ func _on_request_shoot(origin: Vector3, direction: Vector3, _extra: Variant = nu
 	world.add_child(proj)
 	null_instance = proj
 
-	# Firma attuale: fire(origin, direction)
 	if proj.has_method("fire"):
 		proj.call("fire", origin, direction)
 	else:
@@ -574,14 +602,10 @@ func _on_request_pickup() -> void:
 	if player == null:
 		return
 
-	# Distanza base per pickup “normale”
 	var pickup_radius := 1.6
-
-	# Se hai il perk magnet, usa il raggio magnet
 	if Run.pickup_magnet:
 		pickup_radius = magnet_radius
 
-	# Se troppo lontano, non raccogli
 	if player.global_position.distance_to(null_instance.global_position) > pickup_radius:
 		return
 
@@ -645,14 +669,20 @@ func _on_null_dropped(_arg: Variant = null) -> void:
 	Run.null_dropped = true
 
 # ------------------------------------------------------------
-# Enemy killed -> SAFE PHASE (money + portal)  [NEW]
+# Enemy killed / wave end
 # ------------------------------------------------------------
 func _on_enemy_killed(enemy: Node) -> void:
 	if restarting or wave_transitioning:
 		return
 
+	var death_pos := Vector3.ZERO
+	var can_drop_money := false
+
 	if is_instance_valid(enemy):
-		_spawn_enemy_death_fx(enemy.global_position)
+		death_pos = enemy.global_position
+		can_drop_money = true
+
+		_spawn_enemy_death_fx(death_pos)
 		_disable_enemy(enemy)
 		_play_kill_sfx()
 		_flash_enemy(enemy)
@@ -660,6 +690,9 @@ func _on_enemy_killed(enemy: Node) -> void:
 		get_tree().create_timer(KILL_FLASH_TIME).timeout.connect(
 			Callable(self, "_queue_free_if_valid").bind(enemy)
 		)
+
+	if can_drop_money:
+		_spawn_enemy_money_drop(death_pos)
 
 	enemies_alive -= 1
 
@@ -676,18 +709,15 @@ func _on_enemy_killed(enemy: Node) -> void:
 	Signals.depth_changed.emit(Run.depth)
 
 	_set_state(ArenaState.POST_WAVE)
-
-	_spawn_money_rain()
-
-	# prima torniamo in SAFE, poi decidiamo cosa spawnare
 	_set_state(ArenaState.WAIT_START)
 
 	if _should_spawn_shop_for_current_depth():
-		_despawn_terminal()
 		_spawn_shop_portal()
+		_maybe_spawn_terminal_in_shop()
 	else:
 		_cleanup_shop_portal()
-		_maybe_spawn_terminal()
+		_despawn_terminal()
+		_queue_auto_start_next_wave()
 
 func _force_null_return() -> void:
 	if null_instance != null and is_instance_valid(null_instance):
@@ -702,20 +732,20 @@ func _force_null_return() -> void:
 	Signals.null_ready_changed.emit(true)
 
 # ------------------------------------------------------------
-# MONEY (NEW) - spawn a terra con le funzioni vecchie
+# Money
 # ------------------------------------------------------------
-func _spawn_money_rain() -> void:
-	if money_cube_scene == null or arena_instance == null:
+func _spawn_enemy_money_drop(center_pos: Vector3) -> void:
+	if money_cube_scene == null:
 		return
 
-	var amount := rng.randi_range(money_min, money_max)
-	call_deferred("_spawn_money_async", amount)
-
-func _spawn_money_async(amount: int) -> void:
-	if arena_instance == null:
+	var amount := rng.randi_range(enemy_money_drop_min, enemy_money_drop_max)
+	if amount <= 0:
 		return
 
-	for _i in range(amount):
+	call_deferred("_spawn_money_drop_async", center_pos, amount)
+
+func _spawn_money_drop_async(center_pos: Vector3, amount: int) -> void:
+	for i in range(amount):
 		var m := money_cube_scene.instantiate()
 		if m is Node3D:
 			var cube := m as Node3D
@@ -723,13 +753,14 @@ func _spawn_money_async(amount: int) -> void:
 			cube.set_physics_process(not world_frozen)
 
 			var angle := rng.randf_range(0.0, TAU)
-			var rr := sqrt(rng.randf()) * money_spawn_radius
-			var desired := arena_instance.global_position + Vector3(cos(angle) * rr, 0.0, sin(angle) * rr)
+			var rr := sqrt(rng.randf()) * money_drop_scatter_radius
+			var desired := center_pos + Vector3(cos(angle) * rr, 0.0, sin(angle) * rr)
 
 			cube.global_position = _place_body_on_floor(cube, desired)
 			spawned_money.append(cube)
 
-		await get_tree().create_timer(money_spawn_interval).timeout
+		if i < amount - 1:
+			await get_tree().create_timer(money_spawn_interval).timeout
 
 func _cleanup_uncollected_money() -> void:
 	for n in spawned_money:
@@ -738,7 +769,7 @@ func _cleanup_uncollected_money() -> void:
 	spawned_money.clear()
 
 # ------------------------------------------------------------
-# SHOP PORTAL (NEW)
+# Shop portal
 # ------------------------------------------------------------
 func _spawn_shop_portal() -> void:
 	if shop_portal_scene == null or arena_instance == null:
@@ -761,7 +792,7 @@ func _cleanup_shop_portal() -> void:
 	shop_portal_instance = null
 
 # ------------------------------------------------------------
-# Freeze + fade (VERSIONE VECCHIA FUNZIONANTE)
+# Freeze / fade
 # ------------------------------------------------------------
 func _freeze_and_fade(to_black: bool) -> void:
 	_set_world_frozen(true)
@@ -787,10 +818,10 @@ func _set_world_frozen(v: bool) -> void:
 		if e is Node:
 			(e as Node).set_physics_process(not v)
 
-	# anche soldi/portal se presenti
 	for n in spawned_money:
 		if is_instance_valid(n):
 			(n as Node).set_physics_process(not v)
+
 	if shop_portal_instance != null and is_instance_valid(shop_portal_instance):
 		(shop_portal_instance as Node).set_physics_process(not v)
 
@@ -835,7 +866,7 @@ func _restart_run() -> void:
 	get_tree().reload_current_scene()
 
 # ------------------------------------------------------------
-# Helpers (tutti dalla vecchia)
+# Helpers
 # ------------------------------------------------------------
 func _get_player() -> Node3D:
 	var p := get_tree().get_first_node_in_group("player")
@@ -871,11 +902,13 @@ func _get_enemy_spawns() -> Array[Node3D]:
 func _pick_spawn_index(count: int, used: Array[int]) -> int:
 	if count <= 0:
 		return 0
+
 	for _i in range(32):
 		var idx := rng.randi_range(0, count - 1)
 		if used.has(idx):
 			continue
 		return idx
+
 	return rng.randi_range(0, count - 1)
 
 func _place_player_safe(player: Node3D, _spawns: Array[Node3D]) -> void:
@@ -888,11 +921,14 @@ func _is_enemy_spawn_clear(pos: Vector3, body: Node3D, min_radius: float) -> boo
 			continue
 		if not (e is Node3D):
 			continue
+
 		var ep := (e as Node3D).global_position
 		var dx := ep.x - pos.x
 		var dz := ep.z - pos.z
+
 		if (dx * dx + dz * dz) < (min_radius * min_radius):
 			return false
+
 	return true
 
 func _pick_enemy_spawn_position(body: Node3D, desired_pos: Vector3) -> Vector3:
@@ -921,6 +957,7 @@ func _get_random_arena_pos() -> Vector3:
 	var spawns := _get_enemy_spawns()
 	if spawns.is_empty():
 		return _get_player_spawn_pos()
+
 	spawns.shuffle()
 	return spawns[0].global_position
 
@@ -928,14 +965,12 @@ func _get_player_spawn_pos() -> Vector3:
 	if arena_instance == null:
 		return Vector3.ZERO
 
-	# 1) cerca dentro SpawnPoints (struttura attuale della scena)
 	var sp := arena_instance.get_node_or_null("SpawnPoints")
 	if sp != null:
 		var ps := sp.get_node_or_null("PlayerSpawn")
 		if ps != null and ps is Node3D:
 			return (ps as Node3D).global_position
 
-	# 2) fallback: se un giorno lo metti root
 	var ps2 := arena_instance.get_node_or_null("PlayerSpawn")
 	if ps2 != null and ps2 is Node3D:
 		return (ps2 as Node3D).global_position
@@ -945,6 +980,7 @@ func _get_player_spawn_pos() -> Vector3:
 func _hitstop(seconds: float = 0.045) -> void:
 	if world_frozen:
 		return
+
 	_set_world_frozen(true)
 	await get_tree().create_timer(seconds).timeout
 	_set_world_frozen(false)
@@ -978,6 +1014,7 @@ func _raycast_floor_y(pos: Vector3, exclude_body: Node3D) -> float:
 	var hit: Dictionary = space.intersect_ray(query)
 	if not hit.is_empty() and hit.has("position"):
 		return (hit["position"] as Vector3).y
+
 	return pos.y
 
 func _compute_body_floor_offset_y(body: Node3D) -> float:
@@ -1009,48 +1046,52 @@ func _find_first_collision_shape(n: Node) -> CollisionShape3D:
 	for c in n.get_children():
 		if c is CollisionShape3D:
 			return c
+
 		var r := _find_first_collision_shape(c)
 		if r != null:
 			return r
+
 	return null
 
-func _maybe_spawn_terminal() -> void:
-	print("[TERMINAL] maybe spawn | state=", arena_state, " depth=", Run.depth, " logs=", terminal_log_scenes.size())
-	# solo in SAFE
-	if arena_state != ArenaState.WAIT_START:
-		return
-
-	# ogni 3 depth
+# ------------------------------------------------------------
+# Terminal / logs only in shop pause
+# ------------------------------------------------------------
+func _get_pending_terminal_log_index_for_shop() -> int:
 	if terminal_every_n_depth <= 0:
-		return
-	if (Run.depth % terminal_every_n_depth) != 0:
-		_despawn_terminal()
-		return
+		return -1
+	if terminal_log_scenes.is_empty():
+		return -1
 
-	var log_index := int(Run.depth / terminal_every_n_depth) - 1 # depth 3 -> 0
-	if log_index < 0:
-		_despawn_terminal()
-		return
-
-	# fuori log -> niente
-	if log_index >= terminal_log_scenes.size():
-		_despawn_terminal()
-		return
-
-	# inizializza array read
 	if Run.terminal_logs_read.size() != terminal_log_scenes.size():
 		Run.terminal_logs_read.resize(terminal_log_scenes.size())
 		for i in range(Run.terminal_logs_read.size()):
 			if Run.terminal_logs_read[i] == null:
 				Run.terminal_logs_read[i] = false
 
-	# già letto -> niente
-	if Run.terminal_logs_read[log_index]:
-		_despawn_terminal()
+	var unlocked_count := int(floor(float(Run.depth) / float(terminal_every_n_depth)))
+	var max_index: int = mini(unlocked_count - 1, terminal_log_scenes.size() - 1)
+
+	if max_index < 0:
+		return -1
+
+	for i in range(max_index + 1):
+		if not bool(Run.terminal_logs_read[i]):
+			return i
+
+	return -1
+
+func _maybe_spawn_terminal_in_shop() -> void:
+	_despawn_terminal()
+
+	if arena_state != ArenaState.WAIT_START:
 		return
 
-	# se esiste un terminale vecchio -> rimuovi
-	_despawn_terminal()
+	if not _should_spawn_shop_for_current_depth():
+		return
+
+	var log_index := _get_pending_terminal_log_index_for_shop()
+	if log_index == -1:
+		return
 
 	_spawn_terminal(log_index)
 
@@ -1065,18 +1106,15 @@ func _spawn_terminal(log_index: int) -> void:
 	terminal_instance = t as Node3D
 	world.add_child(terminal_instance)
 
-	# posizione: Marker3D "TerminalSpawn"
 	var marker := arena_instance.get_node_or_null("SpawnPoints/TerminalSpawn")
 	if marker != null and marker is Node3D:
 		terminal_instance.global_position = (marker as Node3D).global_position
 	else:
-		# fallback vicino al wave button
 		if wave_button != null and wave_button is Node3D:
 			terminal_instance.global_position = (wave_button as Node3D).global_position + Vector3(1.2, 0.0, 0.0)
 		else:
 			terminal_instance.global_position = arena_instance.global_position
 
-	# collega pressed
 	if terminal_instance.has_signal("pressed"):
 		var cb := Callable(self, "_on_terminal_pressed").bind(log_index)
 		if not terminal_instance.pressed.is_connected(cb):
@@ -1093,20 +1131,16 @@ func _on_terminal_pressed(log_index: int) -> void:
 	if arena_state != ArenaState.WAIT_START:
 		return
 
-	# segna letto (basta aprirlo una volta)
 	if log_index >= 0 and log_index < Run.terminal_logs_read.size():
 		Run.terminal_logs_read[log_index] = true
 
-	# disabilita il terminale finché l'overlay è aperto (evita reopen immediato con E)
 	if terminal_instance != null and is_instance_valid(terminal_instance):
 		terminal_instance.set("enabled", false)
 
-	# blocca player (movimento + mouse look + shoot + interact)
 	var p := _get_player()
 	if p != null and p.has_method("set_input_locked"):
 		p.call("set_input_locked", true)
 
-	# apri overlay
 	terminal_overlay.open_log(terminal_log_scenes[log_index])
 
 func _on_terminal_closed() -> void:
@@ -1114,7 +1148,6 @@ func _on_terminal_closed() -> void:
 	if player != null and player.has_method("set_input_locked"):
 		player.call("set_input_locked", false)
 
-	# Riabilita il terminale dopo che E è stata rilasciata (evita reopen immediato)
 	await get_tree().process_frame
 	while Input.is_action_pressed("interact"):
 		await get_tree().process_frame
