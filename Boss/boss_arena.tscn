@@ -1,0 +1,127 @@
+[gd_scene load_steps=12 format=3 uid="uid://cv38k14lbvvso"]
+
+[ext_resource type="Script" uid="uid://cetvf51qjpgkf" path="res://Boss/boss_arena.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://b0yc6digipfue" path="res://Levels/Floor.jpg" id="2_l52h3"]
+
+[sub_resource type="Environment" id="1"]
+background_mode = 1
+background_color = Color(0.0156863, 0.0156863, 0.0196078, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.32, 0.32, 0.36, 1)
+ambient_light_energy = 0.7
+fog_enabled = true
+fog_light_color = Color(0.06872084, 0.019908408, 0.019912548, 1)
+fog_density = 0.005
+
+[sub_resource type="BoxShape3D" id="4"]
+size = Vector3(14, 0.6, 14)
+
+[sub_resource type="BoxMesh" id="2"]
+size = Vector3(14, 0.6, 14)
+
+[sub_resource type="StandardMaterial3D" id="3"]
+albedo_texture = ExtResource("2_l52h3")
+roughness = 0.75
+emission_enabled = true
+emission_energy_multiplier = 0.25
+uv1_scale = Vector3(28.02, 28.02, 28.02)
+
+[sub_resource type="BoxShape3D" id="5"]
+size = Vector3(0.7, 2.6, 14.6)
+
+[sub_resource type="BoxMesh" id="7"]
+size = Vector3(0.08, 2.2, 14)
+
+[sub_resource type="StandardMaterial3D" id="9"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(1, 1, 1, 0)
+
+[sub_resource type="BoxShape3D" id="6"]
+size = Vector3(14.6, 2.6, 0.7)
+
+[sub_resource type="BoxMesh" id="8"]
+size = Vector3(14, 2.2, 0.08)
+
+[node name="BossArena" type="Node3D"]
+script = ExtResource("1")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("1")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.8504748, -0.5260159, -1.873981e-05, 0.29052633, 0.4697595, -0.83361894, 0.43850556, 0.7089665, 0.55234003, 0, 18.7344, 0)
+light_energy = 1.7
+shadow_enabled = true
+
+[node name="ArenaCenter" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+
+[node name="ArenaPlatform" type="StaticBody3D" parent="."]
+
+[node name="PlatformCollision" type="CollisionShape3D" parent="ArenaPlatform"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.3, 0)
+shape = SubResource("4")
+
+[node name="PlatformMesh" type="MeshInstance3D" parent="ArenaPlatform"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.3, 0)
+mesh = SubResource("2")
+surface_material_override/0 = SubResource("3")
+
+[node name="ArenaWalls" type="Node3D" parent="."]
+
+[node name="LeftWall" type="StaticBody3D" parent="ArenaWalls" groups=["boss_wall", "null_passthrough"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.2, 0.8, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ArenaWalls/LeftWall"]
+shape = SubResource("5")
+debug_color = Color(0, 0.6, 0.69803923, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="ArenaWalls/LeftWall"]
+mesh = SubResource("7")
+surface_material_override/0 = SubResource("9")
+
+[node name="RightWall" type="StaticBody3D" parent="ArenaWalls" groups=["boss_wall", "null_passthrough"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.2, 0.8, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ArenaWalls/RightWall"]
+shape = SubResource("5")
+debug_color = Color(0, 0.6, 0.69803923, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="ArenaWalls/RightWall"]
+mesh = SubResource("7")
+surface_material_override/0 = SubResource("9")
+
+[node name="TopWall" type="StaticBody3D" parent="ArenaWalls" groups=["boss_wall", "null_passthrough"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, -7.2)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ArenaWalls/TopWall"]
+shape = SubResource("6")
+debug_color = Color(0, 0.6, 0.69803923, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="ArenaWalls/TopWall"]
+mesh = SubResource("8")
+surface_material_override/0 = SubResource("9")
+
+[node name="BottomWall" type="StaticBody3D" parent="ArenaWalls" groups=["boss_wall", "null_passthrough"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 7.2)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ArenaWalls/BottomWall"]
+shape = SubResource("6")
+debug_color = Color(0, 0.6, 0.69803923, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="ArenaWalls/BottomWall"]
+mesh = SubResource("8")
+surface_material_override/0 = SubResource("9")
+
+[node name="PlayerSpawn" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 3.8)
+
+[node name="BossAnchor" type="Marker3D" parent="."]
+transform = Transform3D(0.999048, 0, 0.0436194, 0, 1, 0, -0.0436194, 0, 0.999048, 0, 18, -47)
+
+[node name="PlayerContainer" type="Node3D" parent="."]
+
+[node name="BossBullets" type="Node3D" parent="."]
+
+[node name="UIRoot" type="CanvasLayer" parent="."]

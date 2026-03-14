@@ -45,6 +45,9 @@ const HIT_NUDGE: float = 0.05
 @export var stealer_ricochet_time: float = 0.10
 @export var stealer_ricochet_speed_mult: float = 0.9
 
+@export_group("Boss Interactions")
+@export var body_reflect_speed_mult: float = 0.95
+
 var _ghost_timer: float = 0.0
 
 var _remote_recovering: bool = false
@@ -194,12 +197,22 @@ func _physics_process(delta: float) -> void:
 			traveled += from_pos.distance_to(hit_pos)
 			global_position = hit_pos
 
+			var hit_node: Node = _as_node(collider)
+			if _is_null_passthrough(hit_node):
+				global_position = hit_pos + seg.normalized() * HIT_NUDGE
+				continue
+
 			var enemy_node: Node = _find_enemy_node(collider)
 			if enemy_node != null:
 				if _handle_enemy_hit(enemy_node):
 					return
 				global_position = hit_pos + velocity.normalized() * HIT_NUDGE
 				continue
+
+			if _is_boss_reflector(hit_node):
+				velocity = velocity.bounce(hit_n) * body_reflect_speed_mult
+				global_position = hit_pos + hit_n * HIT_NUDGE
+				return
 
 			if bounces_left > 0:
 				bounces_left -= 1
@@ -382,6 +395,30 @@ func _find_enemy_node(collider: Object) -> Node:
 		n = n.get_parent()
 
 	return null
+
+
+func _as_node(obj: Object) -> Node:
+	if obj == null or not (obj is Node):
+		return null
+	return obj as Node
+
+
+func _is_null_passthrough(node: Node) -> bool:
+	var n: Node = node
+	while n != null:
+		if n.is_in_group("null_passthrough"):
+			return true
+		n = n.get_parent()
+	return false
+
+
+func _is_boss_reflector(node: Node) -> bool:
+	var n: Node = node
+	while n != null:
+		if n.is_in_group("boss_reflector"):
+			return true
+		n = n.get_parent()
+	return false
 
 
 func _drop() -> void:
