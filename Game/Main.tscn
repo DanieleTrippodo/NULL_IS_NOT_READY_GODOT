@@ -1,4 +1,4 @@
-[gd_scene load_steps=31 format=3 uid="uid://bgwcyyqw3ssa1"]
+[gd_scene load_steps=32 format=3 uid="uid://bgwcyyqw3ssa1"]
 
 [ext_resource type="Script" uid="uid://pfb6mfm6lhf8" path="res://Game/Game.gd" id="1_wd0a0"]
 [ext_resource type="PackedScene" uid="uid://8w3pg480ojvn" path="res://Levels/arena.tscn" id="2_lv82p"]
@@ -29,6 +29,7 @@
 [ext_resource type="PackedScene" uid="uid://dncmd1qa88ycn" path="res://UI/log_07.tscn" id="22_ccwv3"]
 [ext_resource type="PackedScene" uid="uid://gsi4gaiqvwkn" path="res://UI/log_08.tscn" id="23_3pgyt"]
 [ext_resource type="PackedScene" uid="uid://dopma1foaqme5" path="res://UI/log_09.tscn" id="24_4d5b2"]
+[ext_resource type="AudioStream" uid="uid://bq24w5ct2iyhg" path="res://Audio/BGM/NULL_Combat_Loop.ogg" id="30_8v8om"]
 
 [sub_resource type="Environment" id="Environment_3xx61"]
 background_mode = 1
@@ -55,8 +56,6 @@ terminal_scene = ExtResource("12_3tq7c")
 terminal_overlay_scene = ExtResource("13_eg2md")
 terminal_log_scenes = Array[PackedScene]([ExtResource("14_eg2md"), ExtResource("15_b3cwe"), ExtResource("16_wo11f"), ExtResource("17_qvna0"), ExtResource("18_w1287"), ExtResource("19_ijkwl"), ExtResource("22_ccwv3"), ExtResource("23_3pgyt"), ExtResource("24_4d5b2")])
 game_over_overlay_scene = ExtResource("21_w1287")
-money_max = 11
-money_spawn_radius = 5.0
 magnet_radius = 3.0
 
 [node name="World" type="Node3D" parent="."]
@@ -81,3 +80,8 @@ environment = SubResource("Environment_3xx61")
 [node name="KillSfx" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("17_eru0w")
 volume_db = -6.0
+
+[node name="CombatBgm" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("30_8v8om")
+volume_db = -15.0
+parameters/looping = true

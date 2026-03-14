@@ -13,6 +13,7 @@ extends Node
 @export var exception_scene: PackedScene
 @export var enemy_bullet_scene: PackedScene
 @onready var kill_sfx: AudioStreamPlayer = $KillSfx
+@onready var combat_bgm: AudioStreamPlayer = $CombatBgm
 @export var enemy_death_fx_scene: PackedScene
 
 # money + shop
@@ -111,9 +112,25 @@ func _ready() -> void:
 	_set_state(ArenaState.WAIT_START)
 	_setup_terminal_overlay()
 	_setup_game_over_overlay()
+	
+	_stop_combat_bgm()
 
 	if not tutorial_mode:
 		_queue_auto_start_next_wave()
+
+func _play_combat_bgm() -> void:
+	if combat_bgm == null:
+		return
+	if combat_bgm.playing:
+		return
+	combat_bgm.play()
+
+func _stop_combat_bgm() -> void:
+	if combat_bgm == null:
+		return
+	if not combat_bgm.playing:
+		return
+	combat_bgm.stop()
 
 func _play_kill_sfx() -> void:
 	if kill_sfx == null:
@@ -321,6 +338,7 @@ func _post_wave_auto_continue_async() -> void:
 	_start_next_wave()
 
 func _start_next_wave() -> void:
+	_play_combat_bgm()
 	_despawn_terminal()
 	_cleanup_uncollected_money()
 	_cleanup_shop_portal()
@@ -744,6 +762,7 @@ func _on_enemy_killed(enemy: Node) -> void:
 	_set_state(ArenaState.WAIT_START)
 
 	if _is_shop_checkpoint_depth():
+		_stop_combat_bgm()
 		_spawn_shop_portal()
 		_maybe_spawn_terminal_in_shop()
 	else:
@@ -865,6 +884,7 @@ func _on_player_died() -> void:
 		return
 
 	restarting = true
+	_stop_combat_bgm()
 
 	_cleanup_uncollected_money()
 	_cleanup_shop_portal()
@@ -883,10 +903,12 @@ func _on_player_died() -> void:
 		call_deferred("_restart_run")
 
 func _on_game_over_retry_pressed() -> void:
+	_stop_combat_bgm()
 	Run.reset()
 	get_tree().reload_current_scene()
 
 func _on_game_over_exit_pressed() -> void:
+	_stop_combat_bgm()
 	Run.reset()
 	get_tree().change_scene_to_file("res://UI/main_menu.tscn")
 
