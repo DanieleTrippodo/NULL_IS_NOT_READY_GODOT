@@ -1,16 +1,24 @@
-[gd_scene load_steps=12 format=3 uid="uid://cv38k14lbvvso"]
+[gd_scene load_steps=14 format=3 uid="uid://cv38k14lbvvso"]
 
 [ext_resource type="Script" uid="uid://cetvf51qjpgkf" path="res://Boss/boss_arena.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://b0yc6digipfue" path="res://Levels/Floor.jpg" id="2_l52h3"]
 
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_l52h3"]
+sky_top_color = Color(0.13737866, 0.051761575, 0.05175195, 1)
+sky_horizon_color = Color(0, 0, 0, 1)
+ground_bottom_color = Color(0, 0, 0, 1)
+ground_horizon_color = Color(0, 0, 0, 1)
+
+[sub_resource type="Sky" id="Sky_w1qa0"]
+sky_material = SubResource("ProceduralSkyMaterial_l52h3")
+
 [sub_resource type="Environment" id="1"]
-background_mode = 1
-background_color = Color(0.0156863, 0.0156863, 0.0196078, 1)
+background_mode = 2
+sky = SubResource("Sky_w1qa0")
 ambient_light_source = 2
-ambient_light_color = Color(0.32, 0.32, 0.36, 1)
-ambient_light_energy = 0.7
-fog_enabled = true
-fog_light_color = Color(0.06872084, 0.019908408, 0.019912548, 1)
+ambient_light_color = Color(1, 1, 1, 1)
+ambient_light_energy = 1.6
+fog_light_color = Color(0.040959843, 0.009939268, 0.00994041, 1)
 fog_density = 0.005
 
 [sub_resource type="BoxShape3D" id="4"]
