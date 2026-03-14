@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c41r21j6hfanh"
-path.s3tc="res://.godot/imported/EnemyWalk_0002.png-632711be396a48fdd9b2b801b7750a52.s3tc.ctex"
+uid="uid://blkdrmalljnv5"
+path.s3tc="res://.godot/imported/frame011.png-b5cc4ab6288a407e40e5ad28cf1ab60a.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://Enemies/ChaserSprite/WalkAnimationChaser/EnemyWalk_0002.png"
-dest_files=["res://.godot/imported/EnemyWalk_0002.png-632711be396a48fdd9b2b801b7750a52.s3tc.ctex"]
+source_file="res://Enemies/ChaserSprite/WalkAnimationChaser/frame011.png"
+dest_files=["res://.godot/imported/frame011.png-b5cc4ab6288a407e40e5ad28cf1ab60a.s3tc.ctex"]
 
 [params]
 

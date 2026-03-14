@@ -1,8 +1,8 @@
 [gd_scene load_steps=22 format=3 uid="uid://bmh5v3pstny5c"]
 
 [ext_resource type="Texture2D" uid="uid://b0yc6digipfue" path="res://Levels/Floor.jpg" id="1_c58mu"]
-[ext_resource type="AudioStream" uid="uid://df5xncmhnrdsg" path="res://Audio/BGM/TutorialBGM_Empty.mp3" id="2_08727"]
 [ext_resource type="PackedScene" uid="uid://cqkyne466bpru" path="res://Interactables/tutorial_spawn_button.tscn" id="2_h6fp6"]
+[ext_resource type="AudioStream" uid="uid://gefv61sy1rmt" path="res://Audio/BGM/NULL_Starter_Loop.ogg" id="2_st4hc"]
 [ext_resource type="PackedScene" uid="uid://cagjhpfgva4b6" path="res://Enemies/chaser.tscn" id="3_l8gg7"]
 [ext_resource type="PackedScene" uid="uid://cqkt1q6gvngeq" path="res://Props/tutorial_tips_push.tscn" id="5_i6mam"]
 [ext_resource type="PackedScene" uid="uid://bchjqf85c5jai" path="res://Props/tutorial_tips_null.tscn" id="6_7ntq1"]
@@ -102,7 +102,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 54.764755)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.9070253, 0.11398608, -3.6019473)
 
 [node name="TutorialBGM" type="AudioStreamPlayer" parent="."]
-stream = ExtResource("2_08727")
+stream = ExtResource("2_st4hc")
 volume_db = -10.0
 autoplay = true
 parameters/looping = true

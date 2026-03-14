@@ -27,6 +27,12 @@ enum BossState {
 @export var vulnerable_time_phase_2: float = 2.4
 @export var vulnerable_time_phase_3: float = 1.8
 
+@export_group("Attack Chaining")
+@export var pattern_switch_phase_1: float = 4.4
+@export var pattern_switch_phase_2: float = 3.0
+@export var pattern_switch_phase_3: float = 2.1
+@export var pattern_end_buffer: float = 1.0
+
 @onready var player_spawn: Marker3D = $PlayerSpawn
 @onready var boss_anchor: Marker3D = $BossAnchor
 @onready var player_container: Node3D = $PlayerContainer
@@ -49,13 +55,36 @@ var boss_hits: int = 0
 var phase: int = 1
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
-var _phase_1_patterns: Array[String] = ["fan_burst", "rotating_spread"]
-var _phase_2_patterns: Array[String] = ["fan_burst", "rotating_spread", "lane_sweep"]
-var _phase_3_patterns: Array[String] = ["rotating_spread", "lane_sweep", "fan_burst"]
+var _phase_1_sequence: Array[String] = [
+	"fan_burst",
+	"rotating_spread"
+]
+
+var _phase_2_sequence: Array[String] = [
+	"fan_burst",
+	"lane_sweep",
+	"rotating_spread",
+	"fan_burst"
+]
+
+var _phase_3_sequence: Array[String] = [
+	"lane_sweep",
+	"fan_burst",
+	"rotating_spread",
+	"lane_sweep",
+	"fan_burst",
+	"rotating_spread"
+]
+
+var _attack_sequence: Array[String] = []
+var _attack_sequence_index: int = 0
+var _attack_pattern_time_left: float = 0.0
+var _current_attack_pattern: String = ""
 
 func _ready() -> void:
 	_rng.randomize()
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+
 	_connect_signals()
 	_setup_ui()
 	_spawn_player()
@@ -75,6 +104,9 @@ func _exit_tree() -> void:
 func _process(delta: float) -> void:
 	if state == BossState.DEAD or restarting:
 		return
+
+	if state == BossState.ATTACK:
+		_update_attack_pattern_cycle(delta)
 
 	state_time_left -= delta
 	if state_time_left > 0.0:
@@ -149,6 +181,10 @@ func _spawn_player() -> void:
 		return
 
 	player = player_scene.instantiate() as CharacterBody3D
+	if player == null:
+		push_error("BossArena: failed to instantiate player.")
+		return
+
 	player_container.add_child(player)
 	player.global_position = player_spawn.global_position
 	player.rotation = player_spawn.rotation
@@ -159,11 +195,15 @@ func _spawn_boss() -> void:
 		return
 
 	boss = boss_scene.instantiate()
+	if boss == null:
+		push_error("BossArena: failed to instantiate boss.")
+		return
+
 	add_child(boss)
 	boss.global_position = boss_anchor.global_position
 	boss.rotation = boss_anchor.rotation
 
-	var half_extents := _get_platform_half_extents()
+	var half_extents: Vector2 = _get_platform_half_extents()
 	if boss.has_method("setup"):
 		boss.call(
 			"setup",
@@ -192,14 +232,8 @@ func _begin_attack_phase() -> void:
 	state = BossState.ATTACK
 	state_time_left = _get_attack_duration_for_phase(phase)
 
-	var pool: Array[String] = _get_pattern_pool_for_phase(phase)
-	var pattern: String = pool[_rng.randi_range(0, pool.size() - 1)]
-
-	if boss.has_method("close_weak_point"):
-		boss.call("close_weak_point")
-
-	if boss.has_method("begin_attack"):
-		boss.call("begin_attack", pattern, state_time_left, phase)
+	_prepare_attack_sequence_for_phase(phase)
+	_start_next_attack_pattern(true)
 
 func _begin_vulnerable_phase() -> void:
 	if boss == null:
@@ -207,6 +241,7 @@ func _begin_vulnerable_phase() -> void:
 
 	state = BossState.VULNERABLE
 	state_time_left = _get_vulnerable_duration_for_phase(phase)
+	_reset_attack_chain_state()
 
 	if boss.has_method("stop_attack"):
 		boss.call("stop_attack")
@@ -220,6 +255,7 @@ func _begin_transition(custom_time: float = -1.0) -> void:
 
 	state = BossState.TRANSITION
 	state_time_left = transition_duration if custom_time <= 0.0 else custom_time
+	_reset_attack_chain_state()
 
 	if boss.has_method("stop_attack"):
 		boss.call("stop_attack")
@@ -257,16 +293,86 @@ func _get_vulnerable_duration_for_phase(p: int) -> float:
 		_:
 			return vulnerable_time_phase_1
 
-func _get_pattern_pool_for_phase(p: int) -> Array[String]:
+func _get_pattern_switch_interval_for_phase(p: int) -> float:
 	match p:
 		1:
-			return _phase_1_patterns
+			return pattern_switch_phase_1
 		2:
-			return _phase_2_patterns
+			return pattern_switch_phase_2
 		3:
-			return _phase_3_patterns
+			return pattern_switch_phase_3
 		_:
-			return _phase_1_patterns
+			return pattern_switch_phase_1
+
+func _get_pattern_sequence_for_phase(p: int) -> Array[String]:
+	match p:
+		1:
+			return _phase_1_sequence.duplicate()
+		2:
+			return _phase_2_sequence.duplicate()
+		3:
+			return _phase_3_sequence.duplicate()
+		_:
+			return _phase_1_sequence.duplicate()
+
+func _prepare_attack_sequence_for_phase(p: int) -> void:
+	_attack_sequence = _get_pattern_sequence_for_phase(p)
+	_current_attack_pattern = ""
+	_attack_pattern_time_left = 0.0
+
+	if _attack_sequence.is_empty():
+		return
+
+	_attack_sequence_index = _rng.randi_range(0, _attack_sequence.size() - 1)
+
+func _reset_attack_chain_state() -> void:
+	_attack_sequence.clear()
+	_attack_sequence_index = 0
+	_attack_pattern_time_left = 0.0
+	_current_attack_pattern = ""
+
+func _update_attack_pattern_cycle(delta: float) -> void:
+	if boss == null:
+		return
+	if _attack_sequence.is_empty():
+		return
+
+	_attack_pattern_time_left -= delta
+	if _attack_pattern_time_left > 0.0:
+		return
+
+	if state_time_left <= pattern_end_buffer:
+		return
+
+	_start_next_attack_pattern(false)
+
+func _start_next_attack_pattern(force_immediate: bool) -> void:
+	if boss == null:
+		return
+	if _attack_sequence.is_empty():
+		return
+
+	var pattern: String = _attack_sequence[_attack_sequence_index % _attack_sequence.size()]
+	if pattern == _current_attack_pattern and _attack_sequence.size() > 1:
+		_attack_sequence_index += 1
+		pattern = _attack_sequence[_attack_sequence_index % _attack_sequence.size()]
+
+	_attack_sequence_index += 1
+	_current_attack_pattern = pattern
+
+	var switch_interval: float = _get_pattern_switch_interval_for_phase(phase)
+	var remaining_window: float = maxf(state_time_left - pattern_end_buffer, 0.35)
+	var pattern_duration: float = minf(switch_interval, remaining_window)
+
+	_attack_pattern_time_left = switch_interval
+	if force_immediate:
+		_attack_pattern_time_left = switch_interval
+
+	if boss.has_method("close_weak_point"):
+		boss.call("close_weak_point")
+
+	if boss.has_method("begin_attack"):
+		boss.call("begin_attack", pattern, pattern_duration, phase)
 
 func _on_enemy_killed(enemy: Node) -> void:
 	if state != BossState.VULNERABLE:
@@ -296,6 +402,7 @@ func _on_enemy_killed(enemy: Node) -> void:
 func _kill_boss() -> void:
 	state = BossState.DEAD
 	state_time_left = 0.0
+	_reset_attack_chain_state()
 	_force_null_return()
 
 	if boss != null and boss.has_method("play_death"):
@@ -414,6 +521,7 @@ func _on_player_died() -> void:
 
 	restarting = true
 	state = BossState.DEAD
+	_reset_attack_chain_state()
 	_force_null_return()
 
 	if boss != null and boss.has_method("stop_attack"):
