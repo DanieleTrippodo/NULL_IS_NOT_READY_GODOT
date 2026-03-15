@@ -7,7 +7,6 @@ enum State { FIRED, DROPPED }
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
 @onready var projectile_mesh: MeshInstance3D = $MeshInstance3D
 
-
 var state: int = State.FIRED
 var velocity: Vector3 = Vector3.ZERO
 var traveled: float = 0.0
@@ -57,6 +56,18 @@ var _recovery_hold_time: float = 0.0
 var _pending_drop_after_ricochet: bool = false
 var _ricochet_drop_left: float = 0.0
 
+var _pickup_indicator_base_scale: Vector3 = Vector3.ONE
+var _thread_line_mesh: MeshInstance3D = null
+var _thread_line_immediate: ImmediateMesh = null
+var _thread_line_material: StandardMaterial3D = null
+var _pulse_tween: Tween = null
+
+func _ready() -> void:
+	if pickup_indicator != null:
+		_pickup_indicator_base_scale = pickup_indicator.scale
+	_ensure_thread_lock_visuals()
+	_set_thread_lock_visible(false)
+
 
 func is_dropped() -> bool:
 	return state == State.DROPPED
@@ -87,13 +98,13 @@ func stop_remote_recovery() -> void:
 func fire(origin: Vector3, direction: Vector3, size_mult_in: float = 1.0) -> void:
 	var dir: Vector3 = direction.normalized()
 
-	# In survival: ignora charge/size perk
+	# In survival: ignore charge/size perk
 	size_mult = max(0.25, size_mult_in)
 	scale = Vector3.ONE * size_mult
 
 	global_position = origin + dir * (0.6 + 0.25 * size_mult)
 
-	# In survival: perk ignorati
+	# In survival: perks ignored
 	var spd_mult: float = 1.0 if Run.survival_mode else Run.null_speed_mult
 	velocity = dir * (Constants.NULL_SPEED * spd_mult)
 
@@ -113,7 +124,10 @@ func fire(origin: Vector3, direction: Vector3, size_mult_in: float = 1.0) -> voi
 	pierce_left = 0 if Run.survival_mode else Run.null_pierce
 	range_mult = 1.0 if Run.survival_mode else Run.null_range_mult
 
-	pickup_indicator.visible = false
+	if pickup_indicator != null:
+		pickup_indicator.visible = false
+		pickup_indicator.scale = _pickup_indicator_base_scale
+	_set_thread_lock_visible(false)
 
 
 func _physics_process(delta: float) -> void:
@@ -133,7 +147,9 @@ func _physics_process(delta: float) -> void:
 			return
 
 	if state == State.DROPPED:
-		pickup_indicator.position.y = 0.7 + sin(t * 6.0) * 0.08
+		_update_thread_lock_visual()
+		if pickup_indicator != null:
+			pickup_indicator.position.y = 0.7 + sin(t * 6.0) * 0.08
 
 		if _remote_recovering:
 			if _recovery_target == null or not is_instance_valid(_recovery_target):
@@ -155,8 +171,10 @@ func _physics_process(delta: float) -> void:
 			if dist > 0.0001:
 				_recovery_hold_time += delta
 
-				var accel_t: float = clamp(_recovery_hold_time / recovery_accel_time, 0.0, 1.0)
-				var current_speed: float = lerp(recovery_pull_speed_min, recovery_pull_speed_max, accel_t)
+				var accel_div: float = maxf(recovery_accel_time * (Run.overclock_accel_time_mult if Run.overclock else 1.0), 0.05)
+				var accel_t: float = clamp(_recovery_hold_time / accel_div, 0.0, 1.0)
+				var speed_mult: float = Run.overclock_pull_speed_mult if Run.overclock else 1.0
+				var current_speed: float = lerp(recovery_pull_speed_min * speed_mult, recovery_pull_speed_max * speed_mult, accel_t)
 
 				var pull_step: float = current_speed * delta
 				global_position += to_target.normalized() * min(pull_step, dist)
@@ -337,7 +355,7 @@ func _handle_enemy_hit(enemy_node: Node) -> bool:
 
 	_recent_hit[iid] = RECENT_HIT_TIME
 
-	# Caso speciale: Stealer -> rimbalza davvero per un attimo, poi cade
+	# Special case: Stealer -> real ricochet for a moment, then drop
 	if enemy_node.is_in_group("stealer"):
 		var bounce_vel: Vector3 = velocity
 		if bounce_vel.length() <= 0.001:
@@ -434,8 +452,13 @@ func _drop() -> void:
 	global_position.y += 0.05
 	_ghost_timer = 0.0
 
-	pickup_indicator.visible = true
-	pickup_indicator.position.y = 0.7
+	if pickup_indicator != null:
+		pickup_indicator.visible = true
+		pickup_indicator.position.y = 0.7
+		pickup_indicator.scale = _pickup_indicator_base_scale
+
+	_apply_drop_upgrades()
+	_update_thread_lock_visual()
 
 	Signals.null_dropped.emit(global_position)
 	Signals.null_ready_changed.emit(false)
@@ -443,9 +466,170 @@ func _drop() -> void:
 
 func pickup() -> void:
 	stop_remote_recovery()
-	pickup_indicator.visible = false
+	_set_thread_lock_visible(false)
+	_apply_pickup_upgrades()
+	if pickup_indicator != null:
+		pickup_indicator.visible = false
+		pickup_indicator.scale = _pickup_indicator_base_scale
 	_ghost_timer = 0.0
 	queue_free()
+
+
+func _apply_drop_upgrades() -> void:
+	var used_pulse: bool = false
+
+	if Run.impact_pulse:
+		used_pulse = true
+		for enemy in _get_enemies_in_radius(global_position, Run.impact_pulse_radius):
+			var dir: Vector3 = (enemy.global_position - global_position)
+			dir.y = 0.0
+			if dir.length() <= 0.001:
+				dir = Vector3.FORWARD
+			else:
+				dir = dir.normalized()
+
+			if enemy.has_method("apply_impact_stun"):
+				enemy.call("apply_impact_stun", Run.impact_pulse_stun, dir, Run.impact_pulse_strength)
+			elif enemy.has_method("apply_push"):
+				enemy.call("apply_push", dir, Run.impact_pulse_strength, 0.0, Run.impact_pulse_stun)
+
+	if Run.ground_echo:
+		used_pulse = true
+		for enemy in _get_enemies_in_radius(global_position, Run.ground_echo_radius):
+			_ping_enemy_visual(enemy, Run.ground_echo_flash_time)
+
+	if used_pulse:
+		_play_pickup_indicator_pulse(1.75, 0.16)
+
+
+func _apply_pickup_upgrades() -> void:
+	if not Run.null_freeze:
+		return
+
+	for enemy in _get_enemies_in_radius(global_position, Run.null_freeze_radius):
+		var dir: Vector3 = (enemy.global_position - global_position)
+		dir.y = 0.0
+		if dir.length() <= 0.001:
+			dir = Vector3.FORWARD
+		else:
+			dir = dir.normalized()
+
+		if enemy.has_method("apply_impact_stun"):
+			enemy.call("apply_impact_stun", Run.null_freeze_stun, dir, 0.0)
+		elif enemy.has_method("apply_push"):
+			enemy.call("apply_push", dir, 0.0, 0.0, Run.null_freeze_stun)
+
+		_ping_enemy_visual(enemy, 0.14)
+
+
+func _get_enemies_in_radius(center: Vector3, radius: float) -> Array[Node3D]:
+	var result: Array[Node3D] = []
+	var r2: float = radius * radius
+	for n in get_tree().get_nodes_in_group("enemy"):
+		if not (n is Node3D):
+			continue
+		var e := n as Node3D
+		if not is_instance_valid(e):
+			continue
+		if e.global_position.distance_squared_to(center) <= r2:
+			result.append(e)
+	return result
+
+
+func _ping_enemy_visual(enemy: Node3D, duration: float) -> void:
+	if enemy == null or not is_instance_valid(enemy):
+		return
+
+	var mesh_node := enemy.find_child("MeshInstance3D", true, false)
+	if mesh_node == null or not (mesh_node is MeshInstance3D):
+		return
+
+	var mesh := mesh_node as MeshInstance3D
+	var prev_mat: Material = mesh.material_override
+
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.albedo_color = Color(1, 1, 1, 0.95)
+	mat.emission_enabled = true
+	mat.emission = Color(1, 1, 1)
+	mesh.material_override = mat
+
+	var tween := enemy.create_tween()
+	tween.tween_property(mat, "albedo_color", Color(1, 1, 1, 0.0), duration)
+	tween.tween_callback(func():
+		if is_instance_valid(mesh):
+			mesh.material_override = prev_mat
+	)
+
+
+func _play_pickup_indicator_pulse(scale_mult: float, duration: float) -> void:
+	if pickup_indicator == null:
+		return
+	if is_instance_valid(_pulse_tween):
+		_pulse_tween.kill()
+	pickup_indicator.scale = _pickup_indicator_base_scale
+	_pulse_tween = create_tween()
+	_pulse_tween.set_trans(Tween.TRANS_QUAD)
+	_pulse_tween.set_ease(Tween.EASE_OUT)
+	_pulse_tween.tween_property(pickup_indicator, "scale", _pickup_indicator_base_scale * scale_mult, duration * 0.45)
+	_pulse_tween.tween_property(pickup_indicator, "scale", _pickup_indicator_base_scale, duration * 0.55)
+
+
+func _ensure_thread_lock_visuals() -> void:
+	if _thread_line_mesh != null and is_instance_valid(_thread_line_mesh):
+		return
+
+	_thread_line_mesh = MeshInstance3D.new()
+	_thread_line_mesh.name = "ThreadLockLine"
+	_thread_line_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_thread_line_mesh.top_level = true
+
+	_thread_line_immediate = ImmediateMesh.new()
+	_thread_line_mesh.mesh = _thread_line_immediate
+
+	_thread_line_material = StandardMaterial3D.new()
+	_thread_line_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_thread_line_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_thread_line_material.albedo_color = Color(1, 1, 1, 0.55)
+	_thread_line_material.emission_enabled = true
+	_thread_line_material.emission = Color(1, 1, 1)
+	_thread_line_material.no_depth_test = true
+
+	add_child(_thread_line_mesh)
+
+
+func _set_thread_lock_visible(is_visible: bool) -> void:
+	if _thread_line_mesh != null and is_instance_valid(_thread_line_mesh):
+		_thread_line_mesh.visible = is_visible
+
+
+func _update_thread_lock_visual() -> void:
+	if not Run.thread_lock or state != State.DROPPED:
+		_set_thread_lock_visible(false)
+		return
+
+	var player := get_tree().get_first_node_in_group("player")
+	if player == null or not (player is Node3D):
+		_set_thread_lock_visible(false)
+		return
+
+	_ensure_thread_lock_visuals()
+	_set_thread_lock_visible(true)
+
+	var start_pos: Vector3 = global_position + Vector3(0.0, 0.12, 0.0)
+	var end_pos: Vector3 = (player as Node3D).global_position + Vector3(0.0, 0.95, 0.0)
+	var alpha: float = 0.35 + 0.2 * (0.5 + 0.5 * sin(t * 8.0))
+	_thread_line_material.albedo_color = Color(1, 1, 1, alpha)
+
+	if pickup_indicator != null:
+		pickup_indicator.scale = _pickup_indicator_base_scale * (1.0 + 0.08 * (0.5 + 0.5 * sin(t * 8.0)))
+
+	_thread_line_immediate.clear_surfaces()
+	_thread_line_immediate.surface_begin(Mesh.PRIMITIVE_LINES, _thread_line_material)
+	_thread_line_immediate.surface_add_vertex(start_pos)
+	_thread_line_immediate.surface_add_vertex(end_pos)
+	_thread_line_immediate.surface_end()
 
 
 func _update_ghost_afterimages(delta: float) -> void:

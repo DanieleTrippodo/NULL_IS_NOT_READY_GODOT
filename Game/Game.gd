@@ -93,7 +93,6 @@ func _ready() -> void:
 	Signals.request_shoot.connect(_on_request_shoot)
 	Signals.request_pickup.connect(_on_request_pickup)
 	Signals.request_pull_to_hand.connect(_on_request_pull_to_hand)
-	Signals.request_swap.connect(_on_request_swap)
 	Signals.request_recovery_start.connect(_on_request_recovery_start)
 	Signals.request_recovery_stop.connect(_on_request_recovery_stop)
 	Signals.request_force_drop_null.connect(_on_request_force_drop_null)
@@ -698,22 +697,6 @@ func _on_request_recovery_stop() -> void:
 
 	if null_instance.has_method("stop_remote_recovery"):
 		null_instance.call("stop_remote_recovery")
-
-func _on_request_swap() -> void:
-	if restarting or wave_transitioning:
-		return
-	if not Run.swap_with_null:
-		return
-	if null_instance == null or not is_instance_valid(null_instance):
-		return
-
-	var player := _get_player()
-	if player == null:
-		return
-
-	var tmp := player.global_position
-	player.global_position = null_instance.global_position
-	null_instance.global_position = tmp
 
 func _on_null_dropped(_arg: Variant = null) -> void:
 	Run.null_dropped = true

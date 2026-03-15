@@ -10,10 +10,8 @@ enum UpdateRarity {
 const UPDATE_IDS: Array[String] = [
 	"NULL_BOUNCE",
 	"BOUNCE_STACK",
-	"JUMP_UNLOCK",
 	"JUMP_POWER",
 	"LONG_JUMP",
-	"FLIGHT_BURST",
 	"MAGNET_PICKUP",
 	"SPRINT",
 	"PANIC_BOOST",
@@ -24,11 +22,13 @@ const UPDATE_IDS: Array[String] = [
 	"HOMING_NUDGE",
 	"DASH_UNLOCK",
 	"CHARGE_SHOT",
-	"CHARGE_PLUS",
 	"PULL_TO_HAND",
-	"SWAP_WITH_NULL",
-	"DROP_SHOCKWAVE",
 	"SLOWMO_RECOVERY",
+	"IMPACT_PULSE",
+	"THREAD_LOCK",
+	"NULL_FREEZE",
+	"OVERCLOCK",
+	"GROUND_ECHO",
 	"RAM_PATCH"
 ]
 
@@ -59,19 +59,6 @@ const DATA := {
 		"icon_path": "res://Art/Cards/Icons/BOUNCE_STACK.png"
 	},
 
-	"JUMP_UNLOCK": {
-		"title": "JUMP UNLOCK",
-		"desc": "Enables jumping. Kept for legacy compatibility.",
-		"rarity": UpdateRarity.COMMON,
-		"base_price_min": 2,
-		"base_price_max": 4,
-		"rotatable": false,
-		"size": Vector2i(1, 1),
-		"cells": [Vector2i(0, 0)],
-		"tradeoff_desc": "",
-		"icon_path": "res://Art/Cards/Icons/JUMP_UNLOCK.png"
-	},
-
 	"JUMP_POWER": {
 		"title": "HIGHER JUMP",
 		"desc": "Increases jump height.",
@@ -96,19 +83,6 @@ const DATA := {
 		"cells": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0)],
 		"tradeoff_desc": "Easy to understand, but needs long horizontal space.",
 		"icon_path": "res://Art/Cards/Icons/LONG_JUMP.png"
-	},
-
-	"FLIGHT_BURST": {
-		"title": "FLIGHT (5s)",
-		"desc": "Allows flight for 5 seconds.",
-		"rarity": UpdateRarity.RARE,
-		"base_price_min": 5,
-		"base_price_max": 8,
-		"rotatable": true,
-		"size": Vector2i(2, 3),
-		"cells": [Vector2i(0, 0), Vector2i(0, 1), Vector2i(0, 2), Vector2i(1, 1)],
-		"tradeoff_desc": "Powerful, but tall and space-hungry.",
-		"icon_path": "res://Art/Cards/Icons/FLIGHT_BURST.png"
 	},
 
 	"MAGNET_PICKUP": {
@@ -245,19 +219,6 @@ const DATA := {
 		"icon_path": "res://Art/Cards/Icons/CHARGE_SHOT.png"
 	},
 
-	"CHARGE_PLUS": {
-		"title": "CHARGE+",
-		"desc": "Improves charged shots.",
-		"rarity": UpdateRarity.RARE,
-		"base_price_min": 5,
-		"base_price_max": 8,
-		"rotatable": true,
-		"size": Vector2i(2, 2),
-		"cells": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(1, 1)],
-		"tradeoff_desc": "Only shines if you already use CHARGE SHOT.",
-		"icon_path": "res://Art/Cards/Icons/CHARGE_PLUS.png"
-	},
-
 	"PULL_TO_HAND": {
 		"title": "PULL TO HAND",
 		"desc": "Hold interact to pull NULL back to your hand.",
@@ -271,36 +232,6 @@ const DATA := {
 		"icon_path": "res://Art/Cards/Icons/PULL_TO_HAND.png"
 	},
 
-	"SWAP_WITH_NULL": {
-		"title": "SWAP",
-		"desc": "Swap positions with a dropped NULL.",
-		"rarity": UpdateRarity.EPIC,
-		"base_price_min": 9,
-		"base_price_max": 14,
-		"rotatable": true,
-		"size": Vector2i(3, 2),
-		"cells": [Vector2i(0, 0), Vector2i(2, 0), Vector2i(1, 1), Vector2i(2, 1)],
-		"tradeoff_desc": "Very strong repositioning tool, but messy to fit.",
-		"icon_path": "res://Art/Cards/Icons/SWAP_WITH_NULL.png"
-	},
-
-	"DROP_SHOCKWAVE": {
-		"title": "DROP SHOCKWAVE",
-		"desc": "Dropped NULL emits a shockwave on miss.",
-		"rarity": UpdateRarity.RARE,
-		"base_price_min": 5,
-		"base_price_max": 8,
-		"rotatable": true,
-		"size": Vector2i(3, 3),
-		"cells": [
-			Vector2i(1, 0),
-			Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1),
-			Vector2i(1, 2)
-		],
-		"tradeoff_desc": "Situational, but can save a run.",
-		"icon_path": "res://Art/Cards/Icons/DROP_SHOCKWAVE.png"
-	},
-
 	"SLOWMO_RECOVERY": {
 		"title": "SLOWMO RECOVERY",
 		"desc": "Slows time while NULL is on the ground.",
@@ -312,6 +243,75 @@ const DATA := {
 		"cells": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1)],
 		"tradeoff_desc": "Defensive and compact.",
 		"icon_path": "res://Art/Cards/Icons/SLOWMO_RECOVERY.png"
+	},
+
+	"IMPACT_PULSE": {
+		"title": "IMPACT PULSE",
+		"desc": "A missed NULL emits a short-range pulse that pushes back nearby enemies.",
+		"rarity": UpdateRarity.RARE,
+		"base_price_min": 5,
+		"base_price_max": 8,
+		"rotatable": true,
+		"size": Vector2i(3, 3),
+		"cells": [
+			Vector2i(1, 0),
+			Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1),
+			Vector2i(1, 2)
+		],
+		"tradeoff_desc": "Turns a miss into breathing room, but it takes premium space.",
+		"icon_path": "res://Art/Cards/Icons/IMPACT_PULSE.png"
+	},
+
+	"THREAD_LOCK": {
+		"title": "THREAD LOCK",
+		"desc": "Draws a live thread between you and a dropped NULL.",
+		"rarity": UpdateRarity.COMMON,
+		"base_price_min": 2,
+		"base_price_max": 4,
+		"rotatable": true,
+		"size": Vector2i(3, 1),
+		"cells": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0)],
+		"tradeoff_desc": "Pure utility, but perfect for long empty gaps in your grid.",
+		"icon_path": "res://Art/Cards/Icons/THREAD_LOCK.png"
+	},
+
+	"NULL_FREEZE": {
+		"title": "NULL FREEZE",
+		"desc": "Recovering NULL briefly freezes nearby enemies.",
+		"rarity": UpdateRarity.RARE,
+		"base_price_min": 5,
+		"base_price_max": 8,
+		"rotatable": true,
+		"size": Vector2i(2, 3),
+		"cells": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(0, 2)],
+		"tradeoff_desc": "Excellent panic tool, but the tall shape is awkward.",
+		"icon_path": "res://Art/Cards/Icons/NULL_FREEZE.png"
+	},
+
+	"OVERCLOCK": {
+		"title": "OVERCLOCK",
+		"desc": "Remote recovery accelerates faster and pulls harder.",
+		"rarity": UpdateRarity.RARE,
+		"base_price_min": 5,
+		"base_price_max": 8,
+		"rotatable": true,
+		"size": Vector2i(2, 2),
+		"cells": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(1, 1)],
+		"tradeoff_desc": "High-pressure utility in a compact footprint.",
+		"icon_path": "res://Art/Cards/Icons/OVERCLOCK.png"
+	},
+
+	"GROUND_ECHO": {
+		"title": "GROUND ECHO",
+		"desc": "A dropped NULL emits a scan pulse that pings nearby threats.",
+		"rarity": UpdateRarity.COMMON,
+		"base_price_min": 2,
+		"base_price_max": 4,
+		"rotatable": true,
+		"size": Vector2i(2, 2),
+		"cells": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1)],
+		"tradeoff_desc": "Information over power, but the scan can save your route.",
+		"icon_path": "res://Art/Cards/Icons/GROUND_ECHO.png"
 	},
 
 	"RAM_PATCH": {

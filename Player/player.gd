@@ -95,9 +95,7 @@ var _knockback_gravity_current: float = 0.0
 const GRAVITY: float = 20.0
 
 # Perk-based inputs presence
-var has_fly_down: bool = false
 var has_dash: bool = false
-var has_swap: bool = false
 
 # Dash (perk)
 var dash_cd: float = 0.0
@@ -182,9 +180,7 @@ func _ready() -> void:
 	_cam_base_pos = camera.position
 	_camera_base_rot = camera.rotation
 
-	has_fly_down = InputMap.has_action("fly_down")
 	has_dash = InputMap.has_action("dash")
-	has_swap = InputMap.has_action("swap")
 
 	Signals.player_hit.connect(_on_player_hit)
 	Signals.enemy_killed.connect(_on_enemy_killed)
@@ -252,8 +248,6 @@ func _unhandled_input(event: InputEvent) -> void:
 				_update_hand_mode_visual()
 				_play_hand_recovery_enter_anim()
 				Signals.request_recovery_start.emit()
-			elif has_swap:
-				Signals.request_swap.emit()
 
 		if event.is_action_released("swap"):
 			if is_recovering_null:
@@ -312,8 +306,6 @@ func _unhandled_input(event: InputEvent) -> void:
 			_update_hand_mode_visual()
 			_play_hand_recovery_enter_anim()
 			Signals.request_recovery_start.emit()
-		elif has_swap:
-			Signals.request_swap.emit()
 
 	if event.is_action_released("swap"):
 		if is_recovering_null:
@@ -478,24 +470,13 @@ func _physics_normal(delta: float) -> void:
 		velocity.x += dash_vel.x
 		velocity.z += dash_vel.z
 
-	var flying: bool = Run.flight_time_left > 0.0
-	if flying:
-		Run.flight_time_left = maxf(Run.flight_time_left - delta, 0.0)
-
-		var vy: float = 0.0
-		if Input.is_action_pressed("jump"):
-			vy = Run.jump_velocity
-		elif has_fly_down and Input.is_action_pressed("fly_down"):
-			vy = -Run.jump_velocity
-		velocity.y = vy
-	else:
-		if is_on_floor():
-			if Run.jump_enabled and Input.is_action_just_pressed("jump"):
-				velocity.y = Run.jump_velocity
-			else:
-				velocity.y = -1.0
+	if is_on_floor():
+		if Run.jump_enabled and Input.is_action_just_pressed("jump"):
+			velocity.y = Run.jump_velocity
 		else:
-			velocity.y -= GRAVITY * delta
+			velocity.y = -1.0
+	else:
+		velocity.y -= GRAVITY * delta
 
 	var push_decay: float = external_push_decay_ground if is_on_floor() else external_push_decay_air
 	_external_push = _external_push.move_toward(Vector3.ZERO, push_decay * delta)

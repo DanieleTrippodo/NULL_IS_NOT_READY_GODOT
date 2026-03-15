@@ -50,17 +50,11 @@ func get_perk_preview_lines(id: String) -> Array[String]:
 		"BOUNCE_STACK":
 			lines.append("Bounces: %d" % min(null_bounces + 1, max_null_bounces))
 
-		"JUMP_UNLOCK":
-			lines.append("Jump: UNLOCKED")
-
 		"JUMP_POWER":
 			lines.append("Jump velocity: %.1f" % min(jump_velocity + 2.0, 12.0))
 
 		"LONG_JUMP":
 			lines.append("Air speed: %.2fx" % min(air_speed_mult + 0.5, 2.0))
-
-		"FLIGHT_BURST":
-			lines.append("Flight time: 5.0s")
 
 		"MAGNET_PICKUP":
 			lines.append("Magnet: ON")
@@ -96,31 +90,33 @@ func get_perk_preview_lines(id: String) -> Array[String]:
 			lines.append("Charge time: %.1fs" % charge_shot_seconds)
 			lines.append("Charge scale: %.2fx" % charge_shot_scale)
 
-		"CHARGE_PLUS":
-			if charge_shot_enabled:
-				if charge_shot_seconds > 2.0:
-					lines.append("Charge time: %.1fs" % max(charge_shot_seconds - 0.5, 2.0))
-				else:
-					lines.append("Charge scale: %.2fx" % min(charge_shot_scale + 0.25, 2.25))
-			else:
-				lines.append("Requires: CHARGE SHOT")
-
 		"PULL_TO_HAND":
 			lines.append("Pull: ON")
 			lines.append("Channel: %.1fs" % pull_channel_seconds)
 			lines.append("Max distance: %.0f" % pull_max_distance)
 
-		"SWAP_WITH_NULL":
-			lines.append("Swap: ON")
-			lines.append("Cooldown: %.0fs" % swap_cooldown)
-			lines.append("Max distance: %.0f" % swap_max_distance)
-
-		"DROP_SHOCKWAVE":
-			lines.append("Shockwave: ON")
-			lines.append("Radius: %.0f" % shockwave_radius)
-
 		"SLOWMO_RECOVERY":
 			lines.append("Slowmo scale: %.2f" % slowmo_scale)
+
+		"IMPACT_PULSE":
+			lines.append("Pulse: ON")
+			lines.append("Radius: %.1f" % impact_pulse_radius)
+
+		"THREAD_LOCK":
+			lines.append("Thread: ON")
+			lines.append("Dropped NULL link visible")
+
+		"NULL_FREEZE":
+			lines.append("Pickup freeze: ON")
+			lines.append("Radius: %.1f" % null_freeze_radius)
+
+		"OVERCLOCK":
+			lines.append("Recovery pull: +%d%%" % int(round((overclock_pull_speed_mult - 1.0) * 100.0)))
+			lines.append("Accel time: %.2fx" % overclock_accel_time_mult)
+
+		"GROUND_ECHO":
+			lines.append("Ping: ON")
+			lines.append("Radius: %.1f" % ground_echo_radius)
 
 		"RAM_PATCH":
 			lines.append("R.A.M.: %dx%d -> %dx%d" % [
@@ -159,7 +155,6 @@ var survival_mode: bool = false
 var null_bounces: int = 0
 var jump_enabled: bool = true
 var jump_velocity: float = 8.0
-var flight_time_left: float = 0.0
 
 var pickup_magnet: bool = false
 var pickup_radius: float = 2.0
@@ -184,20 +179,30 @@ var pull_max_distance: float = 14.0
 var pull_cancel_move_dist: float = 0.75
 var pull_move_mult: float = 0.35
 
-var swap_with_null: bool = false
-var swap_cooldown: float = 6.0
-var swap_cd_left: float = 0.0
-var swap_max_distance: float = 35.0
-
 var panic_boost: bool = false
 var panic_speed_mult: float = 1.2
 
-var drop_shockwave: bool = false
-var shockwave_radius: float = 6.0
-var shockwave_strength: float = 10.0
-
 var slowmo_recovery: bool = false
 var slowmo_scale: float = 0.85
+
+var impact_pulse: bool = false
+var impact_pulse_radius: float = 4.5
+var impact_pulse_strength: float = 6.0
+var impact_pulse_stun: float = 0.28
+
+var thread_lock: bool = false
+
+var null_freeze: bool = false
+var null_freeze_radius: float = 4.0
+var null_freeze_stun: float = 0.35
+
+var overclock: bool = false
+var overclock_pull_speed_mult: float = 1.45
+var overclock_accel_time_mult: float = 0.55
+
+var ground_echo: bool = false
+var ground_echo_radius: float = 7.0
+var ground_echo_flash_time: float = 0.18
 
 # Shot modifiers
 var null_pierce: int = 0
@@ -224,7 +229,6 @@ var perk_pool: Array[String] = [
 
 	"JUMP_POWER",
 	"LONG_JUMP",
-	"FLIGHT_BURST",
 
 	"MAGNET_PICKUP",
 	"SPRINT",
@@ -240,12 +244,14 @@ var perk_pool: Array[String] = [
 	"DASH_UNLOCK",
 
 	"CHARGE_SHOT",
-	"CHARGE_PLUS",
 
 	"PULL_TO_HAND",
-	"SWAP_WITH_NULL",
-	"DROP_SHOCKWAVE",
 	"SLOWMO_RECOVERY",
+	"IMPACT_PULSE",
+	"THREAD_LOCK",
+	"NULL_FREEZE",
+	"OVERCLOCK",
+	"GROUND_ECHO",
 
 	"RAM_PATCH"
 ]
@@ -333,7 +339,6 @@ func reset() -> void:
 	null_ready = true
 	null_dropped = false
 
-	swap_cd_left = 0.0
 
 	last_perk_title = ""
 	last_perk_desc = ""
@@ -352,7 +357,6 @@ func _reset_runtime_stats_to_base() -> void:
 
 	jump_enabled = true
 	jump_velocity = 8.0
-	flight_time_left = 0.0
 
 	pickup_magnet = false
 	pickup_radius = 2.0
@@ -375,19 +379,31 @@ func _reset_runtime_stats_to_base() -> void:
 	pull_cancel_move_dist = 0.75
 	pull_move_mult = 0.35
 
-	swap_with_null = false
-	swap_cooldown = 6.0
-	swap_max_distance = 35.0
 
 	panic_boost = false
 	panic_speed_mult = 1.2
 
-	drop_shockwave = false
-	shockwave_radius = 6.0
-	shockwave_strength = 10.0
-
 	slowmo_recovery = false
 	slowmo_scale = 0.85
+
+	impact_pulse = false
+	impact_pulse_radius = 4.5
+	impact_pulse_strength = 6.0
+	impact_pulse_stun = 0.28
+
+	thread_lock = false
+
+	null_freeze = false
+	null_freeze_radius = 4.0
+	null_freeze_stun = 0.35
+
+	overclock = false
+	overclock_pull_speed_mult = 1.45
+	overclock_accel_time_mult = 0.55
+
+	ground_echo = false
+	ground_echo_radius = 7.0
+	ground_echo_flash_time = 0.18
 
 	null_pierce = 0
 	homing_nudge = false
@@ -772,9 +788,6 @@ func rotate_equipped_update(instance_id: int) -> bool:
 # REBUILD ACTIVE EFFECTS
 # ------------------------------------------------------------
 func rebuild_equipped_updates_effects() -> void:
-	var prev_flight_time: float = flight_time_left
-	var prev_swap_cd: float = swap_cd_left
-
 	_reset_runtime_stats_to_base()
 	_refresh_ram_dimensions()
 
@@ -782,9 +795,6 @@ func rebuild_equipped_updates_effects() -> void:
 		if bool(item.get("equipped", false)):
 			var update_id: String = str(item.get("update_id", ""))
 			_apply_equipped_update_effect(update_id)
-
-	flight_time_left = max(flight_time_left, prev_flight_time)
-	swap_cd_left = prev_swap_cd
 
 
 func _apply_equipped_update_effect(id: String) -> void:
@@ -795,17 +805,11 @@ func _apply_equipped_update_effect(id: String) -> void:
 		"BOUNCE_STACK":
 			null_bounces = min(null_bounces + 1, max_null_bounces)
 
-		"JUMP_UNLOCK":
-			jump_enabled = true
-
 		"JUMP_POWER":
 			jump_velocity = min(jump_velocity + 2.0, 12.0)
 
 		"LONG_JUMP":
 			air_speed_mult = min(air_speed_mult + 0.5, 2.0)
-
-		"FLIGHT_BURST":
-			flight_time_left = max(flight_time_left, 0.0)
 
 		"MAGNET_PICKUP":
 			pickup_magnet = true
@@ -837,27 +841,28 @@ func _apply_equipped_update_effect(id: String) -> void:
 		"CHARGE_SHOT":
 			charge_shot_enabled = true
 
-		"CHARGE_PLUS":
-			if charge_shot_enabled:
-				if charge_shot_seconds > 2.0:
-					charge_shot_seconds = max(charge_shot_seconds - 0.5, 2.0)
-				else:
-					charge_shot_scale = min(charge_shot_scale + 0.25, 2.25)
-
 		"PULL_TO_HAND":
 			pull_to_hand = true
-
-		"SWAP_WITH_NULL":
-			swap_with_null = true
-
-		"DROP_SHOCKWAVE":
-			drop_shockwave = true
 
 		"SLOWMO_RECOVERY":
 			slowmo_recovery = true
 
+		"IMPACT_PULSE":
+			impact_pulse = true
+
+		"THREAD_LOCK":
+			thread_lock = true
+
+		"NULL_FREEZE":
+			null_freeze = true
+
+		"OVERCLOCK":
+			overclock = true
+
+		"GROUND_ECHO":
+			ground_echo = true
+
 		"RAM_PATCH":
-			# R.A.M. size is handled by _refresh_ram_dimensions()
 			pass
 
 
@@ -903,11 +908,6 @@ func _apply(id: String) -> void:
 			air_speed_mult = min(air_speed_mult + 0.5, 2.0)
 			last_perk_title = "LONG JUMP"
 			last_perk_desc = "Improves air control and aerial speed."
-
-		"FLIGHT_BURST":
-			flight_time_left = 5.0
-			last_perk_title = "FLIGHT (5s)"
-			last_perk_desc = "Allows flight for 5 seconds."
 
 		"MAGNET_PICKUP":
 			pickup_magnet = true
@@ -959,34 +959,40 @@ func _apply(id: String) -> void:
 			last_perk_title = "CHARGE SHOT"
 			last_perk_desc = "Hold the shot to fire a larger charged NULL."
 
-		"CHARGE_PLUS":
-			if charge_shot_seconds > 2.0:
-				charge_shot_seconds = max(charge_shot_seconds - 0.5, 2.0)
-				last_perk_desc = "Charge time reduced by 0.5s."
-			else:
-				charge_shot_scale = min(charge_shot_scale + 0.25, 2.25)
-				last_perk_desc = "Charged shot scale increased."
-			last_perk_title = "CHARGE+"
-
 		"PULL_TO_HAND":
 			pull_to_hand = true
 			last_perk_title = "PULL TO HAND"
 			last_perk_desc = "Hold interact to pull NULL back to your hand."
 
-		"SWAP_WITH_NULL":
-			swap_with_null = true
-			last_perk_title = "SWAP"
-			last_perk_desc = "Swap positions with a dropped NULL."
-
-		"DROP_SHOCKWAVE":
-			drop_shockwave = true
-			last_perk_title = "DROP SHOCKWAVE"
-			last_perk_desc = "Dropped NULL emits a shockwave on miss."
-
 		"SLOWMO_RECOVERY":
 			slowmo_recovery = true
 			last_perk_title = "SLOWMO RECOVERY"
 			last_perk_desc = "Slows time while NULL is on the ground."
+
+		"IMPACT_PULSE":
+			impact_pulse = true
+			last_perk_title = "IMPACT PULSE"
+			last_perk_desc = "A missed NULL emits a short-range pulse that pushes back nearby enemies."
+
+		"THREAD_LOCK":
+			thread_lock = true
+			last_perk_title = "THREAD LOCK"
+			last_perk_desc = "Draws a live thread between you and a dropped NULL."
+
+		"NULL_FREEZE":
+			null_freeze = true
+			last_perk_title = "NULL FREEZE"
+			last_perk_desc = "Recovering NULL briefly freezes nearby enemies."
+
+		"OVERCLOCK":
+			overclock = true
+			last_perk_title = "OVERCLOCK"
+			last_perk_desc = "Remote recovery accelerates faster and pulls harder."
+
+		"GROUND_ECHO":
+			ground_echo = true
+			last_perk_title = "GROUND ECHO"
+			last_perk_desc = "A dropped NULL emits a scan pulse that pings nearby threats."
 
 		"RAM_PATCH":
 			last_perk_title = "RAM PATCH"

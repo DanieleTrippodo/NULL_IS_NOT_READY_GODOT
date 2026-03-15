@@ -448,21 +448,20 @@ func _draw_chip_symbol(update_id: String, rect: Rect2, is_preview: bool) -> void
 			grid_control.draw_line(Vector2(cx + 7.0, cy + 3.0), Vector2(cx + 1.0, cy + 3.0), col, 2.0)
 			grid_control.draw_line(Vector2(cx + 1.0, cy + 3.0), Vector2(cx + 5.0, y1), col, 2.0)
 
-		"SWAP_WITH_NULL":
-			grid_control.draw_line(Vector2(x1, cy), Vector2(x2, cy), col, 2.0)
-			grid_control.draw_line(Vector2(x1 + 8.0, cy - 6.0), Vector2(x1, cy), col, 2.0)
-			grid_control.draw_line(Vector2(x1 + 8.0, cy + 6.0), Vector2(x1, cy), col, 2.0)
-			grid_control.draw_line(Vector2(x2 - 8.0, cy - 6.0), Vector2(x2, cy), col, 2.0)
-			grid_control.draw_line(Vector2(x2 - 8.0, cy + 6.0), Vector2(x2, cy), col, 2.0)
-
 		"PULL_TO_HAND":
 			grid_control.draw_line(Vector2(x1, cy), Vector2(x2, cy), col, 2.0)
 			grid_control.draw_line(Vector2(x1 + 8.0, cy - 6.0), Vector2(x1, cy), col, 2.0)
 			grid_control.draw_line(Vector2(x1 + 8.0, cy + 6.0), Vector2(x1, cy), col, 2.0)
 
-		"DROP_SHOCKWAVE":
-			grid_control.draw_circle(Vector2(cx, cy), 5.0, col)
-			grid_control.draw_circle(Vector2(cx, cy), 10.0, Color(col.r, col.g, col.b, col.a * 0.5), false, 2.0)
+		"IMPACT_PULSE":
+			grid_control.draw_circle(Vector2(cx, cy), 4.0, col)
+			grid_control.draw_circle(Vector2(cx, cy), 9.0, Color(col.r, col.g, col.b, col.a * 0.6), false, 2.0)
+			grid_control.draw_circle(Vector2(cx, cy), 14.0, Color(col.r, col.g, col.b, col.a * 0.35), false, 2.0)
+
+		"THREAD_LOCK":
+			grid_control.draw_line(Vector2(x1, cy), Vector2(x2, cy), col, 2.0)
+			grid_control.draw_circle(Vector2(x1 + 4.0, cy), 2.0, col)
+			grid_control.draw_circle(Vector2(x2 - 4.0, cy), 2.0, col)
 
 		"HOMING_NUDGE":
 			grid_control.draw_line(Vector2(x1, cy), Vector2(x2 - 6.0, cy), col, 2.0)
@@ -477,14 +476,25 @@ func _draw_chip_symbol(update_id: String, rect: Rect2, is_preview: bool) -> void
 			var inner := Rect2(rect.position.x + 14.0, rect.position.y + 14.0, rect.size.x - 28.0, rect.size.y - 28.0)
 			grid_control.draw_rect(inner, col, false, 2.0)
 
+		"NULL_FREEZE":
+			grid_control.draw_line(Vector2(x1 + 4.0, y1 + 2.0), Vector2(cx, cy), col, 2.0)
+			grid_control.draw_line(Vector2(cx, cy), Vector2(x2 - 4.0, y1 + 2.0), col, 2.0)
+			grid_control.draw_line(Vector2(cx, cy), Vector2(cx, y2), col, 2.0)
+
+		"OVERCLOCK":
+			grid_control.draw_line(Vector2(cx, y1), Vector2(cx - 4.0, cy), col, 2.0)
+			grid_control.draw_line(Vector2(cx - 4.0, cy), Vector2(cx + 1.0, cy), col, 2.0)
+			grid_control.draw_line(Vector2(cx + 1.0, cy), Vector2(cx - 3.0, y2), col, 2.0)
+			grid_control.draw_line(Vector2(cx - 3.0, y2), Vector2(cx + 7.0, cy + 3.0), col, 2.0)
+
+		"GROUND_ECHO":
+			grid_control.draw_arc(Vector2(cx, cy), 6.0, 0.0, TAU, 20, col, 2.0)
+			grid_control.draw_arc(Vector2(cx, cy), 12.0, 0.0, PI, 12, Color(col.r, col.g, col.b, col.a * 0.5), 2.0)
+
 		"DASH_UNLOCK":
 			grid_control.draw_line(Vector2(x1, cy), Vector2(x2 - 4.0, cy), col, 2.0)
 			grid_control.draw_line(Vector2(cx - 2.0, y1), Vector2(x2 - 4.0, cy), col, 2.0)
 			grid_control.draw_line(Vector2(cx - 2.0, y2), Vector2(x2 - 4.0, cy), col, 2.0)
-
-		"FLIGHT_BURST":
-			grid_control.draw_line(Vector2(cx, y1), Vector2(x1, y2), col, 2.0)
-			grid_control.draw_line(Vector2(cx, y1), Vector2(x2, y2), col, 2.0)
 
 		"LONG_JUMP":
 			grid_control.draw_line(Vector2(x1, y2), Vector2(cx, y1), col, 2.0)
@@ -499,11 +509,6 @@ func _draw_chip_symbol(update_id: String, rect: Rect2, is_preview: bool) -> void
 			grid_control.draw_line(Vector2(x1, y2), Vector2(cx - 2.0, cy + 2.0), col, 2.0)
 			grid_control.draw_line(Vector2(cx - 2.0, cy + 2.0), Vector2(cx + 2.0, cy - 2.0), col, 2.0)
 			grid_control.draw_line(Vector2(cx + 2.0, cy - 2.0), Vector2(x2, y1), col, 2.0)
-
-		"CHARGE_PLUS":
-			grid_control.draw_line(Vector2(cx, y1), Vector2(cx, y2), col, 2.0)
-			grid_control.draw_line(Vector2(x1, cy), Vector2(x2, cy), col, 2.0)
-			grid_control.draw_circle(Vector2(cx, cy), 3.0, col)
 
 		"NULL_BOUNCE":
 			grid_control.draw_circle(Vector2(cx, cy), 8.0, col, false, 2.0)
