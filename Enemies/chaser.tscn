@@ -75,4 +75,4 @@ billboard = 2
 sprite_frames = SubResource("SpriteFrames_vwusi")
 animation = &"walk"
 autoplay = "walk"
-frame_progress = 0.31341693
+frame_progress = 0.33718735

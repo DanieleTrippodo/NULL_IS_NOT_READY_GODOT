@@ -134,6 +134,8 @@ visible = false
 texture_filter = 0
 texture = ExtResource("20_n471f")
 
+[node name="ShootSfx" type="AudioStreamPlayer" parent="Head/Camera/ViewModel"]
+
 [node name="ShootRay" type="RayCast3D" parent="Head" groups=["player"]]
 target_position = Vector3(0, 0, -100)
 

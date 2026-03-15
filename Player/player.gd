@@ -54,6 +54,7 @@ enum PState { NORMAL, KNOCKBACK, DOWNED }
 var _push_cd_left: float = 0.0
 
 @onready var push_sfx: AudioStreamPlayer3D = $PushSfx
+@onready var shoot_sfx: AudioStreamPlayer = $Head/Camera/ViewModel/ShootSfx
 
 @export_group("Recovery Hand Anim")
 @export var hand_recovery_enter_offset_y: float = -0.22
@@ -139,6 +140,12 @@ const DASH_STRENGTH: float = 14.0
 @export_range(0.0, 0.1, 0.0005) var body_walk_amp_y: float = 0.012
 @export_range(0.0, 10.0, 0.1) var body_walk_rot_deg: float = 1.2
 
+@export_group("Camera Tilt")
+@export var camera_tilt_enabled: bool = true
+@export_range(0.0, 10.0, 0.1) var camera_tilt_side_deg: float = 0.8
+@export_range(0.0, 10.0, 0.1) var camera_tilt_forward_deg: float = 0.5
+@export_range(0.0, 20.0, 0.1) var camera_tilt_lerp_speed: float = 6.5
+
 var _hand_base_pos: Vector3 = Vector3.ZERO
 var _hand_base_rot: Vector3 = Vector3.ZERO
 var _hand_tween: Tween
@@ -156,6 +163,7 @@ var _body_walk_t: float = 0.0
 
 var _shoot_ring_base_scale: Vector3 = Vector3.ONE
 var _shoot_ring_tween: Tween
+var _camera_base_rot: Vector3 = Vector3.ZERO
 
 func _ready() -> void:
 	_camera_base_y = $Head/Camera.position.y
@@ -172,6 +180,7 @@ func _ready() -> void:
 
 	_cam_normal_pos = camera.position
 	_cam_base_pos = camera.position
+	_camera_base_rot = camera.rotation
 
 	has_fly_down = InputMap.has_action("fly_down")
 	has_dash = InputMap.has_action("dash")
@@ -377,6 +386,7 @@ func _process(delta: float) -> void:
 
 	_update_hand_effects(delta)
 	_update_body_effects(delta)
+	_update_camera_tilt(delta)
 
 func _physics_process(delta: float) -> void:
 	if state == PState.KNOCKBACK:
@@ -840,7 +850,40 @@ func _update_body_effects(delta: float) -> void:
 	body_sprite.rotation = body_sprite.rotation.lerp(target_rot, delta * 6.0)
 	body_sprite.scale = body_sprite.scale.lerp(target_scale, delta * 6.0)
 
+func _update_camera_tilt(delta: float) -> void:
+	if not camera_tilt_enabled:
+		if is_instance_valid(camera):
+			camera.rotation = camera.rotation.lerp(_camera_base_rot, delta * camera_tilt_lerp_speed)
+		return
+
+	if not is_instance_valid(camera):
+		return
+
+	var input_x: float = 0.0
+	var input_z: float = 0.0
+
+	if state == PState.NORMAL and not input_locked and not is_recovering_null:
+		if Input.is_action_pressed("move_left"):
+			input_x -= 1.0
+		if Input.is_action_pressed("move_right"):
+			input_x += 1.0
+		if Input.is_action_pressed("move_forward"):
+			input_z -= 1.0
+		if Input.is_action_pressed("move_back"):
+			input_z += 1.0
+
+	var target_rot: Vector3 = _camera_base_rot
+	target_rot.z += deg_to_rad(-input_x * camera_tilt_side_deg)
+	target_rot.x += deg_to_rad(-input_z * camera_tilt_forward_deg)
+
+	camera.rotation = camera.rotation.lerp(target_rot, delta * camera_tilt_lerp_speed)
+
 func _play_hand_shoot_anim() -> void:
+	if is_instance_valid(shoot_sfx) and shoot_sfx.stream != null:
+		if shoot_sfx.playing:
+			shoot_sfx.stop()
+		shoot_sfx.play()
+
 	if not is_instance_valid(hand):
 		return
 
