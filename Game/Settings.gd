@@ -13,6 +13,7 @@ const WINDOWED_RESOLUTIONS: Array[Vector2i] = [
 var master_volume: int = 80
 var fullscreen: bool = true
 var mouse_sens: float = 0.002
+var camera_tilt_enabled: bool = true
 var resolution_index: int = DEFAULT_WINDOWED_INDEX
 
 func _ready() -> void:
@@ -30,6 +31,7 @@ func load_settings() -> void:
 	master_volume = int(config.get_value("audio", "master_volume", 80))
 	fullscreen = bool(config.get_value("video", "fullscreen", true))
 	mouse_sens = float(config.get_value("input", "mouse_sens", 0.002))
+	camera_tilt_enabled = bool(config.get_value("input", "camera_tilt_enabled", true))
 	resolution_index = int(config.get_value("video", "resolution_index", DEFAULT_WINDOWED_INDEX))
 
 	master_volume = clamp(master_volume, 0, 100)
@@ -43,6 +45,7 @@ func save_settings() -> void:
 	config.set_value("video", "fullscreen", fullscreen)
 	config.set_value("video", "resolution_index", resolution_index)
 	config.set_value("input", "mouse_sens", mouse_sens)
+	config.set_value("input", "camera_tilt_enabled", camera_tilt_enabled)
 
 	config.save(SETTINGS_PATH)
 
@@ -62,6 +65,10 @@ func set_fullscreen(value: bool) -> void:
 
 func set_mouse_sens(value: float) -> void:
 	mouse_sens = clamp(value, 0.0005, 0.01)
+	save_settings()
+
+func set_camera_tilt_enabled(value: bool) -> void:
+	camera_tilt_enabled = value
 	save_settings()
 
 func set_resolution_index(value: int) -> void:

@@ -1,0 +1,138 @@
+[gd_scene load_steps=10 format=3 uid="uid://7amqyp7gk6t4"]
+
+[ext_resource type="Script" uid="uid://bnyo3nlk88hp8" path="res://Levels/arena.gd" id="1_pgctg"]
+[ext_resource type="PackedScene" uid="uid://bma8hhlddfbkd" path="res://Interactables/wave_start_button.tscn" id="2_i6ujy"]
+[ext_resource type="Texture2D" uid="uid://b0yc6digipfue" path="res://Levels/Floor.jpg" id="3_l5gn6"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_0l0dn"]
+size = Vector3(61.115, 80, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0l0dn"]
+albedo_texture = ExtResource("3_l5gn6")
+uv1_scale = Vector3(64, 64, 64)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_dfuk3"]
+size = Vector3(24, 1, 24)
+
+[sub_resource type="BoxMesh" id="BoxMesh_avk14"]
+size = Vector3(24, 1, 24)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_mnyru"]
+render_priority = 1
+shading_mode = 0
+diffuse_mode = 3
+specular_mode = 1
+albedo_texture = ExtResource("3_l5gn6")
+uv1_scale = Vector3(64, 64, 64)
+stencil_flags = 2
+stencil_color = Color(1, 1, 1, 1)
+stencil_outline_thickness = 0.057
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pgctg"]
+diffuse_mode = 3
+specular_mode = 1
+albedo_texture = ExtResource("3_l5gn6")
+uv1_scale = Vector3(12.035, 12.035, 12.035)
+uv1_offset = Vector3(-0.015, 0, 0)
+
+[node name="Arena4" type="Node3D"]
+script = ExtResource("1_pgctg")
+
+[node name="WaveStartButton" parent="." instance=ExtResource("2_i6ujy")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.46497726, -22.753704)
+
+[node name="SpawnPoints" type="Node3D" parent="."]
+
+[node name="Spawn_1" type="Marker3D" parent="SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.1608553, 0, -16.980114)
+
+[node name="Spawn_2" type="Marker3D" parent="SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.785979, 0, 14.6041355)
+
+[node name="Spawn_3" type="Marker3D" parent="SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.025758, 0, -0.17236233)
+
+[node name="PlayerSpawn" type="Marker3D" parent="SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.556663, 0, -0.13894463)
+
+[node name="TerminalSpawn" type="Marker3D" parent="SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.4671574, 0.11398608, -0.2285142)
+
+[node name="Map_Geometry" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 17.689478, 0)
+
+[node name="Wall_1" type="CSGMesh3D" parent="Map_Geometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -31.073496, -30.829939)
+use_collision = true
+mesh = SubResource("BoxMesh_0l0dn")
+material = SubResource("StandardMaterial3D_0l0dn")
+
+[node name="Wall_2" type="CSGMesh3D" parent="Map_Geometry"]
+transform = Transform3D(-4.3711385e-08, 0, -0.99999994, 0, 1, 0, 0.99999994, 0, -4.3711385e-08, 30.829937, -31.073496, 1.3476193e-06)
+use_collision = true
+mesh = SubResource("BoxMesh_0l0dn")
+material = SubResource("StandardMaterial3D_0l0dn")
+
+[node name="Wall_3" type="CSGMesh3D" parent="Map_Geometry"]
+transform = Transform3D(-0.9999999, 0, 8.742277e-08, 0, 1, 0, -8.742277e-08, 0, -0.9999999, -2.6952387e-06, -31.073496, 30.829935)
+use_collision = true
+mesh = SubResource("BoxMesh_0l0dn")
+material = SubResource("StandardMaterial3D_0l0dn")
+
+[node name="Wall_4" type="CSGMesh3D" parent="Map_Geometry"]
+transform = Transform3D(-4.3711385e-08, 0, 0.9999999, 0, 1, 0, -0.9999999, 0, -4.3711385e-08, -30.829935, -31.073496, 1.3476193e-06)
+use_collision = true
+mesh = SubResource("BoxMesh_0l0dn")
+material = SubResource("StandardMaterial3D_0l0dn")
+
+[node name="Roof" type="StaticBody3D" parent="Map_Geometry"]
+transform = Transform3D(2.545, 0, 0, 0, 2.545, 0, 0, 0, 2.545, 0, -17.687, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Map_Geometry/Roof"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("BoxShape3D_dfuk3")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Map_Geometry/Roof"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+mesh = SubResource("BoxMesh_avk14")
+surface_material_override/0 = SubResource("StandardMaterial3D_mnyru")
+
+[node name="Roof2" type="StaticBody3D" parent="Map_Geometry"]
+transform = Transform3D(2.545, 0, 0, 0, 2.545, 0, 0, 0, 2.545, 0, 0, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Map_Geometry/Roof2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("BoxShape3D_dfuk3")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Map_Geometry/Roof2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+mesh = SubResource("BoxMesh_avk14")
+surface_material_override/0 = SubResource("StandardMaterial3D_mnyru")
+
+[node name="MAP" type="CSGCombiner3D" parent="."]
+use_collision = true
+
+[node name="CSGSphere3D2" type="CSGSphere3D" parent="MAP"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.0134206, 0, -7.3744345)
+radius = 3.687492
+material = SubResource("StandardMaterial3D_pgctg")
+
+[node name="CSGSphere3D3" type="CSGSphere3D" parent="MAP"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.983778, 0, 4.12438)
+radius = 5.6727576
+material = SubResource("StandardMaterial3D_pgctg")
+
+[node name="CSGSphere3D4" type="CSGSphere3D" parent="MAP"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.80164, 0, 20.699572)
+radius = 5.6727576
+material = SubResource("StandardMaterial3D_pgctg")
+
+[node name="CSGSphere3D5" type="CSGSphere3D" parent="MAP"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -29.581612, 0, -30.383436)
+radius = 19.726171
+material = SubResource("StandardMaterial3D_pgctg")
+
+[node name="CSGSphere3D6" type="CSGSphere3D" parent="MAP"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.623692, -0.39511442, 7.377842)
+radius = 3.6831224
+material = SubResource("StandardMaterial3D_pgctg")

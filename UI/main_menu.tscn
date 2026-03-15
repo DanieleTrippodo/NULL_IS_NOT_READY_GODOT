@@ -213,6 +213,11 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 42
 text = "MOUSE SENS: 0.0020"
 
+[node name="CameraTiltValue" type="Label" parent="UI/SettingsPanel/CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 42
+text = "CAMERA TILT: ON"
+
 [node name="BackValue" type="Label" parent="UI/SettingsPanel/CenterContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 48

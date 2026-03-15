@@ -10,6 +10,7 @@ extends CharacterBody3D
 @onready var hand_recovery: Sprite3D = $Head/Camera/ViewModel/HandRecovery
 @onready var hand: Sprite3D = $Head/Camera/ViewModel/Hand
 @onready var shoot_ring: Sprite3D = $Head/Camera/ViewModel/ShootRing
+@onready var shoot_sfx: AudioStreamPlayer = $Head/Camera/ViewModel/ShootSfx
 
 enum PState { NORMAL, KNOCKBACK, DOWNED }
 
@@ -54,7 +55,6 @@ enum PState { NORMAL, KNOCKBACK, DOWNED }
 var _push_cd_left: float = 0.0
 
 @onready var push_sfx: AudioStreamPlayer3D = $PushSfx
-@onready var shoot_sfx: AudioStreamPlayer = $Head/Camera/ViewModel/ShootSfx
 
 @export_group("Recovery Hand Anim")
 @export var hand_recovery_enter_offset_y: float = -0.22
@@ -142,9 +142,9 @@ const DASH_STRENGTH: float = 14.0
 
 @export_group("Camera Tilt")
 @export var camera_tilt_enabled: bool = true
-@export_range(0.0, 10.0, 0.1) var camera_tilt_side_deg: float = 0.8
-@export_range(0.0, 10.0, 0.1) var camera_tilt_forward_deg: float = 0.5
-@export_range(0.0, 20.0, 0.1) var camera_tilt_lerp_speed: float = 6.5
+@export_range(0.0, 10.0, 0.1) var camera_tilt_side_deg: float = 2.2
+@export_range(0.0, 10.0, 0.1) var camera_tilt_forward_deg: float = 1.0
+@export_range(0.0, 20.0, 0.1) var camera_tilt_lerp_speed: float = 8.0
 
 var _hand_base_pos: Vector3 = Vector3.ZERO
 var _hand_base_rot: Vector3 = Vector3.ZERO
@@ -270,6 +270,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				var dir_d: Vector3 = -camera.global_transform.basis.z
 				_play_hand_shoot_anim()
 				_play_shoot_ring_fx()
+				_play_shoot_sfx()
 				Signals.request_shoot.emit(origin_d, dir_d, 1.0)
 
 		return
@@ -290,6 +291,7 @@ func _unhandled_input(event: InputEvent) -> void:
 					size_mult = Run.charge_shot_scale
 				_play_hand_shoot_anim()
 				_play_shoot_ring_fx()
+				_play_shoot_sfx()
 				Signals.request_shoot.emit(origin2, dir2, size_mult)
 	else:
 		if event.is_action_pressed("shoot"):
@@ -297,6 +299,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			var dir3: Vector3 = -camera.global_transform.basis.z
 			_play_hand_shoot_anim()
 			_play_shoot_ring_fx()
+			_play_shoot_sfx()
 			Signals.request_shoot.emit(origin3, dir3, 1.0)
 
 	if event.is_action_pressed("interact"):
@@ -851,7 +854,9 @@ func _update_body_effects(delta: float) -> void:
 	body_sprite.scale = body_sprite.scale.lerp(target_scale, delta * 6.0)
 
 func _update_camera_tilt(delta: float) -> void:
-	if not camera_tilt_enabled:
+	var tilt_enabled: bool = camera_tilt_enabled and Settings.camera_tilt_enabled
+
+	if not tilt_enabled:
 		if is_instance_valid(camera):
 			camera.rotation = camera.rotation.lerp(_camera_base_rot, delta * camera_tilt_lerp_speed)
 		return
@@ -878,12 +883,14 @@ func _update_camera_tilt(delta: float) -> void:
 
 	camera.rotation = camera.rotation.lerp(target_rot, delta * camera_tilt_lerp_speed)
 
-func _play_hand_shoot_anim() -> void:
-	if is_instance_valid(shoot_sfx) and shoot_sfx.stream != null:
-		if shoot_sfx.playing:
-			shoot_sfx.stop()
-		shoot_sfx.play()
+func _play_shoot_sfx() -> void:
+	if not is_instance_valid(shoot_sfx):
+		return
 
+	shoot_sfx.stop()
+	shoot_sfx.play()
+
+func _play_hand_shoot_anim() -> void:
 	if not is_instance_valid(hand):
 		return
 

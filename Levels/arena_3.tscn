@@ -1,0 +1,169 @@
+[gd_scene load_steps=10 format=3 uid="uid://cgdx05tgter6r"]
+
+[ext_resource type="Script" uid="uid://bnyo3nlk88hp8" path="res://Levels/arena.gd" id="1_5w302"]
+[ext_resource type="PackedScene" uid="uid://bma8hhlddfbkd" path="res://Interactables/wave_start_button.tscn" id="2_6r8it"]
+[ext_resource type="Texture2D" uid="uid://b0yc6digipfue" path="res://Levels/Floor.jpg" id="3_i1g57"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_0l0dn"]
+size = Vector3(61.115, 80, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0l0dn"]
+albedo_texture = ExtResource("3_i1g57")
+uv1_scale = Vector3(64, 64, 64)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_dfuk3"]
+size = Vector3(24, 1, 24)
+
+[sub_resource type="BoxMesh" id="BoxMesh_avk14"]
+size = Vector3(24, 1, 24)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_mnyru"]
+render_priority = 1
+shading_mode = 0
+diffuse_mode = 3
+specular_mode = 1
+albedo_texture = ExtResource("3_i1g57")
+uv1_scale = Vector3(64, 64, 64)
+stencil_flags = 2
+stencil_color = Color(1, 1, 1, 1)
+stencil_outline_thickness = 0.057
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5w302"]
+diffuse_mode = 3
+specular_mode = 1
+albedo_texture = ExtResource("3_i1g57")
+uv1_scale = Vector3(-7.135, -7.135, -7.135)
+texture_filter = 0
+
+[node name="Arena3" type="Node3D"]
+script = ExtResource("1_5w302")
+
+[node name="WaveStartButton" parent="." instance=ExtResource("2_6r8it")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.46497726, -22.753704)
+
+[node name="SpawnPoints" type="Node3D" parent="."]
+
+[node name="Spawn_1" type="Marker3D" parent="SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.1608553, 0, -16.980114)
+
+[node name="Spawn_2" type="Marker3D" parent="SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.8562565, 0, 7.4892015)
+
+[node name="Spawn_3" type="Marker3D" parent="SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.772565, 0, 2.2113352)
+
+[node name="PlayerSpawn" type="Marker3D" parent="SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 15.640449)
+
+[node name="TerminalSpawn" type="Marker3D" parent="SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.6129224, 0.11398608, -4.6943545)
+
+[node name="Map_Geometry" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 17.689478, 0)
+
+[node name="Wall_1" type="CSGMesh3D" parent="Map_Geometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -31.073496, -30.829939)
+use_collision = true
+mesh = SubResource("BoxMesh_0l0dn")
+material = SubResource("StandardMaterial3D_0l0dn")
+
+[node name="Wall_2" type="CSGMesh3D" parent="Map_Geometry"]
+transform = Transform3D(-4.3711385e-08, 0, -0.99999994, 0, 1, 0, 0.99999994, 0, -4.3711385e-08, 30.829937, -31.073496, 1.3476193e-06)
+use_collision = true
+mesh = SubResource("BoxMesh_0l0dn")
+material = SubResource("StandardMaterial3D_0l0dn")
+
+[node name="Wall_3" type="CSGMesh3D" parent="Map_Geometry"]
+transform = Transform3D(-0.9999999, 0, 8.742277e-08, 0, 1, 0, -8.742277e-08, 0, -0.9999999, -2.6952387e-06, -31.073496, 30.829935)
+use_collision = true
+mesh = SubResource("BoxMesh_0l0dn")
+material = SubResource("StandardMaterial3D_0l0dn")
+
+[node name="Wall_4" type="CSGMesh3D" parent="Map_Geometry"]
+transform = Transform3D(-4.3711385e-08, 0, 0.9999999, 0, 1, 0, -0.9999999, 0, -4.3711385e-08, -30.829935, -31.073496, 1.3476193e-06)
+use_collision = true
+mesh = SubResource("BoxMesh_0l0dn")
+material = SubResource("StandardMaterial3D_0l0dn")
+
+[node name="Roof" type="StaticBody3D" parent="Map_Geometry"]
+transform = Transform3D(2.545, 0, 0, 0, 2.545, 0, 0, 0, 2.545, 0, -17.687, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Map_Geometry/Roof"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("BoxShape3D_dfuk3")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Map_Geometry/Roof"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+mesh = SubResource("BoxMesh_avk14")
+surface_material_override/0 = SubResource("StandardMaterial3D_mnyru")
+
+[node name="Roof2" type="StaticBody3D" parent="Map_Geometry"]
+transform = Transform3D(2.545, 0, 0, 0, 2.545, 0, 0, 0, 2.545, 0, 0, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Map_Geometry/Roof2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("BoxShape3D_dfuk3")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Map_Geometry/Roof2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+mesh = SubResource("BoxMesh_avk14")
+surface_material_override/0 = SubResource("StandardMaterial3D_mnyru")
+
+[node name="MAP" type="CSGCombiner3D" parent="."]
+use_collision = true
+
+[node name="CSGTorus3D" type="CSGTorus3D" parent="MAP"]
+transform = Transform3D(5.369026e-15, 1.22829e-07, 2.81, 2.81, -1.22829e-07, 0, 1.22829e-07, 2.81, -1.22829e-07, 0, 0.72834885, -14.051973)
+inner_radius = 0.6877705
+sides = 24
+smooth_faces = false
+material = SubResource("StandardMaterial3D_5w302")
+
+[node name="CSGTorus3D2" type="CSGTorus3D" parent="MAP"]
+transform = Transform3D(9.878245e-15, 2.2598788e-07, 5.17, 5.17, -2.2598788e-07, -7.7921004e-22, 2.2598788e-07, 5.17, -2.2598788e-07, 0, 0.72834885, -9.050259)
+inner_radius = 0.6877705
+sides = 24
+smooth_faces = false
+material = SubResource("StandardMaterial3D_5w302")
+
+[node name="CSGTorus3D3" type="CSGTorus3D" parent="MAP"]
+transform = Transform3D(1.5753603e-14, 3.6040038e-07, 8.245, 8.245, -3.6040038e-07, -1.2426666e-21, 3.6040038e-07, 8.245, -3.6040038e-07, 0, 0.72834885, -1.6959233)
+inner_radius = 0.6877705
+sides = 24
+smooth_faces = false
+material = SubResource("StandardMaterial3D_5w302")
+
+[node name="CSGTorus3D4" type="CSGTorus3D" parent="MAP"]
+transform = Transform3D(9.840032e-15, 2.2511365e-07, 5.15, 5.15, -2.2511365e-07, -7.7619566e-22, 2.2511365e-07, 5.15, -2.2511365e-07, 0, 0.72834885, 4.522125)
+inner_radius = 0.6877705
+sides = 24
+smooth_faces = false
+material = SubResource("StandardMaterial3D_5w302")
+
+[node name="CSGTorus3D5" type="CSGTorus3D" parent="MAP"]
+transform = Transform3D(7.480334e-15, 1.7113008e-07, 3.915, 3.915, -1.7113008e-07, -5.900594e-22, 1.7113008e-07, 3.915, -1.7113008e-07, 0, 0.72834885, 10.327204)
+inner_radius = 0.6877705
+sides = 24
+smooth_faces = false
+material = SubResource("StandardMaterial3D_5w302")
+
+[node name="CSGTorus3D6" type="CSGTorus3D" parent="MAP"]
+transform = Transform3D(1.173161e-14, 2.683879e-07, 6.14, 6.14, -2.683879e-07, -9.254061e-22, 2.683879e-07, 6.14, -2.683879e-07, 0, 0.72834885, 14.769003)
+inner_radius = 0.6877705
+sides = 24
+smooth_faces = false
+material = SubResource("StandardMaterial3D_5w302")
+
+[node name="CSGTorus3D7" type="CSGTorus3D" parent="MAP"]
+transform = Transform3D(6.7256135e-15, 1.538641e-07, 3.52, 3.52, -1.538641e-07, -5.3052595e-22, 1.538641e-07, 3.52, -1.538641e-07, 0, 0.72834885, 21.541151)
+inner_radius = 0.6877705
+sides = 24
+smooth_faces = false
+material = SubResource("StandardMaterial3D_5w302")
+
+[node name="CSGTorus3D8" type="CSGTorus3D" parent="MAP"]
+transform = Transform3D(9.562982e-15, 2.187755e-07, 5.005, 5.005, -2.187755e-07, -7.543416e-22, 2.187755e-07, 5.005, -2.187755e-07, 0, 0.72834885, -19.828611)
+inner_radius = 0.6877705
+sides = 24
+smooth_faces = false
+material = SubResource("StandardMaterial3D_5w302")

@@ -20,6 +20,7 @@ extends Control
 @onready var fullscreen_value: Label = $UI/SettingsPanel/CenterContainer/VBoxContainer/FullscreenValue
 @onready var resolution_value: Label = $UI/SettingsPanel/CenterContainer/VBoxContainer/ResolutionValue
 @onready var mouse_sens_value: Label = $UI/SettingsPanel/CenterContainer/VBoxContainer/MouseSensValue
+@onready var camera_tilt_value: Label = $UI/SettingsPanel/CenterContainer/VBoxContainer/CameraTiltValue
 @onready var back_value: Label = $UI/SettingsPanel/CenterContainer/VBoxContainer/BackValue
 @onready var credits_panel: Control = $UI/CreditsPanel
 @onready var credits_title: Label = $UI/CreditsPanel/CenterContainer/VBoxContainer/Title
@@ -87,7 +88,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if in_settings:
 		if event.is_action_pressed("ui_down"):
-			settings_index = min(settings_index + 1, 4)
+			settings_index = min(settings_index + 1, 5)
 			_refresh_settings_ui()
 			_play_switch()
 			return
@@ -111,15 +112,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event.is_action_pressed("ui_accept"):
 			_play_click()
 
-			if settings_index == 1:
+			if settings_index == 1 or settings_index == 4:
 				_change_settings_value(1)
-			elif settings_index == 4:
+			elif settings_index == 5:
 				_close_settings()
 
 			return
 
 		elif event is InputEventKey and event.pressed and event.keycode == KEY_SPACE:
-			if settings_index == 1:
+			if settings_index == 1 or settings_index == 4:
 				_play_click()
 				_change_settings_value(1)
 				return
@@ -242,6 +243,7 @@ func _refresh_settings_ui() -> void:
 		resolution_text += "  (FULLSCREEN)"
 
 	var mouse_text := "MOUSE SENS: " + str(snapped(Settings.mouse_sens, 0.0001))
+	var camera_tilt_text := "CAMERA TILT: " + ("ON" if Settings.camera_tilt_enabled else "OFF")
 	var back_text := "BACK"
 
 	var rows: Array[Label] = [
@@ -249,6 +251,7 @@ func _refresh_settings_ui() -> void:
 		fullscreen_value,
 		resolution_value,
 		mouse_sens_value,
+		camera_tilt_value,
 		back_value
 	]
 
@@ -257,6 +260,7 @@ func _refresh_settings_ui() -> void:
 		fullscreen_text,
 		resolution_text,
 		mouse_text,
+		camera_tilt_text,
 		back_text
 	]
 
@@ -280,6 +284,9 @@ func _change_settings_value(direction: int) -> void:
 		3:
 			Settings.set_mouse_sens(Settings.mouse_sens + (0.0002 * direction))
 		4:
+			if direction != 0:
+				Settings.set_camera_tilt_enabled(not Settings.camera_tilt_enabled)
+		5:
 			pass
 
 	_refresh_settings_ui()
