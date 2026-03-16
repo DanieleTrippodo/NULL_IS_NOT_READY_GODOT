@@ -21,6 +21,7 @@ const UPDATE_IDS: Array[String] = [
 	"PIERCE_1",
 	"HOMING_NUDGE",
 	"DASH_UNLOCK",
+	"SLIDE_DODGE",
 	"CHARGE_SHOT",
 	"PULL_TO_HAND",
 	"SLOWMO_RECOVERY",
@@ -190,16 +191,29 @@ const DATA := {
 	},
 
 	"DASH_UNLOCK": {
-		"title": "DASH UNLOCK",
-		"desc": "Unlocks dash movement.",
+		"title": "ENERGY DASH",
+		"desc": "Replaces the base dash with a longer burst that grants brief dash invulnerability.",
 		"rarity": UpdateRarity.EPIC,
 		"base_price_min": 9,
 		"base_price_max": 14,
 		"rotatable": true,
 		"size": Vector2i(3, 2),
 		"cells": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(1, 1), Vector2i(2, 1)],
-		"tradeoff_desc": "Very strong, but the zig-zag shape is awkward.",
+		"tradeoff_desc": "Very strong escape tool, but it takes awkward space and a longer cooldown.",
 		"icon_path": "res://Art/Cards/Icons/DASH_UNLOCK.png"
+	},
+
+	"SLIDE_DODGE": {
+		"title": "SLIDE DODGE",
+		"desc": "Press dash while moving on the ground to slide forward and push enemies you hit.",
+		"rarity": UpdateRarity.RARE,
+		"base_price_min": 5,
+		"base_price_max": 8,
+		"rotatable": true,
+		"size": Vector2i(3, 2),
+		"cells": [Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1), Vector2i(2, 0)],
+		"tradeoff_desc": "Great for making space, but it only works while grounded and moving.",
+		"icon_path": "res://Art/Cards/Icons/SPRINT.png"
 	},
 
 	"CHARGE_SHOT": {

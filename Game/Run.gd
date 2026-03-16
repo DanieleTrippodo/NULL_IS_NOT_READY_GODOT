@@ -83,7 +83,14 @@ func get_perk_preview_lines(id: String) -> Array[String]:
 			lines.append("Max angle: %.0f°" % homing_max_angle_deg)
 
 		"DASH_UNLOCK":
-			lines.append("Dash: UNLOCKED")
+			lines.append("Energy Dash: ON")
+			lines.append("Range: +%d%%" % int(round((dash_strength_mult - 1.0) * 100.0)))
+			lines.append("Invulnerable: YES")
+
+		"SLIDE_DODGE":
+			lines.append("Slide: ON")
+			lines.append("Slide speed: +%d%%" % int(round((slide_speed_mult - 1.0) * 100.0)))
+			lines.append("Enemy push: YES")
 
 		"CHARGE_SHOT":
 			lines.append("Charge: ON")
@@ -165,6 +172,16 @@ var turret_interval_mult: float = 1.0
 var null_speed_mult: float = 1.0
 var null_range_mult: float = 1.0
 var dash_enabled: bool = false
+var dash_strength_mult: float = 1.0
+var dash_duration_mult: float = 1.0
+var dash_cooldown_mult: float = 1.0
+var dash_invulnerable: bool = false
+
+var slide_dodge: bool = false
+var slide_speed_mult: float = 1.0
+var slide_duration: float = 0.36
+var slide_cooldown: float = 1.10
+var slide_push_mult: float = 1.0
 
 # Charge shot
 var charge_shot_enabled: bool = false
@@ -242,6 +259,7 @@ var perk_pool: Array[String] = [
 	"HOMING_NUDGE",
 
 	"DASH_UNLOCK",
+	"SLIDE_DODGE",
 
 	"CHARGE_SHOT",
 
@@ -367,6 +385,16 @@ func _reset_runtime_stats_to_base() -> void:
 	null_speed_mult = 1.0
 	null_range_mult = 1.0
 	dash_enabled = false
+	dash_strength_mult = 1.0
+	dash_duration_mult = 1.0
+	dash_cooldown_mult = 1.0
+	dash_invulnerable = false
+
+	slide_dodge = false
+	slide_speed_mult = 1.0
+	slide_duration = 0.36
+	slide_cooldown = 1.10
+	slide_push_mult = 1.0
 
 	charge_shot_enabled = false
 	charge_shot_seconds = 3.0
@@ -837,6 +865,17 @@ func _apply_equipped_update_effect(id: String) -> void:
 
 		"DASH_UNLOCK":
 			dash_enabled = true
+			dash_strength_mult = 1.65
+			dash_duration_mult = 1.35
+			dash_cooldown_mult = 1.18
+			dash_invulnerable = true
+
+		"SLIDE_DODGE":
+			slide_dodge = true
+			slide_speed_mult = 1.75
+			slide_duration = 0.42
+			slide_cooldown = 1.20
+			slide_push_mult = 1.0
 
 		"CHARGE_SHOT":
 			charge_shot_enabled = true
@@ -951,8 +990,21 @@ func _apply(id: String) -> void:
 
 		"DASH_UNLOCK":
 			dash_enabled = true
-			last_perk_title = "DASH UNLOCK"
-			last_perk_desc = "Unlocks dash movement."
+			dash_strength_mult = 1.65
+			dash_duration_mult = 1.35
+			dash_cooldown_mult = 1.18
+			dash_invulnerable = true
+			last_perk_title = "ENERGY DASH"
+			last_perk_desc = "Replaces the base dash with a longer invulnerable burst."
+
+		"SLIDE_DODGE":
+			slide_dodge = true
+			slide_speed_mult = 1.75
+			slide_duration = 0.42
+			slide_cooldown = 1.20
+			slide_push_mult = 1.0
+			last_perk_title = "SLIDE DODGE"
+			last_perk_desc = "Press dash while moving to slide forward and push enemies you hit."
 
 		"CHARGE_SHOT":
 			charge_shot_enabled = true

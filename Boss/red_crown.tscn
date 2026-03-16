@@ -1,8 +1,15 @@
-[gd_scene load_steps=8 format=3 uid="uid://cpxuccijbn2tx"]
+[gd_scene load_steps=15 format=3 uid="uid://cpxuccijbn2tx"]
 
 [ext_resource type="Script" uid="uid://4yg1qtohwo4c" path="res://Boss/red_crown.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://bftg6fc5m77kt" path="res://Boss/red_crown_closed.png" id="2"]
+[ext_resource type="AudioStream" uid="uid://bwr0bm155b8g" path="res://Boss/Audio/IntroSound_Boss.mp3" id="2_s385q"]
 [ext_resource type="Texture2D" uid="uid://dfnxthpge3dju" path="res://Boss/red_crown_open.png" id="3"]
+[ext_resource type="AudioStream" uid="uid://b7na6tmxg45qn" path="res://Boss/Audio/WeakpointSound2_Boss.mp3" id="3_32wof"]
+[ext_resource type="AudioStream" uid="uid://1txblr5t4t6s" path="res://Boss/Audio/HitSound1_Boss.mp3" id="4_kqn0o"]
+[ext_resource type="AudioStream" uid="uid://cjddbwokolufy" path="res://Boss/Audio/HitSound2_Boss.mp3" id="5_chsd2"]
+[ext_resource type="AudioStream" uid="uid://cj8rha8il1ge8" path="res://Boss/Audio/HitSound3_Boss.mp3" id="6_nfiwr"]
+[ext_resource type="AudioStream" uid="uid://dod6rsgk1wkem" path="res://Boss/Audio/HitSound4_Boss.mp3" id="7_yo4om"]
+[ext_resource type="AudioStream" uid="uid://cygj15g6v1whi" path="res://Boss/Audio/DeathSound_Boss.mp3" id="8_r2o2h"]
 
 [sub_resource type="SphereMesh" id="3"]
 radius = 0.65
@@ -21,6 +28,10 @@ radius = 1.0
 
 [node name="RedCrown" type="Node3D"]
 script = ExtResource("1")
+intro_sound = ExtResource("2_s385q")
+open_weak_point_sound = ExtResource("3_32wof")
+hit_sounds = Array[AudioStream]([ExtResource("4_kqn0o"), ExtResource("5_chsd2"), ExtResource("6_nfiwr"), ExtResource("7_yo4om")])
+death_sound = ExtResource("8_r2o2h")
 
 [node name="Visuals" type="Node3D" parent="."]
 

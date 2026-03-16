@@ -17,7 +17,7 @@ enum BossState {
 @export var game_over_overlay_scene: PackedScene = preload("res://UI/game_over_overlay.tscn")
 
 @export_group("Flow")
-@export var intro_duration: float = 1.8
+@export var intro_duration: float = 5.2
 @export var transition_duration: float = 1.0
 @export var post_hit_buffer: float = 0.9
 @export var attack_duration_phase_1: float = 20.0
@@ -33,6 +33,14 @@ enum BossState {
 @export var pattern_switch_phase_3: float = 2.1
 @export var pattern_end_buffer: float = 1.0
 
+@export_group("Arena Darkness")
+@export var intro_darkness_start_alpha: float = 0.95
+@export var intro_darkness_mid_alpha: float = 0.46
+@export var intro_darkness_hold_ratio: float = 0.18
+@export var intro_darkness_first_fade_ratio: float = 0.30
+@export var intro_darkness_mid_hold_ratio: float = 0.14
+@export var intro_darkness_second_fade_ratio: float = 0.22
+
 @onready var player_spawn: Marker3D = $PlayerSpawn
 @onready var boss_anchor: Marker3D = $BossAnchor
 @onready var player_container: Node3D = $PlayerContainer
@@ -40,6 +48,7 @@ enum BossState {
 @onready var arena_center: Marker3D = $ArenaCenter
 @onready var platform_mesh: MeshInstance3D = $ArenaPlatform/PlatformMesh
 @onready var ui_root: CanvasLayer = $UIRoot
+@onready var arena_darkness: ColorRect = get_node_or_null("UIRoot/ArenaDarkness") as ColorRect
 
 var state: int = BossState.INTRO
 var state_time_left: float = 0.0
@@ -81,14 +90,18 @@ var _attack_sequence_index: int = 0
 var _attack_pattern_time_left: float = 0.0
 var _current_attack_pattern: String = ""
 
+var _arena_darkness_tween: Tween = null
+
 func _ready() -> void:
 	_rng.randomize()
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
 	_connect_signals()
 	_setup_ui()
+	_setup_intro_darkness()
 	_spawn_player()
 	_spawn_boss()
+	_play_intro_darkness()
 
 	Signals.depth_changed.emit(Run.depth)
 	Signals.null_ready_changed.emit(Run.null_ready)
@@ -98,8 +111,11 @@ func _ready() -> void:
 	state = BossState.INTRO
 	state_time_left = intro_duration
 
+
 func _exit_tree() -> void:
 	_disconnect_signals()
+	_kill_intro_darkness_tween()
+
 
 func _process(delta: float) -> void:
 	if state == BossState.DEAD or restarting:
@@ -122,6 +138,7 @@ func _process(delta: float) -> void:
 		BossState.TRANSITION:
 			_begin_attack_phase()
 
+
 func _connect_signals() -> void:
 	if not Signals.enemy_killed.is_connected(_on_enemy_killed):
 		Signals.enemy_killed.connect(_on_enemy_killed)
@@ -139,6 +156,7 @@ func _connect_signals() -> void:
 		Signals.null_dropped.connect(_on_null_dropped)
 	if not Signals.player_died.is_connected(_on_player_died):
 		Signals.player_died.connect(_on_player_died)
+
 
 func _disconnect_signals() -> void:
 	if Signals.enemy_killed.is_connected(_on_enemy_killed):
@@ -158,15 +176,16 @@ func _disconnect_signals() -> void:
 	if Signals.player_died.is_connected(_on_player_died):
 		Signals.player_died.disconnect(_on_player_died)
 
+
 func _setup_ui() -> void:
 	if hud_scene != null:
-		var hud_instance := hud_scene.instantiate()
+		var hud_instance: Node = hud_scene.instantiate()
 		if hud_instance is Control:
 			hud = hud_instance as Control
 			ui_root.add_child(hud)
 
 	if game_over_overlay_scene != null:
-		var overlay_instance := game_over_overlay_scene.instantiate()
+		var overlay_instance: Node = game_over_overlay_scene.instantiate()
 		if overlay_instance is Control:
 			game_over_overlay = overlay_instance as Control
 			ui_root.add_child(game_over_overlay)
@@ -174,6 +193,65 @@ func _setup_ui() -> void:
 				game_over_overlay.retry_pressed.connect(_on_game_over_retry_pressed)
 			if game_over_overlay.has_signal("exit_pressed"):
 				game_over_overlay.exit_pressed.connect(_on_game_over_exit_pressed)
+
+
+func _setup_intro_darkness() -> void:
+	if arena_darkness == null:
+		return
+
+	arena_darkness.visible = true
+	arena_darkness.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	arena_darkness.color = Color.BLACK
+	arena_darkness.modulate = Color(1.0, 1.0, 1.0, intro_darkness_start_alpha)
+
+
+func _play_intro_darkness() -> void:
+	if arena_darkness == null:
+		return
+
+	_kill_intro_darkness_tween()
+
+	var total: float = maxf(intro_duration, 0.1)
+	var hold_time: float = total * intro_darkness_hold_ratio
+	var first_fade_time: float = total * intro_darkness_first_fade_ratio
+	var mid_hold_time: float = total * intro_darkness_mid_hold_ratio
+	var second_fade_time: float = total * intro_darkness_second_fade_ratio
+
+	_arena_darkness_tween = create_tween()
+	_arena_darkness_tween.set_trans(Tween.TRANS_SINE)
+	_arena_darkness_tween.set_ease(Tween.EASE_IN_OUT)
+
+	if hold_time > 0.0:
+		_arena_darkness_tween.tween_interval(hold_time)
+
+	_arena_darkness_tween.tween_property(
+		arena_darkness,
+		"modulate:a",
+		intro_darkness_mid_alpha,
+		first_fade_time
+	)
+
+	if mid_hold_time > 0.0:
+		_arena_darkness_tween.tween_interval(mid_hold_time)
+
+	_arena_darkness_tween.tween_property(
+		arena_darkness,
+		"modulate:a",
+		0.0,
+		second_fade_time
+	)
+
+	_arena_darkness_tween.finished.connect(func() -> void:
+		if arena_darkness != null:
+			arena_darkness.visible = false
+	)
+
+
+func _kill_intro_darkness_tween() -> void:
+	if _arena_darkness_tween != null:
+		_arena_darkness_tween.kill()
+		_arena_darkness_tween = null
+
 
 func _spawn_player() -> void:
 	if player_scene == null:
@@ -188,6 +266,7 @@ func _spawn_player() -> void:
 	player_container.add_child(player)
 	player.global_position = player_spawn.global_position
 	player.rotation = player_spawn.rotation
+
 
 func _spawn_boss() -> void:
 	if boss_scene == null:
@@ -213,15 +292,20 @@ func _spawn_boss() -> void:
 			half_extents
 		)
 
+	if boss.has_method("play_intro_appearance"):
+		boss.call("play_intro_appearance", intro_duration)
+
+
 func _get_platform_half_extents() -> Vector2:
 	if platform_mesh == null or platform_mesh.mesh == null:
 		return Vector2(6.0, 6.0)
 
 	if platform_mesh.mesh is BoxMesh:
-		var box := platform_mesh.mesh as BoxMesh
+		var box: BoxMesh = platform_mesh.mesh as BoxMesh
 		return Vector2(box.size.x * 0.5, box.size.z * 0.5)
 
 	return Vector2(6.0, 6.0)
+
 
 func _begin_attack_phase() -> void:
 	if boss == null:
@@ -234,6 +318,7 @@ func _begin_attack_phase() -> void:
 
 	_prepare_attack_sequence_for_phase(phase)
 	_start_next_attack_pattern(true)
+
 
 func _begin_vulnerable_phase() -> void:
 	if boss == null:
@@ -249,6 +334,7 @@ func _begin_vulnerable_phase() -> void:
 	if boss.has_method("open_weak_point"):
 		boss.call("open_weak_point")
 
+
 func _begin_transition(custom_time: float = -1.0) -> void:
 	if boss == null:
 		return
@@ -263,6 +349,7 @@ func _begin_transition(custom_time: float = -1.0) -> void:
 	if boss.has_method("close_weak_point"):
 		boss.call("close_weak_point")
 
+
 func _update_phase() -> void:
 	if boss_hits >= 4:
 		phase = 3
@@ -270,6 +357,7 @@ func _update_phase() -> void:
 		phase = 2
 	else:
 		phase = 1
+
 
 func _get_attack_duration_for_phase(p: int) -> float:
 	match p:
@@ -282,6 +370,7 @@ func _get_attack_duration_for_phase(p: int) -> float:
 		_:
 			return attack_duration_phase_1
 
+
 func _get_vulnerable_duration_for_phase(p: int) -> float:
 	match p:
 		1:
@@ -292,6 +381,7 @@ func _get_vulnerable_duration_for_phase(p: int) -> float:
 			return vulnerable_time_phase_3
 		_:
 			return vulnerable_time_phase_1
+
 
 func _get_pattern_switch_interval_for_phase(p: int) -> float:
 	match p:
@@ -304,6 +394,7 @@ func _get_pattern_switch_interval_for_phase(p: int) -> float:
 		_:
 			return pattern_switch_phase_1
 
+
 func _get_pattern_sequence_for_phase(p: int) -> Array[String]:
 	match p:
 		1:
@@ -315,6 +406,7 @@ func _get_pattern_sequence_for_phase(p: int) -> Array[String]:
 		_:
 			return _phase_1_sequence.duplicate()
 
+
 func _prepare_attack_sequence_for_phase(p: int) -> void:
 	_attack_sequence = _get_pattern_sequence_for_phase(p)
 	_current_attack_pattern = ""
@@ -325,11 +417,13 @@ func _prepare_attack_sequence_for_phase(p: int) -> void:
 
 	_attack_sequence_index = _rng.randi_range(0, _attack_sequence.size() - 1)
 
+
 func _reset_attack_chain_state() -> void:
 	_attack_sequence.clear()
 	_attack_sequence_index = 0
 	_attack_pattern_time_left = 0.0
 	_current_attack_pattern = ""
+
 
 func _update_attack_pattern_cycle(delta: float) -> void:
 	if boss == null:
@@ -345,6 +439,7 @@ func _update_attack_pattern_cycle(delta: float) -> void:
 		return
 
 	_start_next_attack_pattern(false)
+
 
 func _start_next_attack_pattern(force_immediate: bool) -> void:
 	if boss == null:
@@ -374,6 +469,7 @@ func _start_next_attack_pattern(force_immediate: bool) -> void:
 	if boss.has_method("begin_attack"):
 		boss.call("begin_attack", pattern, pattern_duration, phase)
 
+
 func _on_enemy_killed(enemy: Node) -> void:
 	if state != BossState.VULNERABLE:
 		return
@@ -399,6 +495,7 @@ func _on_enemy_killed(enemy: Node) -> void:
 
 	_begin_transition(post_hit_buffer)
 
+
 func _kill_boss() -> void:
 	state = BossState.DEAD
 	state_time_left = 0.0
@@ -409,6 +506,7 @@ func _kill_boss() -> void:
 		boss.call("play_death")
 
 	emit_signal("boss_defeated")
+
 
 func _on_request_shoot(origin: Vector3, direction: Vector3, size_mult: float = 1.0) -> void:
 	if restarting:
@@ -422,7 +520,7 @@ func _on_request_shoot(origin: Vector3, direction: Vector3, size_mult: float = 1
 	Run.null_dropped = false
 	Signals.null_ready_changed.emit(false)
 
-	var p := null_projectile_scene.instantiate()
+	var p: Node = null_projectile_scene.instantiate()
 	if not (p is Node3D):
 		Run.null_ready = true
 		Signals.null_ready_changed.emit(true)
@@ -435,6 +533,7 @@ func _on_request_shoot(origin: Vector3, direction: Vector3, size_mult: float = 1
 		null_instance.call("fire", origin, direction, size_mult)
 	else:
 		null_instance.global_position = origin
+
 
 func _on_request_pickup() -> void:
 	if null_instance == null or not is_instance_valid(null_instance):
@@ -459,6 +558,7 @@ func _on_request_pickup() -> void:
 	Run.null_dropped = false
 	Signals.null_ready_changed.emit(true)
 
+
 func _on_request_recovery_start() -> void:
 	if null_instance == null or not is_instance_valid(null_instance):
 		return
@@ -469,11 +569,13 @@ func _on_request_recovery_start() -> void:
 	if null_instance.has_method("start_remote_recovery"):
 		null_instance.call("start_remote_recovery", player)
 
+
 func _on_request_recovery_stop() -> void:
 	if null_instance == null or not is_instance_valid(null_instance):
 		return
 	if null_instance.has_method("stop_remote_recovery"):
 		null_instance.call("stop_remote_recovery")
+
 
 func _on_request_force_drop_null(pos: Vector3) -> void:
 	if restarting:
@@ -487,7 +589,7 @@ func _on_request_force_drop_null(pos: Vector3) -> void:
 	Run.null_dropped = false
 	Signals.null_ready_changed.emit(false)
 
-	var p := null_projectile_scene.instantiate()
+	var p: Node = null_projectile_scene.instantiate()
 	if not (p is Node3D):
 		Run.null_ready = true
 		Signals.null_ready_changed.emit(true)
@@ -500,8 +602,10 @@ func _on_request_force_drop_null(pos: Vector3) -> void:
 	if null_instance.has_method("_drop"):
 		null_instance.call("_drop")
 
+
 func _on_null_dropped(_pos: Variant = null) -> void:
 	Run.null_dropped = true
+
 
 func _force_null_return() -> void:
 	if null_instance != null and is_instance_valid(null_instance):
@@ -515,6 +619,7 @@ func _force_null_return() -> void:
 	Run.null_dropped = false
 	Signals.null_ready_changed.emit(true)
 
+
 func _on_player_died() -> void:
 	if restarting:
 		return
@@ -523,6 +628,7 @@ func _on_player_died() -> void:
 	state = BossState.DEAD
 	_reset_attack_chain_state()
 	_force_null_return()
+	_kill_intro_darkness_tween()
 
 	if boss != null and boss.has_method("stop_attack"):
 		boss.call("stop_attack")
@@ -537,11 +643,13 @@ func _on_player_died() -> void:
 	else:
 		get_tree().reload_current_scene()
 
+
 func _on_game_over_retry_pressed() -> void:
 	Run.null_ready = true
 	Run.null_dropped = false
 	Run.survival_mode = false
 	get_tree().reload_current_scene()
+
 
 func _on_game_over_exit_pressed() -> void:
 	Run.null_ready = true

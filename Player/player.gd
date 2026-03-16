@@ -97,14 +97,22 @@ const GRAVITY: float = 20.0
 # Perk-based inputs presence
 var has_dash: bool = false
 
-# Dash (perk)
+# Dash / Slide (perk)
 var dash_cd: float = 0.0
 var dash_time_left: float = 0.0
 var dash_vel: Vector3 = Vector3.ZERO
 
+var slide_cd: float = 0.0
+var slide_time_left: float = 0.0
+var slide_vel: Vector3 = Vector3.ZERO
+var _slide_hit_ids: Dictionary = {}
+
 const DASH_DURATION: float = 0.12
 const DASH_COOLDOWN: float = 0.9
 const DASH_STRENGTH: float = 14.0
+const SLIDE_DURATION: float = 0.34
+const SLIDE_COOLDOWN: float = 1.0
+const SLIDE_STRENGTH: float = 16.0
 
 @export_group("Hand Bob")
 @export var hand_bob_enabled: bool = true
@@ -244,6 +252,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if state == PState.DOWNED:
 		if event.is_action_pressed("swap"):
 			if Run.null_dropped:
+				dash_time_left = 0.0
+				slide_time_left = 0.0
+				_slide_hit_ids.clear()
 				is_recovering_null = true
 				_update_hand_mode_visual()
 				_play_hand_recovery_enter_anim()
@@ -302,6 +313,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	# SWAP (perk)
 	if event.is_action_pressed("swap"):
 		if Run.null_dropped:
+			dash_time_left = 0.0
+			slide_time_left = 0.0
+			_slide_hit_ids.clear()
 			is_recovering_null = true
 			_update_hand_mode_visual()
 			_play_hand_recovery_enter_anim()
@@ -318,6 +332,9 @@ func set_input_locked(v: bool) -> void:
 	if input_locked:
 		_charging = false
 		_charge_time = 0.0
+		dash_time_left = 0.0
+		slide_time_left = 0.0
+		_slide_hit_ids.clear()
 
 func _update_hand_mode_visual() -> void:
 	if hand != null:
@@ -391,6 +408,8 @@ func _physics_process(delta: float) -> void:
 
 	dash_cd = maxf(dash_cd - delta, 0.0)
 	dash_time_left = maxf(dash_time_left - delta, 0.0)
+	slide_cd = maxf(slide_cd - delta, 0.0)
+	slide_time_left = maxf(slide_time_left - delta, 0.0)
 	_push_cd_left = maxf(_push_cd_left - delta, 0.0)
 
 	if is_recovering_null:
@@ -451,20 +470,34 @@ func _physics_normal(delta: float) -> void:
 	dir.y = 0.0
 	dir = dir.normalized()
 
+	if slide_time_left <= 0.0 and _can_start_slide(input_dir, dir):
+		_start_slide(dir)
+
+	if dash_time_left <= 0.0 and slide_time_left <= 0.0 and Run.dash_enabled and has_dash and dash_cd <= 0.0 and Input.is_action_just_pressed("dash"):
+		_start_dash()
+
+	if slide_time_left > 0.0:
+		velocity.x = slide_vel.x + _external_push.x
+		velocity.z = slide_vel.z + _external_push.z
+
+		if is_on_floor():
+			velocity.y = -1.0
+		else:
+			velocity.y -= GRAVITY * delta
+
+		var slide_push_decay: float = external_push_decay_ground if is_on_floor() else external_push_decay_air
+		_external_push = _external_push.move_toward(Vector3.ZERO, slide_push_decay * delta)
+
+		move_and_slide()
+		_apply_slide_enemy_pushes()
+		return
+
 	var speed: float = Constants.PLAYER_SPEED * Run.move_speed_mult
 	if not is_on_floor():
 		speed *= Run.air_speed_mult
 
 	velocity.x = dir.x * speed + _external_push.x
 	velocity.z = dir.z * speed + _external_push.z
-
-	if Run.dash_enabled and has_dash and dash_cd <= 0.0 and Input.is_action_just_pressed("dash"):
-		var fwd: Vector3 = -global_transform.basis.z
-		fwd.y = 0.0
-		fwd = fwd.normalized()
-		dash_vel = fwd * DASH_STRENGTH
-		dash_time_left = DASH_DURATION
-		dash_cd = DASH_COOLDOWN
 
 	if dash_time_left > 0.0:
 		velocity.x += dash_vel.x
@@ -482,6 +515,87 @@ func _physics_normal(delta: float) -> void:
 	_external_push = _external_push.move_toward(Vector3.ZERO, push_decay * delta)
 
 	move_and_slide()
+
+func _can_start_slide(input_dir: Vector3, dir: Vector3) -> bool:
+	if not Run.slide_dodge:
+		return false
+	if not has_dash:
+		return false
+	if not is_on_floor():
+		return false
+	if slide_cd > 0.0 or dash_time_left > 0.0 or slide_time_left > 0.0:
+		return false
+	if not Input.is_action_just_pressed("dash"):
+		return false
+	if input_dir.length() < 0.1 or dir.length() < 0.1:
+		return false
+	return true
+
+func _start_dash() -> void:
+	var fwd: Vector3 = -global_transform.basis.z
+	fwd.y = 0.0
+	if fwd.length() < 0.001:
+		fwd = Vector3.FORWARD
+	fwd = fwd.normalized()
+
+	dash_vel = fwd * (DASH_STRENGTH * Run.dash_strength_mult)
+	dash_time_left = DASH_DURATION * Run.dash_duration_mult
+	dash_cd = DASH_COOLDOWN * Run.dash_cooldown_mult
+
+func _start_slide(dir: Vector3) -> void:
+	var slide_dir: Vector3 = dir
+	if slide_dir.length() < 0.001:
+		slide_dir = -global_transform.basis.z
+		slide_dir.y = 0.0
+	if slide_dir.length() < 0.001:
+		return
+
+	slide_dir = slide_dir.normalized()
+	slide_vel = slide_dir * (SLIDE_STRENGTH * Run.slide_speed_mult)
+	slide_time_left = maxf(Run.slide_duration, SLIDE_DURATION)
+	slide_cd = maxf(Run.slide_cooldown, SLIDE_COOLDOWN)
+	_slide_hit_ids.clear()
+	dash_time_left = 0.0
+
+func _apply_slide_enemy_pushes() -> void:
+	if slide_time_left <= 0.0:
+		return
+
+	for i in range(get_slide_collision_count()):
+		var col: KinematicCollision3D = get_slide_collision(i)
+		if col == null:
+			continue
+
+		var other := col.get_collider()
+		if not (other is Node):
+			continue
+
+		var other_node: Node = other as Node
+		if not other_node.is_in_group("enemy"):
+			continue
+
+		var other_id: int = other_node.get_instance_id()
+		if _slide_hit_ids.has(other_id):
+			continue
+
+		_slide_hit_ids[other_id] = true
+
+		var push_dir: Vector3 = slide_vel
+		push_dir.y = 0.0
+		if push_dir.length() < 0.001:
+			push_dir = -global_transform.basis.z
+			push_dir.y = 0.0
+		if push_dir.length() < 0.001:
+			continue
+		push_dir = push_dir.normalized()
+
+		var slide_push_strength: float = push_strength * Run.slide_push_mult
+		var slide_impact_knock: float = slide_push_strength * 0.65
+
+		if other_node.has_method("apply_push"):
+			other_node.apply_push(push_dir, slide_push_strength, push_lift, push_stun_seconds)
+		elif other_node.has_method("apply_impact_stun"):
+			other_node.apply_impact_stun(push_stun_seconds, push_dir, slide_impact_knock)
 
 func _physics_knockback(delta: float) -> void:
 	_external_push = _external_push.move_toward(Vector3.ZERO, knockback_drag_ground * delta)
@@ -529,6 +643,9 @@ func _physics_downed(delta: float) -> void:
 	move_and_slide()
 
 func _on_player_hit(knockback_dir: Vector3) -> void:
+	if dash_time_left > 0.0 and Run.dash_invulnerable:
+		return
+
 	if is_recovering_null:
 		is_recovering_null = false
 		_update_hand_mode_visual()
@@ -546,6 +663,9 @@ func _on_player_hit(knockback_dir: Vector3) -> void:
 	_charging = false
 	_charge_time = 0.0
 	_external_push = Vector3.ZERO
+	dash_time_left = 0.0
+	slide_time_left = 0.0
+	_slide_hit_ids.clear()
 
 	state = PState.KNOCKBACK
 	_knock_t = 0.0
@@ -561,6 +681,9 @@ func _on_player_hit(knockback_dir: Vector3) -> void:
 	velocity.y = maxf(velocity.y, knockback_lift)
 
 func _enter_downed() -> void:
+	dash_time_left = 0.0
+	slide_time_left = 0.0
+	_slide_hit_ids.clear()
 	state = PState.DOWNED
 	Run.survival_mode = true
 	_downed_invuln_t = downed_invuln_seconds

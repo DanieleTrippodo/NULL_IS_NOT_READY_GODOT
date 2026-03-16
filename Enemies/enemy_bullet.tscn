@@ -1,6 +1,7 @@
-[gd_scene load_steps=4 format=3 uid="uid://d2t46kkawn2qv"]
+[gd_scene load_steps=5 format=3 uid="uid://d2t46kkawn2qv"]
 
 [ext_resource type="Script" uid="uid://l4jh8k7ax361" path="res://Enemies/enemy_bullet.gd" id="1_o7rpm"]
+[ext_resource type="Texture2D" uid="uid://cvjc8s4nygw6b" path="res://Enemies/Enemy_Bullet_Sprite.png" id="2_daspg"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_2we0o"]
 radius = 0.25
@@ -15,6 +16,12 @@ shape = SubResource("SphereShape3D_2we0o")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 transform = Transform3D(0.47, 0, 0, 0, 0.47, 0, 0, 0, 0.47, 0, 0, 0)
+visible = false
 mesh = SubResource("SphereMesh_o7rpm")
+
+[node name="Sprite3D" type="Sprite3D" parent="."]
+transform = Transform3D(-0.065, 0, 0, 0, -0.065, 0, 0, 0, -0.065, 0, 0, 0)
+billboard = 1
+texture = ExtResource("2_daspg")
 
 [connection signal="body_entered" from="." to="." method="_on_body_entered"]

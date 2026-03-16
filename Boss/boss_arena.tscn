@@ -133,3 +133,12 @@ transform = Transform3D(0.999048, 0, 0.0436194, 0, 1, 0, -0.0436194, 0, 0.999048
 [node name="BossBullets" type="Node3D" parent="."]
 
 [node name="UIRoot" type="CanvasLayer" parent="."]
+
+[node name="ArenaDarkness" type="ColorRect" parent="UIRoot"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.91764706)

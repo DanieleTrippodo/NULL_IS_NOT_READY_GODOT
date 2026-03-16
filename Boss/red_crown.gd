@@ -9,6 +9,24 @@ signal weak_point_hit(hit_count: int)
 @export var base_rotation_speed: float = 0.9
 @export var vulnerable_glow_alpha: float = 0.95
 
+@export_group("Intro")
+@export var intro_body_target_alpha: float = 0.96
+@export var intro_glow_low_alpha: float = 0.24
+@export var intro_glow_peak_alpha: float = 0.88
+@export var intro_glow_final_flash_alpha: float = 1.0
+
+@export_group("Audio")
+@export var audio_bus_name: String = "Master"
+@export var audio_volume_db: float = 6.0
+@export var audio_unit_size: float = 10.0
+@export var audio_max_distance: float = 80.0
+@export var audio_pitch_random_min: float = 0.96
+@export var audio_pitch_random_max: float = 1.05
+@export var intro_sound: AudioStream
+@export var open_weak_point_sound: AudioStream
+@export var hit_sounds: Array[AudioStream] = []
+@export var death_sound: AudioStream
+
 @export_group("Phase 1")
 @export var phase_1_pattern_interval: float = 1.15
 @export var phase_1_bullet_speed_mult: float = 1.0
@@ -74,6 +92,18 @@ var last_safe_lane: int = -1
 
 var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
+var _intro_pose_initialized: bool = false
+var _intro_playing: bool = false
+var _intro_visual_final_position: Vector3 = Vector3.ZERO
+var _intro_visual_final_scale: Vector3 = Vector3.ONE
+var _intro_tween: Tween = null
+var _glow_tween: Tween = null
+
+var _audio_intro: AudioStreamPlayer3D = null
+var _audio_open: AudioStreamPlayer3D = null
+var _audio_hit: AudioStreamPlayer3D = null
+var _audio_death: AudioStreamPlayer3D = null
+
 func _ready() -> void:
 	rng.randomize()
 
@@ -84,7 +114,10 @@ func _ready() -> void:
 	if weak_point_shape != null:
 		weak_point_shape.disabled = true
 
+	_setup_audio_players()
 	_reset_visual_modulate()
+	_cache_intro_pose_from_current()
+	_apply_intro_hidden_pose()
 
 
 func setup(p_player: CharacterBody3D, p_bullets_parent: Node3D, p_arena_center: Vector3, p_half_extents: Vector2) -> void:
@@ -94,10 +127,112 @@ func setup(p_player: CharacterBody3D, p_bullets_parent: Node3D, p_arena_center: 
 	arena_half_extents = p_half_extents
 
 
+func play_intro_appearance(duration: float = 5.2) -> void:
+	if _dead:
+		return
+
+	_cache_intro_pose_from_current()
+	_kill_intro_tweens()
+	_intro_playing = true
+	_apply_intro_hidden_pose()
+
+	body_closed.visible = true
+	body_open.visible = false
+	weak_glow.visible = true
+	_set_body_alpha(0.0)
+	_set_weak_glow_alpha(0.0)
+
+	_play_stream(_audio_intro, intro_sound, false)
+
+	var glow_a: float = duration * 0.16
+	var glow_b: float = duration * 0.14
+	var body_a: float = duration * 0.44
+
+	var pulse_1_down: float = duration * 0.10
+	var pulse_1_up: float = duration * 0.10
+	var pulse_2_down: float = duration * 0.09
+	var pulse_2_up: float = duration * 0.09
+
+	var final_flash_up: float = duration * 0.07
+	var final_flash_down: float = duration * 0.09
+
+	_intro_tween = create_tween()
+	_intro_tween.set_trans(Tween.TRANS_SINE)
+	_intro_tween.set_ease(Tween.EASE_IN_OUT)
+
+	# primo bagliore debole
+	_intro_tween.tween_method(
+		Callable(self, "_set_weak_glow_alpha"),
+		0.0,
+		intro_glow_low_alpha,
+		glow_a
+	)
+
+	# reveal del corpo + glow principale
+	_intro_tween.tween_method(
+		Callable(self, "_set_weak_glow_alpha"),
+		intro_glow_low_alpha,
+		intro_glow_peak_alpha,
+		glow_b
+	)
+
+	_intro_tween.parallel().tween_method(
+		Callable(self, "_set_body_alpha"),
+		0.0,
+		intro_body_target_alpha,
+		body_a
+	)
+
+	# pulse extra 1
+	_intro_tween.tween_method(
+		Callable(self, "_set_weak_glow_alpha"),
+		intro_glow_peak_alpha,
+		0.42,
+		pulse_1_down
+	)
+	_intro_tween.tween_method(
+		Callable(self, "_set_weak_glow_alpha"),
+		0.42,
+		0.78,
+		pulse_1_up
+	)
+
+	# pulse extra 2
+	_intro_tween.tween_method(
+		Callable(self, "_set_weak_glow_alpha"),
+		0.78,
+		0.32,
+		pulse_2_down
+	)
+	_intro_tween.tween_method(
+		Callable(self, "_set_weak_glow_alpha"),
+		0.32,
+		0.72,
+		pulse_2_up
+	)
+
+	# flash finale
+	_intro_tween.tween_method(
+		Callable(self, "_set_weak_glow_alpha"),
+		0.72,
+		intro_glow_final_flash_alpha,
+		final_flash_up
+	)
+	_intro_tween.tween_method(
+		Callable(self, "_set_weak_glow_alpha"),
+		intro_glow_final_flash_alpha,
+		0.0,
+		final_flash_down
+	)
+
+	_intro_tween.finished.connect(_on_intro_finished)
+
+
 func begin_attack(pattern: String, duration: float, phase: int) -> void:
 	if _dead:
 		return
 
+	_finish_intro_if_needed()
 	close_weak_point()
 
 	attack_active = true
@@ -132,24 +267,29 @@ func open_weak_point() -> void:
 	if _dead:
 		return
 
+	_finish_intro_if_needed()
 	stop_attack()
 	vulnerable = true
 
 	body_closed.visible = false
 	body_open.visible = true
+	body_open.modulate = Color(1.0, 1.0, 1.0, 0.98)
 	weak_glow.visible = true
 
 	if weak_point_shape != null:
 		weak_point_shape.disabled = false
 
+	_play_stream(_audio_open, open_weak_point_sound, false)
 	_flash_open_state()
 
 
 func close_weak_point() -> void:
+	_finish_intro_if_needed()
 	vulnerable = false
 
 	body_closed.visible = true
 	body_open.visible = false
+	body_closed.modulate = Color(1.0, 1.0, 1.0, 0.96)
 	weak_glow.visible = false
 
 	if weak_point_shape != null:
@@ -177,9 +317,10 @@ func on_weak_point_hit(hit_count: int) -> void:
 		return
 
 	emit_signal("weak_point_hit", hit_count)
+	_play_random_hit_sound()
 	close_weak_point()
 
-	var t := create_tween()
+	var t: Tween = create_tween()
 	t.set_parallel(true)
 	t.tween_property(visuals, "scale", Vector3.ONE * 1.08, 0.08)
 	t.tween_property(visuals, "rotation:z", visuals.rotation.z + deg_to_rad(10.0), 0.08)
@@ -189,7 +330,7 @@ func on_weak_point_hit(hit_count: int) -> void:
 	if weak_glow != null:
 		weak_glow.visible = true
 		_set_weak_glow_alpha(1.0)
-		var t2 := create_tween()
+		var t2: Tween = create_tween()
 		t2.tween_method(
 			Callable(self, "_set_weak_glow_alpha"),
 			1.0,
@@ -207,17 +348,20 @@ func play_death() -> void:
 		return
 
 	_dead = true
+	_kill_intro_tweens()
 	stop_attack()
 	close_weak_point()
 
-	var tween := create_tween()
+	_play_stream(_audio_death, death_sound, false)
+
+	var tween: Tween = create_tween()
 	tween.set_parallel(true)
 	tween.tween_property(self, "rotation:z", rotation.z + deg_to_rad(360.0), death_shrink_time)
 	tween.tween_property(self, "scale", Vector3.ONE * 0.08, death_shrink_time)
 	tween.tween_property(body_closed, "modulate:a", 0.0, death_shrink_time)
 	tween.tween_property(body_open, "modulate:a", 0.0, death_shrink_time)
 
-	var glow_tween := create_tween()
+	var glow_tween: Tween = create_tween()
 	glow_tween.tween_method(
 		Callable(self, "_set_weak_glow_alpha"),
 		_get_weak_glow_alpha(),
@@ -265,14 +409,14 @@ func _direction_to_point(from: Vector3, to: Vector3) -> Vector3:
 func _spread_direction_toward_point(from: Vector3, to: Vector3, yaw_offset_rad: float, pitch_offset_rad: float = 0.0) -> Vector3:
 	var base_dir: Vector3 = _direction_to_point(from, to)
 
-	var yaw_basis := Basis(Vector3.UP, yaw_offset_rad)
+	var yaw_basis: Basis = Basis(Vector3.UP, yaw_offset_rad)
 	var dir_after_yaw: Vector3 = (yaw_basis * base_dir).normalized()
 
 	var right: Vector3 = dir_after_yaw.cross(Vector3.UP).normalized()
 	if right.length_squared() <= 0.00001:
 		right = Vector3.RIGHT
 
-	var pitch_basis := Basis(right, pitch_offset_rad)
+	var pitch_basis: Basis = Basis(right, pitch_offset_rad)
 	return (pitch_basis * dir_after_yaw).normalized()
 
 
@@ -513,7 +657,7 @@ func _spawn_bullet(origin: Vector3, direction: Vector3, speed: float) -> void:
 	if bullets_parent == null or not is_instance_valid(bullets_parent):
 		return
 
-	var bullet := bullet_scene.instantiate()
+	var bullet: Node = bullet_scene.instantiate()
 	if bullet == null:
 		return
 
@@ -535,7 +679,7 @@ func _flash_open_state() -> void:
 	weak_glow.visible = true
 	_set_weak_glow_alpha(0.0)
 
-	var t := create_tween()
+	var t: Tween = create_tween()
 	t.tween_method(
 		Callable(self, "_set_weak_glow_alpha"),
 		0.0,
@@ -548,7 +692,7 @@ func _set_weak_glow_alpha(alpha: float) -> void:
 	if weak_glow == null:
 		return
 
-	var mat := weak_glow.get_active_material(0)
+	var mat: Material = weak_glow.get_active_material(0)
 	if mat is BaseMaterial3D:
 		var glow_mat: BaseMaterial3D = mat as BaseMaterial3D
 		var c: Color = glow_mat.albedo_color
@@ -560,7 +704,7 @@ func _get_weak_glow_alpha() -> float:
 	if weak_glow == null:
 		return 0.0
 
-	var mat := weak_glow.get_active_material(0)
+	var mat: Material = weak_glow.get_active_material(0)
 	if mat is BaseMaterial3D:
 		var glow_mat: BaseMaterial3D = mat as BaseMaterial3D
 		return glow_mat.albedo_color.a
@@ -568,7 +712,135 @@ func _get_weak_glow_alpha() -> float:
 	return 0.0
 
 
+func _set_body_alpha(alpha: float) -> void:
+	var c1: Color = body_closed.modulate
+	c1.a = alpha
+	body_closed.modulate = c1
+
+	var c2: Color = body_open.modulate
+	c2.a = alpha
+	body_open.modulate = c2
+
+
 func _reset_visual_modulate() -> void:
-	body_closed.modulate = Color(1, 1, 1, 0.96)
-	body_open.modulate = Color(1, 1, 1, 0.98)
+	body_closed.modulate = Color(1.0, 1.0, 1.0, 0.96)
+	body_open.modulate = Color(1.0, 1.0, 1.0, 0.98)
 	_set_weak_glow_alpha(0.0)
+
+
+func _cache_intro_pose_from_current() -> void:
+	_intro_visual_final_position = visuals.position
+	_intro_visual_final_scale = visuals.scale
+	_intro_pose_initialized = true
+
+
+func _apply_intro_hidden_pose() -> void:
+	if not _intro_pose_initialized:
+		_cache_intro_pose_from_current()
+
+	visuals.position = _intro_visual_final_position
+	visuals.scale = _intro_visual_final_scale
+
+	body_closed.visible = true
+	body_open.visible = false
+	_set_body_alpha(0.0)
+	weak_glow.visible = false
+	_set_weak_glow_alpha(0.0)
+
+
+func _finish_intro_if_needed() -> void:
+	if not _intro_pose_initialized:
+		_cache_intro_pose_from_current()
+
+	if _intro_playing:
+		_kill_intro_tweens()
+		_intro_playing = false
+
+	visuals.position = _intro_visual_final_position
+	visuals.scale = _intro_visual_final_scale
+
+	if not vulnerable:
+		body_closed.visible = true
+		body_open.visible = false
+		body_closed.modulate = Color(1.0, 1.0, 1.0, intro_body_target_alpha)
+
+	weak_glow.visible = false
+	_set_weak_glow_alpha(0.0)
+
+
+func _on_intro_finished() -> void:
+	_intro_playing = false
+	visuals.position = _intro_visual_final_position
+	visuals.scale = _intro_visual_final_scale
+	body_closed.visible = true
+	body_open.visible = false
+	body_closed.modulate = Color(1.0, 1.0, 1.0, intro_body_target_alpha)
+	weak_glow.visible = false
+	_set_weak_glow_alpha(0.0)
+
+
+func _kill_intro_tweens() -> void:
+	if _intro_tween != null:
+		_intro_tween.kill()
+		_intro_tween = null
+
+	if _glow_tween != null:
+		_glow_tween.kill()
+		_glow_tween = null
+
+
+func _setup_audio_players() -> void:
+	_audio_intro = _create_audio_player("IntroSfx")
+	_audio_open = _create_audio_player("OpenWeakPointSfx")
+	_audio_hit = _create_audio_player("HitSfx")
+	_audio_death = _create_audio_player("DeathSfx")
+
+
+func _create_audio_player(node_name: String) -> AudioStreamPlayer3D:
+	var p: AudioStreamPlayer3D = AudioStreamPlayer3D.new()
+	p.name = node_name
+	p.bus = audio_bus_name
+	p.volume_db = audio_volume_db
+	p.unit_size = audio_unit_size
+	p.max_distance = audio_max_distance
+	add_child(p)
+	return p
+
+
+func _play_stream(player: AudioStreamPlayer3D, stream: AudioStream, random_pitch: bool) -> void:
+	if player == null:
+		return
+	if stream == null:
+		return
+
+	player.stream = stream
+	player.bus = audio_bus_name
+	player.volume_db = audio_volume_db
+	player.unit_size = audio_unit_size
+	player.max_distance = audio_max_distance
+
+	if random_pitch:
+		player.pitch_scale = rng.randf_range(audio_pitch_random_min, audio_pitch_random_max)
+	else:
+		player.pitch_scale = 1.0
+
+	player.play()
+
+
+func _pick_random_hit_stream() -> AudioStream:
+	var candidates: Array[AudioStream] = []
+	for s in hit_sounds:
+		if s != null:
+			candidates.append(s)
+
+	if candidates.is_empty():
+		return null
+
+	return candidates[rng.randi_range(0, candidates.size() - 1)]
+
+
+func _play_random_hit_sound() -> void:
+	var s: AudioStream = _pick_random_hit_stream()
+	if s == null:
+		return
+	_play_stream(_audio_hit, s, true)

@@ -17,6 +17,7 @@ shader_parameter/depth_amount = 1.0
 shader_parameter/fade_amount = 2.48999994434352
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_0nthd"]
+lightmap_size_hint = Vector2i(12, 12)
 
 [node name="ShopPortal" type="Area3D"]
 script = ExtResource("1_fsjvp")

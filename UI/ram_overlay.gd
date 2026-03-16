@@ -492,9 +492,16 @@ func _draw_chip_symbol(update_id: String, rect: Rect2, is_preview: bool) -> void
 			grid_control.draw_arc(Vector2(cx, cy), 12.0, 0.0, PI, 12, Color(col.r, col.g, col.b, col.a * 0.5), 2.0)
 
 		"DASH_UNLOCK":
-			grid_control.draw_line(Vector2(x1, cy), Vector2(x2 - 4.0, cy), col, 2.0)
-			grid_control.draw_line(Vector2(cx - 2.0, y1), Vector2(x2 - 4.0, cy), col, 2.0)
-			grid_control.draw_line(Vector2(cx - 2.0, y2), Vector2(x2 - 4.0, cy), col, 2.0)
+			grid_control.draw_line(Vector2(x1 + 2.0, cy), Vector2(x2 - 8.0, cy), col, 2.0)
+			grid_control.draw_line(Vector2(cx - 6.0, y1 + 5.0), Vector2(x2 - 8.0, cy), col, 2.0)
+			grid_control.draw_line(Vector2(cx - 6.0, y2 - 5.0), Vector2(x2 - 8.0, cy), col, 2.0)
+			grid_control.draw_rect(Rect2(x2 - 12.0, cy - 8.0, 8.0, 16.0), col, false, 2.0)
+
+		"SLIDE_DODGE":
+			grid_control.draw_line(Vector2(x1 + 2.0, y2 - 2.0), Vector2(cx, y2 - 2.0), col, 2.0)
+			grid_control.draw_line(Vector2(cx, y2 - 2.0), Vector2(x2 - 4.0, cy), col, 2.0)
+			grid_control.draw_line(Vector2(cx - 2.0, cy + 3.0), Vector2(cx + 5.0, cy + 3.0), col, 2.0)
+			grid_control.draw_line(Vector2(cx + 5.0, cy + 3.0), Vector2(x2 - 10.0, cy - 3.0), col, 2.0)
 
 		"LONG_JUMP":
 			grid_control.draw_line(Vector2(x1, y2), Vector2(cx, y1), col, 2.0)
