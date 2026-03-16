@@ -1,7 +1,7 @@
 [gd_scene load_steps=9 format=3 uid="uid://gshswk7putnj"]
 
 [ext_resource type="Script" uid="uid://bg6wqn6ltprkw" path="res://Interactables/shop_portal.gd" id="1_fsjvp"]
-[ext_resource type="Texture2D" uid="uid://dabccleacsd32" path="res://Interactables/ShopPortalW.png" id="2_rly3e"]
+[ext_resource type="Texture2D" uid="uid://chrs5qai2cd1t" path="res://Interactables/ShopPortal.png" id="2_kamev"]
 [ext_resource type="Texture2D" uid="uid://b1ufs2vlxuop3" path="res://UI/InputE.png" id="3_tmkmw"]
 [ext_resource type="Shader" uid="uid://c1sjd6ppl6she" path="res://Interactables/shop_portal.gdshader" id="4_2dvdt"]
 [ext_resource type="AudioStream" uid="uid://bui0u4so462cy" path="res://Audio/SFX/ShopSound.mp3" id="5_kamev"]
@@ -9,38 +9,39 @@
 [sub_resource type="BoxShape3D" id="BoxShape3D_4bcmb"]
 size = Vector3(3.4374733, 3.5130615, 3.6390076)
 
-[sub_resource type="BoxMesh" id="BoxMesh_kamev"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_0nthd"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_kamev"]
 render_priority = 0
 shader = ExtResource("4_2dvdt")
 shader_parameter/layers = 8
-shader_parameter/depth_amount = 0.79
-shader_parameter/fade_amount = 2.85999993607328
+shader_parameter/depth_amount = 1.0
+shader_parameter/fade_amount = 2.48999994434352
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_0nthd"]
 
 [node name="ShopPortal" type="Area3D"]
 script = ExtResource("1_fsjvp")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.03640175, 1.7731323, -0.11110425)
+visible = false
 shape = SubResource("BoxShape3D_4bcmb")
 
 [node name="PortalSprite" type="Sprite3D" parent="."]
-transform = Transform3D(-1.1, 0, 9.616505e-08, 0, 1.1, 0, -9.616505e-08, 0, -1.1, 0, 2.1816945, 0)
-visible = false
-texture = ExtResource("2_rly3e")
+transform = Transform3D(-0.355, 0, 5.3603507e-08, 0, 0.355, 0, -5.3603507e-08, 0, -0.355, 0, 1.7089224, 0)
+texture_filter = 0
+texture = ExtResource("2_kamev")
 
 [node name="PromptE" type="Sprite3D" parent="."]
-transform = Transform3D(0.105, 0, 0, 0, 0.105, 0, 0, 0, 0.105, 0.028008312, 1.8868402, -0.5238384)
+transform = Transform3D(0.105, 0, 0, 0, 0.105, 0, 0, 0, 0.105, 0.028008312, 0.5966648, -0.27478886)
 visible = false
 billboard = 1
 render_priority = 1
 texture = ExtResource("3_tmkmw")
 
 [node name="Portal" type="MeshInstance3D" parent="."]
-transform = Transform3D(-2.8412401e-09, 0, 1.9268, 0, 3.397291, 0, -0.065, 0, -8.42231e-08, 0, 1.673583, 0)
-mesh = SubResource("BoxMesh_kamev")
-surface_material_override/0 = SubResource("ShaderMaterial_0nthd")
+transform = Transform3D(0.814, 0, 0, 0, -1.4848759e-07, 0.747, 0, -3.397, -3.2652405e-08, 0, 1.3872504, -0.00027939677)
+material_override = SubResource("ShaderMaterial_kamev")
+mesh = SubResource("PlaneMesh_0nthd")
 
 [node name="ShopSound" type="AudioStreamPlayer3D" parent="."]
 stream = ExtResource("5_kamev")
