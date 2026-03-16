@@ -15,6 +15,7 @@ enum BossState {
 @export var null_projectile_scene: PackedScene = preload("res://Weapons/null_projectile.tscn")
 @export var hud_scene: PackedScene = preload("res://UI/hud.tscn")
 @export var game_over_overlay_scene: PackedScene = preload("res://UI/game_over_overlay.tscn")
+@export var credits_scene: PackedScene = preload("res://UI/end_credits.tscn")
 
 @export_group("Flow")
 @export var intro_duration: float = 5.2
@@ -41,6 +42,10 @@ enum BossState {
 @export var intro_darkness_mid_hold_ratio: float = 0.14
 @export var intro_darkness_second_fade_ratio: float = 0.22
 
+@export_group("Victory Transition")
+@export var victory_hold_before_fade: float = 0.8
+@export var victory_fade_duration: float = 1.6
+
 @onready var player_spawn: Marker3D = $PlayerSpawn
 @onready var boss_anchor: Marker3D = $BossAnchor
 @onready var player_container: Node3D = $PlayerContainer
@@ -59,6 +64,7 @@ var null_instance: Node3D = null
 var hud: Control = null
 var game_over_overlay: Control = null
 var restarting: bool = false
+var _victory_transitioning: bool = false
 
 var boss_hits: int = 0
 var phase: int = 1
@@ -118,7 +124,7 @@ func _exit_tree() -> void:
 
 
 func _process(delta: float) -> void:
-	if state == BossState.DEAD or restarting:
+	if state == BossState.DEAD or restarting or _victory_transitioning:
 		return
 
 	if state == BossState.ATTACK:
@@ -497,19 +503,71 @@ func _on_enemy_killed(enemy: Node) -> void:
 
 
 func _kill_boss() -> void:
+	if _victory_transitioning:
+		return
+
 	state = BossState.DEAD
 	state_time_left = 0.0
 	_reset_attack_chain_state()
 	_force_null_return()
+	_clear_boss_bullets()
 
 	if boss != null and boss.has_method("play_death"):
 		boss.call("play_death")
 
 	emit_signal("boss_defeated")
+	call_deferred("_begin_boss_victory_transition")
+
+
+func _begin_boss_victory_transition() -> void:
+	if _victory_transitioning:
+		return
+
+	_victory_transitioning = true
+	_kill_intro_darkness_tween()
+	_clear_boss_bullets()
+
+	if boss != null and boss.has_method("stop_attack"):
+		boss.call("stop_attack")
+
+	if player != null and is_instance_valid(player):
+		player.set_process_input(false)
+		player.set_process_unhandled_input(false)
+		player.set_physics_process(false)
+
+	if arena_darkness != null:
+		arena_darkness.visible = true
+		arena_darkness.modulate = Color(1.0, 1.0, 1.0, 0.0)
+
+	await get_tree().create_timer(victory_hold_before_fade).timeout
+
+	if arena_darkness != null:
+		_arena_darkness_tween = create_tween()
+		_arena_darkness_tween.set_trans(Tween.TRANS_SINE)
+		_arena_darkness_tween.set_ease(Tween.EASE_IN_OUT)
+		_arena_darkness_tween.tween_property(arena_darkness, "modulate:a", 1.0, victory_fade_duration)
+		await _arena_darkness_tween.finished
+
+	Run.null_ready = true
+	Run.null_dropped = false
+	Run.survival_mode = false
+
+	if credits_scene != null:
+		get_tree().change_scene_to_packed(credits_scene)
+	else:
+		get_tree().change_scene_to_file("res://UI/main_menu.tscn")
+
+
+func _clear_boss_bullets() -> void:
+	if boss_bullets == null:
+		return
+
+	for child in boss_bullets.get_children():
+		child.queue_free()
 
 
 func _on_request_shoot(origin: Vector3, direction: Vector3, size_mult: float = 1.0) -> void:
-	if restarting:
+	if restarting or _victory_transitioning:
 		return
 	if not Run.null_ready:
 		return
@@ -578,7 +636,7 @@ func _on_request_recovery_stop() -> void:
 
 
 func _on_request_force_drop_null(pos: Vector3) -> void:
-	if restarting:
+	if restarting or _victory_transitioning:
 		return
 	if not Run.null_ready:
 		return
@@ -621,7 +679,7 @@ func _force_null_return() -> void:
 
 
 func _on_player_died() -> void:
-	if restarting:
+	if restarting or _victory_transitioning:
 		return
 
 	restarting = true

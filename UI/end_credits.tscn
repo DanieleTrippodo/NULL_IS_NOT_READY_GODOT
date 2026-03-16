@@ -1,0 +1,165 @@
+[gd_scene load_steps=4 format=3 uid="uid://d24f0acwtixun"]
+
+[ext_resource type="Script" uid="uid://g0sxargj2m6r" path="res://UI/end_credits.gd" id="1"]
+[ext_resource type="FontFile" uid="uid://cd7edkymfqydv" path="res://fonts/VT323-Regular.ttf" id="2"]
+[ext_resource type="AudioStream" uid="uid://dq1qdsqtuain1" path="res://Audio/BGM/NULL_Ambience_ENDING.mp3" id="3_de721"]
+
+[node name="EndCredits" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1")
+scroll_start_y = 1200.0
+scroll_end_y = -887.265
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Content" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="CreditsBlock" type="VBoxContainer" parent="Content"]
+custom_minimum_size = Vector2(960, 0)
+layout_mode = 0
+offset_left = 160.0
+offset_top = 760.0
+offset_right = 1120.0
+offset_bottom = 1540.0
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="Content/CreditsBlock"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 72
+text = "NULL: IS NOT READY"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="Content/CreditsBlock"]
+modulate = Color(1, 1, 1, 0.86)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 34
+text = "Thanks for playing"
+horizontal_alignment = 1
+
+[node name="Spacer1" type="Control" parent="Content/CreditsBlock"]
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+
+[node name="LeadHeader" type="Label" parent="Content/CreditsBlock"]
+modulate = Color(1, 0.28, 0.28, 1)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 28
+text = "CREATED BY"
+horizontal_alignment = 1
+
+[node name="LeadName" type="Label" parent="Content/CreditsBlock"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 42
+text = "Main/Developer: DDD / Daniele T.
+Composer: Niko Chantzis
+Animator: Siti Arina M. / rouxbah"
+horizontal_alignment = 1
+
+[node name="Spacer2" type="Control" parent="Content/CreditsBlock"]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+
+[node name="GameHeader" type="Label" parent="Content/CreditsBlock"]
+modulate = Color(1, 0.28, 0.28, 1)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 28
+text = "PROJECT"
+horizontal_alignment = 1
+
+[node name="GameBody" type="Label" parent="Content/CreditsBlock"]
+modulate = Color(1, 1, 1, 0.9)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 30
+text = "Made for \"Bad Ideas Game Jam 2026\"
+A minimal digital nightmare built around precision, pressure, and one final shot."
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="Spacer3" type="Control" parent="Content/CreditsBlock"]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+
+[node name="SpecialHeader" type="Label" parent="Content/CreditsBlock"]
+modulate = Color(1, 0.28, 0.28, 1)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 28
+text = "SPECIAL THANKS"
+horizontal_alignment = 1
+
+[node name="SpecialBody" type="Label" parent="Content/CreditsBlock"]
+modulate = Color(1, 1, 1, 0.9)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 30
+text = "Playtester: Adircas
+
+And to everyone who supported and survived the run."
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="Spacer4" type="Control" parent="Content/CreditsBlock"]
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+
+[node name="FinalLine" type="Label" parent="Content/CreditsBlock"]
+modulate = Color(1, 1, 1, 0.84)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 34
+text = "NULL READY // THANK YOU"
+horizontal_alignment = 1
+
+[node name="SkipHint" type="Label" parent="."]
+modulate = Color(1, 1, 1, 0.78)
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -28.0
+offset_right = 340.0
+grow_vertical = 0
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 26
+text = "PRESS ANY KEY TO SKIP"
+horizontal_alignment = 1
+
+[node name="FadeRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3_de721")
+autoplay = true
