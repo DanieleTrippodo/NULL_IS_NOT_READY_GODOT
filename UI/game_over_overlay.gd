@@ -128,6 +128,8 @@ func _unhandled_input(event: InputEvent) -> void:
 func show_game_over() -> void:
 	if _busy:
 		return
+	
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 
 	_busy = true
 	visible = true

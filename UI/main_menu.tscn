@@ -35,7 +35,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_behavior_recursive = 1
 script = ExtResource("1_p8ccj")
 
 [node name="BG" type="CanvasLayer" parent="."]
@@ -101,31 +100,98 @@ stretch_mode = 5
 [node name="Menu" type="VBoxContainer" parent="UI/Center/RowWrap/Row/Left"]
 layout_mode = 2
 size_flags_horizontal = 0
+theme_override_constants/separation = 2
 
-[node name="ItemStart" type="Label" parent="UI/Center/RowWrap/Row/Left/Menu"]
+[node name="StartGroup" type="HBoxContainer" parent="UI/Center/RowWrap/Row/Left/Menu"]
 layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SelectorStart" type="Label" parent="UI/Center/RowWrap/Row/Left/Menu/StartGroup"]
+custom_minimum_size = Vector2(18, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 42
+text = ">"
+vertical_alignment = 1
+
+[node name="ItemStart" type="Button" parent="UI/Center/RowWrap/Row/Left/Menu/StartGroup"]
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 42
 text = "START"
+flat = true
 
-[node name="ItemSettings" type="Label" parent="UI/Center/RowWrap/Row/Left/Menu"]
+[node name="SettingsGroup" type="HBoxContainer" parent="UI/Center/RowWrap/Row/Left/Menu"]
 layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SelectorSettings" type="Label" parent="UI/Center/RowWrap/Row/Left/Menu/SettingsGroup"]
+custom_minimum_size = Vector2(18, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 42
+vertical_alignment = 1
+
+[node name="ItemSettings" type="Button" parent="UI/Center/RowWrap/Row/Left/Menu/SettingsGroup"]
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 42
 text = "SETTINGS"
+flat = true
 
-[node name="ItemTutorial" type="Label" parent="UI/Center/RowWrap/Row/Left/Menu"]
+[node name="TutorialGroup" type="HBoxContainer" parent="UI/Center/RowWrap/Row/Left/Menu"]
 layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SelectorTutorial" type="Label" parent="UI/Center/RowWrap/Row/Left/Menu/TutorialGroup"]
+custom_minimum_size = Vector2(18, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 42
+vertical_alignment = 1
+
+[node name="ItemTutorial" type="Button" parent="UI/Center/RowWrap/Row/Left/Menu/TutorialGroup"]
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 42
 text = "TUTORIAL // DEBUG"
+flat = true
 
-[node name="ItemCredits" type="Label" parent="UI/Center/RowWrap/Row/Left/Menu"]
+[node name="CreditsGroup" type="HBoxContainer" parent="UI/Center/RowWrap/Row/Left/Menu"]
 layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SelectorCredits" type="Label" parent="UI/Center/RowWrap/Row/Left/Menu/CreditsGroup"]
+custom_minimum_size = Vector2(18, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 42
+vertical_alignment = 1
+
+[node name="ItemCredits" type="Button" parent="UI/Center/RowWrap/Row/Left/Menu/CreditsGroup"]
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 42
 text = "CREDITS"
+flat = true
 
-[node name="ItemExit" type="Label" parent="UI/Center/RowWrap/Row/Left/Menu"]
+[node name="ExitGroup" type="HBoxContainer" parent="UI/Center/RowWrap/Row/Left/Menu"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SelectorExit" type="Label" parent="UI/Center/RowWrap/Row/Left/Menu/ExitGroup"]
+custom_minimum_size = Vector2(18, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 42
+vertical_alignment = 1
+
+[node name="ItemExit" type="Button" parent="UI/Center/RowWrap/Row/Left/Menu/ExitGroup"]
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 42
 text = "EXIT"
+flat = true
 
 [node name="Spacer" type="Control" parent="UI/Center/RowWrap/Row/Left"]
 custom_minimum_size = Vector2(0, 76.49)
@@ -193,35 +259,53 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 48
 text = "SETTINGS"
 
-[node name="MasterValue" type="Label" parent="UI/SettingsPanel/CenterContainer/VBoxContainer"]
+[node name="MasterValue" type="Button" parent="UI/SettingsPanel/CenterContainer/VBoxContainer"]
 layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 42
 text = "MASTER VOLUME: 80"
+flat = true
 
-[node name="FullscreenValue" type="Label" parent="UI/SettingsPanel/CenterContainer/VBoxContainer"]
+[node name="FullscreenValue" type="Button" parent="UI/SettingsPanel/CenterContainer/VBoxContainer"]
 layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 42
 text = "FULLSCREEN: ON"
+flat = true
 
-[node name="ResolutionValue" type="Label" parent="UI/SettingsPanel/CenterContainer/VBoxContainer"]
+[node name="ResolutionValue" type="Button" parent="UI/SettingsPanel/CenterContainer/VBoxContainer"]
 layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 42
 text = "RESOLUTION:"
+flat = true
 
-[node name="MouseSensValue" type="Label" parent="UI/SettingsPanel/CenterContainer/VBoxContainer"]
+[node name="MouseSensValue" type="Button" parent="UI/SettingsPanel/CenterContainer/VBoxContainer"]
 layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 42
 text = "MOUSE SENS: 0.0020"
+flat = true
 
-[node name="CameraTiltValue" type="Label" parent="UI/SettingsPanel/CenterContainer/VBoxContainer"]
+[node name="CameraTiltValue" type="Button" parent="UI/SettingsPanel/CenterContainer/VBoxContainer"]
 layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 42
 text = "CAMERA TILT: ON"
+flat = true
 
-[node name="BackValue" type="Label" parent="UI/SettingsPanel/CenterContainer/VBoxContainer"]
+[node name="BackValue" type="Button" parent="UI/SettingsPanel/CenterContainer/VBoxContainer"]
 layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 48
 text = "BACK"
+flat = true
 
 [node name="CreditsPanel" type="Control" parent="UI"]
 visible = false
@@ -289,10 +373,13 @@ theme_override_font_sizes/font_size = 28
 custom_minimum_size = Vector2(30, 20)
 layout_mode = 2
 
-[node name="BackValue" type="Label" parent="UI/CreditsPanel/CenterContainer/VBoxContainer"]
+[node name="BackValue" type="Button" parent="UI/CreditsPanel/CenterContainer/VBoxContainer"]
 layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 42
 text = "BACK"
+flat = true
 
 [node name="GameJam info" type="Label" parent="UI/CreditsPanel"]
 layout_mode = 1

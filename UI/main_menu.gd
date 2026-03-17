@@ -3,33 +3,53 @@ extends Control
 # =========================
 # UI REFERENCES
 # =========================
-@onready var item_labels: Array[Label] = [
-	$UI/Center/RowWrap/Row/Left/Menu/ItemStart,
-	$UI/Center/RowWrap/Row/Left/Menu/ItemSettings,
-	$UI/Center/RowWrap/Row/Left/Menu/ItemTutorial,
-	$UI/Center/RowWrap/Row/Left/Menu/ItemCredits,
-	$UI/Center/RowWrap/Row/Left/Menu/ItemExit
+@onready var menu_buttons: Array[Button] = [
+	$UI/Center/RowWrap/Row/Left/Menu/StartGroup/ItemStart,
+	$UI/Center/RowWrap/Row/Left/Menu/SettingsGroup/ItemSettings,
+	$UI/Center/RowWrap/Row/Left/Menu/TutorialGroup/ItemTutorial,
+	$UI/Center/RowWrap/Row/Left/Menu/CreditsGroup/ItemCredits,
+	$UI/Center/RowWrap/Row/Left/Menu/ExitGroup/ItemExit
+]
+
+@onready var menu_selectors: Array[Label] = [
+	$UI/Center/RowWrap/Row/Left/Menu/StartGroup/SelectorStart,
+	$UI/Center/RowWrap/Row/Left/Menu/SettingsGroup/SelectorSettings,
+	$UI/Center/RowWrap/Row/Left/Menu/TutorialGroup/SelectorTutorial,
+	$UI/Center/RowWrap/Row/Left/Menu/CreditsGroup/SelectorCredits,
+	$UI/Center/RowWrap/Row/Left/Menu/ExitGroup/SelectorExit
 ]
 
 @onready var footer: Label = $UI/Center/RowWrap/Row/Left/Footer
 @onready var character: TextureRect = $UI/Center/RowWrap/Row/Right/Character
 
 @onready var settings_panel: Control = $UI/SettingsPanel
+@onready var settings_bg: ColorRect = $UI/SettingsPanel/ColorRect
 @onready var settings_title: Label = $UI/SettingsPanel/CenterContainer/VBoxContainer/Title
-@onready var master_value: Label = $UI/SettingsPanel/CenterContainer/VBoxContainer/MasterValue
-@onready var fullscreen_value: Label = $UI/SettingsPanel/CenterContainer/VBoxContainer/FullscreenValue
-@onready var resolution_value: Label = $UI/SettingsPanel/CenterContainer/VBoxContainer/ResolutionValue
-@onready var mouse_sens_value: Label = $UI/SettingsPanel/CenterContainer/VBoxContainer/MouseSensValue
-@onready var camera_tilt_value: Label = $UI/SettingsPanel/CenterContainer/VBoxContainer/CameraTiltValue
-@onready var back_value: Label = $UI/SettingsPanel/CenterContainer/VBoxContainer/BackValue
+@onready var master_value: Button = $UI/SettingsPanel/CenterContainer/VBoxContainer/MasterValue
+@onready var fullscreen_value: Button = $UI/SettingsPanel/CenterContainer/VBoxContainer/FullscreenValue
+@onready var resolution_value: Button = $UI/SettingsPanel/CenterContainer/VBoxContainer/ResolutionValue
+@onready var mouse_sens_value: Button = $UI/SettingsPanel/CenterContainer/VBoxContainer/MouseSensValue
+@onready var camera_tilt_value: Button = $UI/SettingsPanel/CenterContainer/VBoxContainer/CameraTiltValue
+@onready var back_value: Button = $UI/SettingsPanel/CenterContainer/VBoxContainer/BackValue
+
 @onready var credits_panel: Control = $UI/CreditsPanel
+@onready var credits_bg: ColorRect = $UI/CreditsPanel/ColorRect
 @onready var credits_title: Label = $UI/CreditsPanel/CenterContainer/VBoxContainer/Title
 @onready var credits_name_1: Label = $UI/CreditsPanel/CenterContainer/VBoxContainer/CreditsName1
 @onready var credits_name_2: Label = $UI/CreditsPanel/CenterContainer/VBoxContainer/CreditsName2
 @onready var credits_name_3: Label = $UI/CreditsPanel/CenterContainer/VBoxContainer/CreditsName3
 @onready var special_thanks_title: Label = $UI/CreditsPanel/CenterContainer/VBoxContainer/SpecialThanksTitle
 @onready var special_thanks_1: Label = $UI/CreditsPanel/CenterContainer/VBoxContainer/LaSpecialThanks1bel
-@onready var credits_back_value: Label = $UI/CreditsPanel/CenterContainer/VBoxContainer/BackValue
+@onready var credits_back_value: Button = $UI/CreditsPanel/CenterContainer/VBoxContainer/BackValue
+
+@onready var settings_buttons: Array[Button] = [
+	master_value,
+	fullscreen_value,
+	resolution_value,
+	mouse_sens_value,
+	camera_tilt_value,
+	back_value
+]
 
 # =========================
 # AUDIO (nodes under MainMenu root)
@@ -57,7 +77,7 @@ var parallax_strength: float = 10.0
 var character_base_pos: Vector2
 
 func _ready() -> void:
-	Input.mouse_mode = Input.MOUSE_MODE_HIDDEN
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 
 	if bgm and bgm.stream and not bgm.playing:
 		bgm.play()
@@ -77,10 +97,135 @@ func _ready() -> void:
 	if credits_panel:
 		credits_panel.visible = false
 
+	_setup_mouse_passthrough()
+	_wire_menu_mouse()
+	_wire_settings_mouse()
+	_wire_credits_mouse()
 	_update_menu()
 	_update_footer()
 	_refresh_settings_ui()
 	_refresh_credits_ui()
+
+func _setup_mouse_passthrough() -> void:
+	var passthrough_nodes: Array[Control] = [
+		$BG/Background,
+		$BG/DustShader,
+		$UI/Center/RowWrap/Row/Left/Title,
+		$UI/Center/RowWrap/Row/Left/Footer,
+		$UI/Center/RowWrap/Row/Fill,
+		$UI/Center/RowWrap/Row/Right,
+		$UI/Center/RowWrap/Row/Right/Character,
+		settings_bg,
+		settings_title,
+		credits_bg,
+		credits_title,
+		credits_name_1,
+		credits_name_2,
+		credits_name_3,
+		special_thanks_title,
+		special_thanks_1,
+		$UI/CreditsPanel/CenterContainer/VBoxContainer/Spacer,
+		$UI/CreditsPanel/CenterContainer/VBoxContainer/Spacer2,
+		get_node("UI/CreditsPanel/GameJam info"),
+		$UI/CrtOverlay,
+		$UI/FadeRect
+	]
+
+	for node in passthrough_nodes:
+		if node:
+			node.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+func _wire_menu_mouse() -> void:
+	for i in range(menu_buttons.size()):
+		var button := menu_buttons[i]
+		button.mouse_entered.connect(_on_menu_button_hovered.bind(i))
+		button.pressed.connect(_on_menu_button_pressed.bind(i))
+
+func _wire_settings_mouse() -> void:
+	for i in range(settings_buttons.size()):
+		var button := settings_buttons[i]
+		button.mouse_entered.connect(_on_settings_button_hovered.bind(i))
+		button.pressed.connect(_on_settings_button_pressed.bind(i))
+		button.gui_input.connect(_on_settings_button_gui_input.bind(i))
+
+func _wire_credits_mouse() -> void:
+	credits_back_value.mouse_entered.connect(_on_credits_back_hovered)
+	credits_back_value.pressed.connect(_on_credits_back_pressed)
+
+func _on_menu_button_hovered(button_index: int) -> void:
+	if is_transitioning or in_settings or in_credits:
+		return
+	if index != button_index:
+		index = button_index
+		_update_menu()
+		_play_switch()
+
+func _on_menu_button_pressed(button_index: int) -> void:
+	if is_transitioning or in_settings or in_credits:
+		return
+	index = button_index
+	_update_menu()
+	_play_click()
+	await _start_transition()
+
+func _on_settings_button_hovered(button_index: int) -> void:
+	if is_transitioning or not in_settings:
+		return
+	if settings_index != button_index:
+		settings_index = button_index
+		_refresh_settings_ui()
+		_play_switch()
+
+func _on_settings_button_pressed(button_index: int) -> void:
+	if is_transitioning or not in_settings:
+		return
+
+	settings_index = button_index
+	_refresh_settings_ui()
+	_play_click()
+
+	if button_index == 5:
+		_close_settings()
+		return
+
+	_change_settings_value(1)
+
+func _on_settings_button_gui_input(event: InputEvent, button_index: int) -> void:
+	if is_transitioning or not in_settings:
+		return
+
+	if not (event is InputEventMouseButton):
+		return
+
+	var mouse_event := event as InputEventMouseButton
+	if not mouse_event.pressed:
+		return
+
+	settings_index = button_index
+	_refresh_settings_ui()
+
+	match mouse_event.button_index:
+		MOUSE_BUTTON_RIGHT, MOUSE_BUTTON_WHEEL_DOWN:
+			if button_index != 5:
+				_play_click()
+				_change_settings_value(-1)
+				get_viewport().set_input_as_handled()
+		MOUSE_BUTTON_WHEEL_UP:
+			if button_index != 5:
+				_play_click()
+				_change_settings_value(1)
+				get_viewport().set_input_as_handled()
+
+func _on_credits_back_hovered() -> void:
+	if is_transitioning or not in_credits:
+		return
+	_refresh_credits_ui(true)
+
+func _on_credits_back_pressed() -> void:
+	if is_transitioning or not in_credits:
+		return
+	_play_click()
+	_close_credits()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if is_transitioning:
@@ -116,6 +261,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				_change_settings_value(1)
 			elif settings_index == 5:
 				_close_settings()
+			else:
+				_change_settings_value(1)
 
 			return
 
@@ -146,12 +293,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	if event.is_action_pressed("ui_down"):
-		index = (index + 1) % item_labels.size()
+		index = (index + 1) % menu_buttons.size()
 		_update_menu()
 		_play_switch()
 
 	elif event.is_action_pressed("ui_up"):
-		index = (index - 1 + item_labels.size()) % item_labels.size()
+		index = (index - 1 + menu_buttons.size()) % menu_buttons.size()
 		_update_menu()
 		_play_switch()
 
@@ -187,17 +334,10 @@ func _process(_delta: float) -> void:
 # MENU LOGIC
 # =========================
 func _update_menu() -> void:
-	for i in range(item_labels.size()):
-		var base := item_labels[i].text.strip_edges()
-		base = base.trim_prefix(">")
-		base = base.strip_edges()
-
-		if i == index:
-			item_labels[i].text = "> " + base
-			item_labels[i].modulate.a = 1.0
-		else:
-			item_labels[i].text = "  " + base
-			item_labels[i].modulate.a = 0.75
+	for i in range(menu_buttons.size()):
+		menu_buttons[i].modulate.a = 1.0 if i == index else 0.75
+		menu_selectors[i].text = ">" if i == index else ""
+		menu_selectors[i].modulate.a = 1.0 if i == index else 0.0
 
 func _activate_current() -> void:
 	match index:
@@ -246,15 +386,6 @@ func _refresh_settings_ui() -> void:
 	var camera_tilt_text := "CAMERA TILT: " + ("ON" if Settings.camera_tilt_enabled else "OFF")
 	var back_text := "BACK"
 
-	var rows: Array[Label] = [
-		master_value,
-		fullscreen_value,
-		resolution_value,
-		mouse_sens_value,
-		camera_tilt_value,
-		back_value
-	]
-
 	var texts: Array[String] = [
 		master_text,
 		fullscreen_text,
@@ -264,13 +395,10 @@ func _refresh_settings_ui() -> void:
 		back_text
 	]
 
-	for i in range(rows.size()):
-		if i == settings_index:
-			rows[i].text = "> " + texts[i]
-			rows[i].modulate.a = 1.0
-		else:
-			rows[i].text = "  " + texts[i]
-			rows[i].modulate.a = 0.75
+	for i in range(settings_buttons.size()):
+		var selected := i == settings_index
+		settings_buttons[i].text = ("> " if selected else "  ") + texts[i]
+		settings_buttons[i].modulate.a = 1.0 if selected else 0.75
 
 func _change_settings_value(direction: int) -> void:
 	match settings_index:
@@ -343,30 +471,25 @@ func _play_click() -> void:
 func _open_credits() -> void:
 	in_credits = true
 	credits_panel.visible = true
-	_refresh_credits_ui()
+	_refresh_credits_ui(false)
 
 func _close_credits() -> void:
 	in_credits = false
 	credits_panel.visible = false
 	_update_menu()
 
-func _refresh_credits_ui() -> void:
+func _refresh_credits_ui(selected_back: bool = true) -> void:
 	if not credits_panel:
 		return
 
 	credits_title.text = "CREDITS"
-
-	# Sostituisci questi nomi con quelli reali
 	credits_name_1.text = "  Main / Developer: DDD"
 	credits_name_2.text = "  Composer: Niko Chantzis"
 	credits_name_3.text = "  Animator: Siti Arina M. / rouxbah"
-	
-	# Special thanks section
+
 	special_thanks_title.text = "SPECIAL THANKS"
 	special_thanks_title.modulate.a = 0.95
-
 	special_thanks_1.text = "  Playtesting: Adircas"
 
-
-	credits_back_value.text = "> BACK"
-	credits_back_value.modulate.a = 1.0
+	credits_back_value.text = ("> " if selected_back else "  ") + "BACK"
+	credits_back_value.modulate.a = 1.0 if selected_back else 0.75
