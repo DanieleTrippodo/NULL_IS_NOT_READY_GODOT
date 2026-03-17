@@ -399,7 +399,7 @@ func _spawn_arena(scene_to_spawn: PackedScene = null) -> void:
 	arena_root.add_child(a)
 	arena_instance = a as Node3D
 
-func _get_arena_scene_for_depth(depth: int) -> PackedScene:
+func _get_arena_scene_for_depth(_depth: int) -> PackedScene:
 	var all_arenas: Array[PackedScene] = []
 
 	if arena_scene != null:
@@ -412,7 +412,7 @@ func _get_arena_scene_for_depth(depth: int) -> PackedScene:
 	if all_arenas.is_empty():
 		return null
 
-	var index := (depth - 1) % all_arenas.size()
+	var index := rng.randi_range(0, all_arenas.size() - 1)
 	return all_arenas[index]
 
 func _spawn_player() -> void:

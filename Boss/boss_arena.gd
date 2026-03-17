@@ -24,9 +24,9 @@ enum BossState {
 @export var attack_duration_phase_1: float = 20.0
 @export var attack_duration_phase_2: float = 24.0
 @export var attack_duration_phase_3: float = 28.0
-@export var vulnerable_time_phase_1: float = 3.0
-@export var vulnerable_time_phase_2: float = 2.4
-@export var vulnerable_time_phase_3: float = 1.8
+@export var vulnerable_time_phase_1: float = 4.0
+@export var vulnerable_time_phase_2: float = 3.4
+@export var vulnerable_time_phase_3: float = 3.0
 
 @export_group("Attack Chaining")
 @export var pattern_switch_phase_1: float = 4.4
@@ -45,6 +45,16 @@ enum BossState {
 @export_group("Victory Transition")
 @export var victory_hold_before_fade: float = 0.8
 @export var victory_fade_duration: float = 1.6
+
+@export_group("Boss Teleport")
+@export var teleport_between_phases: bool = true
+@export var teleport_transition_duration: float = 0.45
+@export var teleport_warning_duration: float = 0.85
+@export var teleport_during_attack: bool = true
+@export var teleport_phase_1_interval: float = 8.8
+@export var teleport_phase_2_interval: float = 6.8
+@export var teleport_phase_3_interval: float = 5.2
+@export var teleport_min_time_remaining: float = 2.6
 
 @onready var player_spawn: Marker3D = $PlayerSpawn
 @onready var boss_anchor: Marker3D = $BossAnchor
@@ -97,6 +107,12 @@ var _attack_pattern_time_left: float = 0.0
 var _current_attack_pattern: String = ""
 
 var _arena_darkness_tween: Tween = null
+var _boss_teleport_positions: Array[Vector3] = []
+var _boss_teleport_rotations: Array[Vector3] = []
+var _boss_current_teleport_index: int = 0
+var _attack_teleport_pending: bool = false
+var _attack_teleport_in_progress: bool = false
+var _attack_teleport_cooldown_left: float = 0.0
 
 func _ready() -> void:
 	_rng.randomize()
@@ -301,6 +317,11 @@ func _spawn_boss() -> void:
 	if boss.has_method("play_intro_appearance"):
 		boss.call("play_intro_appearance", intro_duration)
 
+	_cache_boss_teleport_points()
+
+	if boss.has_signal("teleport_sequence_finished") and not boss.teleport_sequence_finished.is_connected(_on_boss_teleport_sequence_finished):
+		boss.teleport_sequence_finished.connect(_on_boss_teleport_sequence_finished)
+
 
 func _get_platform_half_extents() -> Vector2:
 	if platform_mesh == null or platform_mesh.mesh == null:
@@ -321,6 +342,9 @@ func _begin_attack_phase() -> void:
 
 	state = BossState.ATTACK
 	state_time_left = _get_attack_duration_for_phase(phase)
+	_attack_teleport_pending = false
+	_attack_teleport_in_progress = false
+	_attack_teleport_cooldown_left = _get_attack_teleport_interval_for_phase(phase)
 
 	_prepare_attack_sequence_for_phase(phase)
 	_start_next_attack_pattern(true)
@@ -357,9 +381,9 @@ func _begin_transition(custom_time: float = -1.0) -> void:
 
 
 func _update_phase() -> void:
-	if boss_hits >= 4:
+	if boss_hits >= 2:
 		phase = 3
-	elif boss_hits >= 2:
+	elif boss_hits >= 1:
 		phase = 2
 	else:
 		phase = 1
@@ -378,15 +402,19 @@ func _get_attack_duration_for_phase(p: int) -> float:
 
 
 func _get_vulnerable_duration_for_phase(p: int) -> float:
+	var t: float
+
 	match p:
 		1:
-			return vulnerable_time_phase_1
+			t = vulnerable_time_phase_1
 		2:
-			return vulnerable_time_phase_2
+			t = vulnerable_time_phase_2
 		3:
-			return vulnerable_time_phase_3
+			t = vulnerable_time_phase_3
 		_:
-			return vulnerable_time_phase_1
+			t = vulnerable_time_phase_1
+
+	return maxf(t, 3.0)
 
 
 func _get_pattern_switch_interval_for_phase(p: int) -> float:
@@ -399,6 +427,18 @@ func _get_pattern_switch_interval_for_phase(p: int) -> float:
 			return pattern_switch_phase_3
 		_:
 			return pattern_switch_phase_1
+
+
+func _get_attack_teleport_interval_for_phase(p: int) -> float:
+	match p:
+		1:
+			return teleport_phase_1_interval
+		2:
+			return teleport_phase_2_interval
+		3:
+			return teleport_phase_3_interval
+		_:
+			return teleport_phase_1_interval
 
 
 func _get_pattern_sequence_for_phase(p: int) -> Array[String]:
@@ -429,6 +469,8 @@ func _reset_attack_chain_state() -> void:
 	_attack_sequence_index = 0
 	_attack_pattern_time_left = 0.0
 	_current_attack_pattern = ""
+	_attack_teleport_pending = false
+	_attack_teleport_in_progress = false
 
 
 func _update_attack_pattern_cycle(delta: float) -> void:
@@ -436,9 +478,22 @@ func _update_attack_pattern_cycle(delta: float) -> void:
 		return
 	if _attack_sequence.is_empty():
 		return
+	if _attack_teleport_in_progress:
+		return
+
+	if teleport_during_attack:
+		_attack_teleport_cooldown_left -= delta
+		if _attack_teleport_cooldown_left <= 0.0:
+			_attack_teleport_pending = true
+			_attack_teleport_cooldown_left = 999999.0
 
 	_attack_pattern_time_left -= delta
 	if _attack_pattern_time_left > 0.0:
+		return
+
+	var required_remaining: float = maxf(pattern_end_buffer, teleport_min_time_remaining + teleport_warning_duration + teleport_transition_duration)
+	if _attack_teleport_pending and state_time_left > required_remaining:
+		_start_pending_attack_teleport()
 		return
 
 	if state_time_left <= pattern_end_buffer:
@@ -488,18 +543,28 @@ func _on_enemy_killed(enemy: Node) -> void:
 	if not boss.call("is_weak_point_node", enemy):
 		return
 
+	var previous_phase: int = phase
 	boss_hits += 1
+	_update_phase()
+	var phase_changed: bool = phase != previous_phase
 
 	if boss.has_method("on_weak_point_hit"):
 		boss.call("on_weak_point_hit", boss_hits)
 
 	_force_null_return()
 
-	if boss_hits >= 5:
+	if boss_hits >= 3:
 		_kill_boss()
 		return
 
-	_begin_transition(post_hit_buffer)
+	var transition_time: float = post_hit_buffer
+	if phase_changed and phase >= 2 and teleport_between_phases:
+		transition_time = maxf(transition_time, teleport_warning_duration + teleport_transition_duration + 0.15)
+
+	_begin_transition(transition_time)
+
+	if phase_changed and phase >= 2 and teleport_between_phases:
+		_teleport_boss_to_next_anchor()
 
 
 func _kill_boss() -> void:
@@ -564,6 +629,120 @@ func _clear_boss_bullets() -> void:
 
 	for child in boss_bullets.get_children():
 		child.queue_free()
+
+
+func _cache_boss_teleport_points() -> void:
+	_boss_teleport_positions.clear()
+	_boss_teleport_rotations.clear()
+
+	if boss_anchor == null or arena_center == null:
+		return
+
+	var center: Vector3 = arena_center.global_position
+	var anchor_pos: Vector3 = boss_anchor.global_position
+	var radius_vec: Vector2 = Vector2(anchor_pos.x - center.x, anchor_pos.z - center.z)
+	var radius: float = maxf(radius_vec.length(), 1.0)
+	var base_y: float = anchor_pos.y
+	var base_rot: Vector3 = boss_anchor.rotation
+	var yaws: Array[float] = [base_rot.y, base_rot.y - PI * 0.5, base_rot.y + PI, base_rot.y + PI * 0.5]
+	var dirs: Array[Vector3] = [Vector3(0.0, 0.0, -1.0), Vector3(1.0, 0.0, 0.0), Vector3(0.0, 0.0, 1.0), Vector3(-1.0, 0.0, 0.0)]
+
+	for i in range(dirs.size()):
+		var dir: Vector3 = dirs[i]
+		var pos: Vector3 = Vector3(center.x + dir.x * radius, base_y, center.z + dir.z * radius)
+		_boss_teleport_positions.append(pos)
+		_boss_teleport_rotations.append(Vector3(base_rot.x, yaws[i], base_rot.z))
+
+	_boss_current_teleport_index = _find_nearest_boss_teleport_index(anchor_pos)
+
+
+func _find_nearest_boss_teleport_index(pos: Vector3) -> int:
+	if _boss_teleport_positions.is_empty():
+		return 0
+
+	var best_index: int = 0
+	var best_distance: float = INF
+	for i in range(_boss_teleport_positions.size()):
+		var d: float = pos.distance_squared_to(_boss_teleport_positions[i])
+		if d < best_distance:
+			best_distance = d
+			best_index = i
+
+	return best_index
+
+
+func _pick_next_boss_teleport_index() -> int:
+	if _boss_teleport_positions.size() <= 1:
+		return _boss_current_teleport_index
+
+	var next_index: int = _rng.randi_range(0, _boss_teleport_positions.size() - 1)
+	if next_index == _boss_current_teleport_index:
+		next_index = (next_index + 1 + _rng.randi_range(0, _boss_teleport_positions.size() - 2)) % _boss_teleport_positions.size()
+
+	return next_index
+
+
+func _teleport_boss_to_next_anchor() -> void:
+	if boss == null:
+		return
+	if _boss_teleport_positions.is_empty():
+		return
+
+	var next_index: int = _pick_next_boss_teleport_index()
+	_boss_current_teleport_index = next_index
+
+	var target_pos: Vector3 = _boss_teleport_positions[next_index]
+	var target_rot: Vector3 = _boss_teleport_rotations[next_index]
+
+	if boss.has_method("play_teleport_blink"):
+		boss.call("play_teleport_blink", target_pos, target_rot, teleport_warning_duration, teleport_transition_duration)
+	else:
+		boss.global_position = target_pos
+		boss.rotation = target_rot
+
+
+func _start_pending_attack_teleport() -> void:
+	if boss == null:
+		return
+	if _boss_teleport_positions.is_empty():
+		return
+
+	_attack_teleport_pending = false
+	_attack_teleport_in_progress = true
+
+	if boss.has_method("stop_attack"):
+		boss.call("stop_attack")
+	if boss.has_method("close_weak_point"):
+		boss.call("close_weak_point")
+
+	var next_index: int = _pick_next_boss_teleport_index()
+	_boss_current_teleport_index = next_index
+
+	var target_pos: Vector3 = _boss_teleport_positions[next_index]
+	var target_rot: Vector3 = _boss_teleport_rotations[next_index]
+
+	if boss.has_method("play_teleport_blink"):
+		boss.call("play_teleport_blink", target_pos, target_rot, teleport_warning_duration, teleport_transition_duration)
+	else:
+		boss.global_position = target_pos
+		boss.rotation = target_rot
+		_on_boss_teleport_sequence_finished()
+
+
+func _on_boss_teleport_sequence_finished() -> void:
+	_attack_teleport_in_progress = false
+	_attack_teleport_cooldown_left = _get_attack_teleport_interval_for_phase(phase)
+
+	if state != BossState.ATTACK:
+		return
+	if restarting or _victory_transitioning:
+		return
+	if boss == null:
+		return
+	if state_time_left <= pattern_end_buffer:
+		return
+
+	_start_next_attack_pattern(false)
 
 
 func _on_request_shoot(origin: Vector3, direction: Vector3, size_mult: float = 1.0) -> void:

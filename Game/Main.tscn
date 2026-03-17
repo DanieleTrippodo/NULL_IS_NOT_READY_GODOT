@@ -1,4 +1,4 @@
-[gd_scene load_steps=34 format=3 uid="uid://bgwcyyqw3ssa1"]
+[gd_scene load_steps=35 format=3 uid="uid://bgwcyyqw3ssa1"]
 
 [ext_resource type="Script" uid="uid://pfb6mfm6lhf8" path="res://Game/Game.gd" id="1_wd0a0"]
 [ext_resource type="PackedScene" uid="uid://8w3pg480ojvn" path="res://Levels/arena.tscn" id="2_lv82p"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://cgdx05tgter6r" path="res://Levels/arena_3.tscn" id="4_vpdl3"]
 [ext_resource type="PackedScene" uid="uid://7amqyp7gk6t4" path="res://Levels/arena_4.tscn" id="5_oo4an"]
 [ext_resource type="PackedScene" uid="uid://cagjhpfgva4b6" path="res://Enemies/chaser.tscn" id="5_rl4yr"]
+[ext_resource type="PackedScene" uid="uid://cs3wqut670hke" path="res://Levels/arena_5.tscn" id="6_1us15"]
 [ext_resource type="PackedScene" uid="uid://dcwn63iuwth1h" path="res://Enemies/turret.tscn" id="6_3xx61"]
 [ext_resource type="PackedScene" uid="uid://bhkaynd3qjg8j" path="res://UI/hud.tscn" id="6_g5pn2"]
 [ext_resource type="PackedScene" uid="uid://bivvuwcjgan2n" path="res://Enemies/spike.tscn" id="7_f77hp"]
@@ -41,7 +42,7 @@ ambient_light_color = Color(0.98234254, 0.9823423, 0.9823424, 1)
 [node name="Node" type="Node"]
 script = ExtResource("1_wd0a0")
 arena_scene = ExtResource("2_lv82p")
-arena_wave_scenes = Array[PackedScene]([ExtResource("3_qvna0"), ExtResource("4_vpdl3"), ExtResource("5_oo4an")])
+arena_wave_scenes = Array[PackedScene]([ExtResource("3_qvna0"), ExtResource("4_vpdl3"), ExtResource("5_oo4an"), ExtResource("6_1us15")])
 player_scene = ExtResource("3_w1egk")
 null_projectile_scene = ExtResource("4_rchnd")
 chaser_scene = ExtResource("5_rl4yr")

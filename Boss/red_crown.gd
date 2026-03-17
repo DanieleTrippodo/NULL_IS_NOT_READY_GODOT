@@ -1,6 +1,7 @@
 extends Node3D
 
 signal weak_point_hit(hit_count: int)
+signal teleport_sequence_finished
 
 @export var bullet_scene: PackedScene = preload("res://Boss/boss_bullet.tscn")
 
@@ -15,9 +16,20 @@ signal weak_point_hit(hit_count: int)
 @export var intro_glow_peak_alpha: float = 0.88
 @export var intro_glow_final_flash_alpha: float = 1.0
 
+@export_group("Teleport")
+@export var teleport_warning_duration_default: float = 0.85
+@export var teleport_duration_default: float = 0.45
+@export var teleport_warning_body_alpha: float = 0.58
+@export var teleport_warning_glow_alpha: float = 0.54
+@export var teleport_body_dim_alpha: float = 0.72
+@export var teleport_glow_alpha: float = 1.0
+@export var teleport_jitter_amount: float = 0.22
+@export var teleport_jitter_rotation_deg: float = 2.8
+@export var teleport_flash_alpha: float = 0.96
+
 @export_group("Audio")
 @export var audio_bus_name: String = "Master"
-@export var audio_volume_db: float = 6.0
+@export var audio_volume_db: float = 12.0
 @export var audio_unit_size: float = 10.0
 @export var audio_max_distance: float = 80.0
 @export var audio_pitch_random_min: float = 0.96
@@ -96,8 +108,12 @@ var _intro_pose_initialized: bool = false
 var _intro_playing: bool = false
 var _intro_visual_final_position: Vector3 = Vector3.ZERO
 var _intro_visual_final_scale: Vector3 = Vector3.ONE
+var _intro_visual_final_rotation: Vector3 = Vector3.ZERO
 var _intro_tween: Tween = null
 var _glow_tween: Tween = null
+var _teleport_tween: Tween = null
+var _teleport_warning_position: Vector3 = Vector3.ZERO
+var _teleport_warning_rotation: Vector3 = Vector3.ZERO
 
 var _audio_intro: AudioStreamPlayer3D = null
 var _audio_open: AudioStreamPlayer3D = null
@@ -349,6 +365,7 @@ func play_death() -> void:
 
 	_dead = true
 	_kill_intro_tweens()
+	_kill_teleport_tween()
 	stop_attack()
 	close_weak_point()
 
@@ -731,6 +748,9 @@ func _reset_visual_modulate() -> void:
 func _cache_intro_pose_from_current() -> void:
 	_intro_visual_final_position = visuals.position
 	_intro_visual_final_scale = visuals.scale
+	_intro_visual_final_rotation = visuals.rotation
+	_teleport_warning_position = visuals.position
+	_teleport_warning_rotation = visuals.rotation
 	_intro_pose_initialized = true
 
 
@@ -740,6 +760,7 @@ func _apply_intro_hidden_pose() -> void:
 
 	visuals.position = _intro_visual_final_position
 	visuals.scale = _intro_visual_final_scale
+	visuals.rotation = _intro_visual_final_rotation
 
 	body_closed.visible = true
 	body_open.visible = false
@@ -758,6 +779,9 @@ func _finish_intro_if_needed() -> void:
 
 	visuals.position = _intro_visual_final_position
 	visuals.scale = _intro_visual_final_scale
+	visuals.rotation = _intro_visual_final_rotation
+	_teleport_warning_position = visuals.position
+	_teleport_warning_rotation = visuals.rotation
 
 	if not vulnerable:
 		body_closed.visible = true
@@ -772,6 +796,9 @@ func _on_intro_finished() -> void:
 	_intro_playing = false
 	visuals.position = _intro_visual_final_position
 	visuals.scale = _intro_visual_final_scale
+	visuals.rotation = _intro_visual_final_rotation
+	_teleport_warning_position = visuals.position
+	_teleport_warning_rotation = visuals.rotation
 	body_closed.visible = true
 	body_open.visible = false
 	body_closed.modulate = Color(1.0, 1.0, 1.0, intro_body_target_alpha)
@@ -787,6 +814,110 @@ func _kill_intro_tweens() -> void:
 	if _glow_tween != null:
 		_glow_tween.kill()
 		_glow_tween = null
+
+
+func play_teleport_blink(target_position: Vector3, target_rotation: Vector3, warning_duration: float = -1.0, blink_duration: float = -1.0) -> void:
+	if _dead:
+		return
+
+	_finish_intro_if_needed()
+	_kill_teleport_tween()
+	stop_attack()
+	vulnerable = false
+
+	if weak_point_shape != null:
+		weak_point_shape.disabled = true
+
+	body_closed.visible = true
+	body_open.visible = false
+	weak_glow.visible = true
+	_teleport_warning_position = visuals.position
+	_teleport_warning_rotation = visuals.rotation
+
+	var warn: float = teleport_warning_duration_default if warning_duration <= 0.0 else warning_duration
+	var blink: float = teleport_duration_default if blink_duration <= 0.0 else blink_duration
+	warn = maxf(warn, 0.18)
+	blink = maxf(blink, 0.18)
+
+	var pulse: float = warn / 6.0
+	var blink_seg: float = blink / 5.0
+
+	_teleport_tween = create_tween()
+	_teleport_tween.set_trans(Tween.TRANS_SINE)
+	_teleport_tween.set_ease(Tween.EASE_IN_OUT)
+
+	# pre-warning glitch pulses
+	_teleport_tween.tween_callback(Callable(self, "_set_teleport_visual_state").bind(teleport_warning_body_alpha, teleport_warning_glow_alpha, true, 0.55, -1.0))
+	_teleport_tween.tween_interval(pulse)
+	_teleport_tween.tween_callback(Callable(self, "_set_teleport_visual_state").bind(intro_body_target_alpha * 0.82, 0.10, true, 0.15, 1.0))
+	_teleport_tween.tween_interval(pulse)
+	_teleport_tween.tween_callback(Callable(self, "_set_teleport_visual_state").bind(teleport_warning_body_alpha * 0.92, teleport_warning_glow_alpha * 1.12, true, 0.85, 1.0))
+	_teleport_tween.tween_interval(pulse)
+	_teleport_tween.tween_callback(Callable(self, "_set_teleport_visual_state").bind(intro_body_target_alpha * 0.76, 0.08, true, 0.18, -1.0))
+	_teleport_tween.tween_interval(pulse)
+	_teleport_tween.tween_callback(Callable(self, "_set_teleport_visual_state").bind(teleport_warning_body_alpha * 1.04, teleport_warning_glow_alpha * 1.25, true, 1.00, 1.0))
+	_teleport_tween.tween_interval(pulse)
+	_teleport_tween.tween_callback(Callable(self, "_set_teleport_visual_state").bind(0.0, 0.0, false, 0.0, 0.0))
+	_teleport_tween.tween_interval(pulse)
+
+	# actual blink + teleport
+	_teleport_tween.tween_callback(Callable(self, "_set_teleport_visual_state").bind(teleport_body_dim_alpha, teleport_glow_alpha, true, 1.20, -1.0))
+	_teleport_tween.tween_interval(blink_seg)
+	_teleport_tween.tween_callback(Callable(self, "_set_teleport_visual_state").bind(0.0, 0.0, false, 0.0, 0.0))
+	_teleport_tween.tween_interval(blink_seg)
+	_teleport_tween.tween_callback(Callable(self, "_apply_teleport_transform").bind(target_position, target_rotation))
+	_teleport_tween.tween_callback(Callable(self, "_set_teleport_visual_state").bind(teleport_body_dim_alpha * 0.94, teleport_glow_alpha, true, 1.00, 1.0))
+	_teleport_tween.tween_interval(blink_seg)
+	_teleport_tween.tween_callback(Callable(self, "_set_teleport_visual_state").bind(0.0, 0.0, false, 0.0, 0.0))
+	_teleport_tween.tween_interval(blink_seg)
+	_teleport_tween.tween_callback(Callable(self, "_set_teleport_visual_state").bind(teleport_flash_alpha, teleport_glow_alpha * 0.9, true, 0.55, -1.0))
+	_teleport_tween.tween_interval(blink_seg)
+	_teleport_tween.tween_callback(Callable(self, "_restore_after_teleport"))
+
+
+func _apply_teleport_transform(target_position: Vector3, target_rotation: Vector3) -> void:
+	global_position = target_position
+	rotation = target_rotation
+
+
+func _set_teleport_visual_state(body_alpha: float, glow_alpha: float, show_glow: bool, jitter_mult: float = 0.0, rot_sign: float = 0.0) -> void:
+	body_closed.visible = true
+	body_open.visible = false
+	_set_body_alpha(body_alpha)
+	weak_glow.visible = show_glow
+	_set_weak_glow_alpha(glow_alpha)
+
+	var offset: Vector3 = Vector3.ZERO
+	if jitter_mult > 0.0:
+		offset = Vector3(
+			rng.randf_range(-teleport_jitter_amount, teleport_jitter_amount) * jitter_mult,
+			rng.randf_range(-teleport_jitter_amount, teleport_jitter_amount) * jitter_mult,
+			0.0
+		)
+
+	visuals.position = _teleport_warning_position + offset
+	visuals.rotation = _teleport_warning_rotation
+	if rot_sign != 0.0:
+		visuals.rotation.z = _teleport_warning_rotation.z + deg_to_rad(teleport_jitter_rotation_deg * rot_sign)
+
+
+func _restore_after_teleport() -> void:
+	visuals.position = _teleport_warning_position
+	visuals.rotation = _teleport_warning_rotation
+	body_closed.visible = true
+	body_open.visible = false
+	body_closed.modulate = Color(1.0, 1.0, 1.0, intro_body_target_alpha)
+	weak_glow.visible = false
+	_set_weak_glow_alpha(0.0)
+	teleport_sequence_finished.emit()
+
+
+func _kill_teleport_tween() -> void:
+	if _teleport_tween != null:
+		_teleport_tween.kill()
+		_teleport_tween = null
+	visuals.position = _teleport_warning_position if _teleport_warning_position != Vector3.ZERO else _intro_visual_final_position
+	visuals.rotation = _teleport_warning_rotation if _teleport_warning_rotation != Vector3.ZERO else _intro_visual_final_rotation
 
 
 func _setup_audio_players() -> void:
