@@ -103,6 +103,7 @@ horizontal_alignment = 1
 
 [node name="GameBody" type="Label" parent="Content/CreditsBlock"]
 modulate = Color(1, 1, 1, 0.9)
+custom_minimum_size = Vector2(800, 0)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2")
 theme_override_font_sizes/font_size = 30
@@ -125,6 +126,7 @@ horizontal_alignment = 1
 
 [node name="SpecialBody" type="Label" parent="Content/CreditsBlock"]
 modulate = Color(1, 1, 1, 0.9)
+custom_minimum_size = Vector2(800, 0)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2")
 theme_override_font_sizes/font_size = 30
@@ -152,10 +154,10 @@ layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 31.545
-offset_top = -44.64502
-offset_right = 371.545
-offset_bottom = -17.64502
+offset_left = 21.545
+offset_top = -54.22998
+offset_right = 361.545
+offset_bottom = -27.22998
 grow_vertical = 0
 theme_override_fonts/font = ExtResource("2")
 theme_override_font_sizes/font_size = 26

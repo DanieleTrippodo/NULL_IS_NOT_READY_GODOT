@@ -33,8 +33,13 @@ extends Node
 
 @export var tutorial_mode: bool = false
 @export var game_over_overlay_scene: PackedScene
+@export var pause_terminal_scene: PackedScene
+@export var pause_bgm_volume_db: float = -24.0
 
 var game_over_overlay: Control = null
+var pause_terminal: CanvasLayer = null
+var pause_active: bool = false
+var combat_bgm_default_volume_db: float = -15.0
 
 var rng := RandomNumberGenerator.new()
 var terminal_instance: Node3D = null
@@ -80,6 +85,7 @@ const KILL_FLASH_TIME := 0.09
 func _ready() -> void:
 	rng.randomize()
 	Engine.time_scale = 1.0
+	combat_bgm_default_volume_db = combat_bgm.volume_db if combat_bgm != null else pause_bgm_volume_db
 
 	if not Run.returning_from_shop:
 		Run.reset()
@@ -111,6 +117,7 @@ func _ready() -> void:
 	_set_state(ArenaState.WAIT_START)
 	_setup_terminal_overlay()
 	_setup_game_over_overlay()
+	_setup_pause_terminal()
 	
 	_stop_combat_bgm()
 
@@ -209,12 +216,99 @@ func _setup_game_over_overlay() -> void:
 		if game_over_overlay.has_signal("exit_pressed"):
 			game_over_overlay.exit_pressed.connect(_on_game_over_exit_pressed)
 
+func _setup_pause_terminal() -> void:
+	if pause_terminal_scene == null:
+		return
+
+	var o := pause_terminal_scene.instantiate()
+	if not (o is CanvasLayer):
+		return
+
+	pause_terminal = o as CanvasLayer
+	$UIRoot.add_child(pause_terminal)
+	pause_terminal.visible = false
+
+	if pause_terminal.has_signal("command_requested"):
+		pause_terminal.command_requested.connect(_on_pause_terminal_command_requested)
+
+func _can_open_pause_terminal() -> bool:
+	if pause_terminal == null:
+		return false
+	if pause_active or restarting or wave_transitioning:
+		return false
+	if terminal_overlay != null and terminal_overlay.visible:
+		return false
+	if game_over_overlay != null and game_over_overlay.visible:
+		return false
+	return true
+
+func _open_pause_terminal() -> void:
+	if not _can_open_pause_terminal():
+		return
+
+	pause_active = true
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+
+	if pause_terminal != null and pause_terminal.has_method("open_terminal"):
+		pause_terminal.call("open_terminal")
+
+	get_tree().paused = true
+	_set_pause_bgm_attenuation(true)
+
+func _close_pause_terminal() -> void:
+	if not pause_active:
+		return
+
+	if pause_terminal != null and pause_terminal.has_method("close_terminal"):
+		pause_terminal.call("close_terminal")
+
+	get_tree().paused = false
+	pause_active = false
+	_set_pause_bgm_attenuation(false)
+
+	if not restarting:
+		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+
+func _close_pause_terminal_for_scene_change() -> void:
+	if pause_terminal != null and pause_terminal.has_method("close_terminal"):
+		pause_terminal.call("close_terminal")
+
+	get_tree().paused = false
+	pause_active = false
+	_set_pause_bgm_attenuation(false)
+
+func _set_pause_bgm_attenuation(paused_state: bool) -> void:
+	if combat_bgm == null:
+		return
+
+	combat_bgm.volume_db = pause_bgm_volume_db if paused_state else combat_bgm_default_volume_db
+
+func _on_pause_terminal_command_requested(command: String) -> void:
+	match command:
+		"resume":
+			_close_pause_terminal()
+		"restart":
+			_close_pause_terminal_for_scene_change()
+			_stop_combat_bgm()
+			Run.reset()
+			get_tree().reload_current_scene()
+		"menu":
+			_close_pause_terminal_for_scene_change()
+			_stop_combat_bgm()
+			Run.reset()
+			get_tree().change_scene_to_file("res://UI/main_menu.tscn")
+		"quit":
+			_close_pause_terminal_for_scene_change()
+			_stop_combat_bgm()
+			Run.reset()
+			get_tree().quit()
+
 func _unhandled_input(event: InputEvent) -> void:
-	if restarting:
+	if restarting or pause_active:
 		return
 
 	if event.is_action_pressed("esc"):
-		get_tree().change_scene_to_file("res://UI/main_menu.tscn")
+		_open_pause_terminal()
 
 func _physics_process(_delta: float) -> void:
 	if restarting or wave_transitioning:

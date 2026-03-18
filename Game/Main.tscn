@@ -1,4 +1,4 @@
-[gd_scene load_steps=35 format=3 uid="uid://bgwcyyqw3ssa1"]
+[gd_scene load_steps=36 format=3 uid="uid://bgwcyyqw3ssa1"]
 
 [ext_resource type="Script" uid="uid://pfb6mfm6lhf8" path="res://Game/Game.gd" id="1_wd0a0"]
 [ext_resource type="PackedScene" uid="uid://8w3pg480ojvn" path="res://Levels/arena.tscn" id="2_lv82p"]
@@ -24,6 +24,7 @@
 [ext_resource type="PackedScene" uid="uid://d0vplx8ahi2jp" path="res://UI/log_01.tscn" id="14_eg2md"]
 [ext_resource type="PackedScene" uid="uid://dlignrjkutci0" path="res://UI/log_02.tscn" id="15_b3cwe"]
 [ext_resource type="PackedScene" uid="uid://bwenhpdd8ynhc" path="res://UI/log_03.tscn" id="16_wo11f"]
+[ext_resource type="PackedScene" path="res://UI/pause_terminal.tscn" id="25_pause"]
 [ext_resource type="AudioStream" uid="uid://mh2uti7himha" path="res://Audio/SFX/KillSound.mp3" id="17_eru0w"]
 [ext_resource type="PackedScene" uid="uid://bdnvevac4p2fh" path="res://UI/log_04.tscn" id="17_qvna0"]
 [ext_resource type="PackedScene" uid="uid://cxydsp1rqodpm" path="res://UI/log_05.tscn" id="18_w1287"]
@@ -59,6 +60,7 @@ terminal_scene = ExtResource("12_3tq7c")
 terminal_overlay_scene = ExtResource("13_eg2md")
 terminal_log_scenes = Array[PackedScene]([ExtResource("14_eg2md"), ExtResource("15_b3cwe"), ExtResource("16_wo11f"), ExtResource("17_qvna0"), ExtResource("18_w1287"), ExtResource("19_ijkwl"), ExtResource("22_ccwv3"), ExtResource("23_3pgyt"), ExtResource("24_4d5b2")])
 game_over_overlay_scene = ExtResource("21_w1287")
+pause_terminal_scene = ExtResource("25_pause")
 magnet_radius = 3.0
 
 [node name="World" type="Node3D" parent="."]

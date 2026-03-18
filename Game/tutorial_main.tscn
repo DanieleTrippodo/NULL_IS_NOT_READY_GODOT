@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3 uid="uid://db66pbuu3ii4u"]
+[gd_scene load_steps=25 format=3 uid="uid://db66pbuu3ii4u"]
 
 [ext_resource type="Script" uid="uid://pfb6mfm6lhf8" path="res://Game/Game.gd" id="1_0rotx"]
 [ext_resource type="PackedScene" uid="uid://bmh5v3pstny5c" path="res://Levels/arena_tutorial.tscn" id="2_0rotx"]
@@ -21,6 +21,7 @@
 [ext_resource type="PackedScene" uid="uid://cxydsp1rqodpm" path="res://UI/log_05.tscn" id="18_c02gb"]
 [ext_resource type="PackedScene" uid="uid://cyhtuqa1pdl7b" path="res://UI/log_06.tscn" id="19_yiwbl"]
 [ext_resource type="PackedScene" uid="uid://bhkaynd3qjg8j" path="res://UI/hud.tscn" id="20_lsedi"]
+[ext_resource type="PackedScene" path="res://UI/pause_terminal.tscn" id="25_pause"]
 [ext_resource type="AudioStream" uid="uid://mh2uti7himha" path="res://Audio/SFX/KillSound.mp3" id="21_v4bmq"]
 
 [sub_resource type="Environment" id="Environment_3xx61"]
@@ -45,6 +46,7 @@ terminal_scene = ExtResource("12_0bg76")
 terminal_overlay_scene = ExtResource("13_rfjwq")
 terminal_log_scenes = Array[PackedScene]([ExtResource("14_dnhxd"), ExtResource("15_dm6cm"), ExtResource("16_apice"), ExtResource("17_prlci"), ExtResource("18_c02gb"), ExtResource("19_yiwbl")])
 tutorial_mode = true
+pause_terminal_scene = ExtResource("25_pause")
 magnet_radius = 3.0
 
 [node name="World" type="Node3D" parent="."]

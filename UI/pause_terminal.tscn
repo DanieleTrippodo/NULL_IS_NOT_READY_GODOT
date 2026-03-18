@@ -1,0 +1,137 @@
+[gd_scene load_steps=5 format=3 uid="uid://dng4eaf7gu0ym"]
+
+[ext_resource type="Script" uid="uid://blmvkhq1ivmpq" path="res://UI/pause_terminal.gd" id="1_pause"]
+[ext_resource type="FontFile" uid="uid://cd7edkymfqydv" path="res://fonts/VT323-Regular.ttf" id="2_font"]
+[ext_resource type="AudioStream" uid="uid://1xx8jvekqy26" path="res://Audio/SFX/TypeSfx.mp3" id="3_type"]
+[ext_resource type="AudioStream" uid="uid://bpjq3n43q26wj" path="res://Audio/SFX/onClick.mp3" id="4_click"]
+
+[node name="PauseTerminal" type="CanvasLayer"]
+visible = false
+script = ExtResource("1_pause")
+
+[node name="Dim" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+color = Color(0, 0, 0, 0.72)
+
+[node name="WindowPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+offset_left = 225.0
+offset_top = 120.0
+offset_right = 1155.0
+offset_bottom = 660.0
+mouse_filter = 1
+
+[node name="PanelBg" type="ColorRect" parent="WindowPanel"]
+layout_mode = 2
+mouse_filter = 2
+color = Color(0.03, 0.03, 0.03, 0.98)
+
+[node name="Border" type="ColorRect" parent="WindowPanel"]
+layout_mode = 2
+mouse_filter = 2
+color = Color(0.96, 0.96, 0.96, 0.02)
+
+[node name="VBox" type="VBoxContainer" parent="WindowPanel"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="HeaderHitbox" type="PanelContainer" parent="WindowPanel/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+mouse_filter = 1
+
+[node name="HeaderBg" type="ColorRect" parent="WindowPanel/VBox/HeaderHitbox"]
+layout_mode = 2
+mouse_filter = 2
+color = Color(0.35531327, 0.3553136, 0.3553143, 1)
+
+[node name="HeaderLabelWrap" type="MarginContainer" parent="WindowPanel/VBox/HeaderHitbox"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 6
+
+[node name="TitleLabel" type="Label" parent="WindowPanel/VBox/HeaderHitbox/HeaderLabelWrap"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 28
+text = "NULL://PAUSED"
+vertical_alignment = 1
+
+[node name="BodyMargins" type="MarginContainer" parent="WindowPanel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 14
+
+[node name="Body" type="VBoxContainer" parent="WindowPanel/VBox/BodyMargins"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 14
+
+[node name="OutputPanel" type="PanelContainer" parent="WindowPanel/VBox/BodyMargins/Body"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="OutputBg" type="ColorRect" parent="WindowPanel/VBox/BodyMargins/Body/OutputPanel"]
+layout_mode = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="OutputMargin" type="MarginContainer" parent="WindowPanel/VBox/BodyMargins/Body/OutputPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 10
+
+[node name="OutputLabel" type="RichTextLabel" parent="WindowPanel/VBox/BodyMargins/Body/OutputPanel/OutputMargin"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+focus_mode = 0
+theme_override_fonts/normal_font = ExtResource("2_font")
+theme_override_font_sizes/normal_font_size = 26
+scroll_following = true
+
+[node name="InputLabel" type="Label" parent="WindowPanel/VBox/BodyMargins/Body"]
+modulate = Color(1, 1, 1, 0.7)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 22
+text = "INPUT"
+
+[node name="InputLine" type="LineEdit" parent="WindowPanel/VBox/BodyMargins/Body"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 46)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 28
+placeholder_text = "type command..."
+caret_blink = true
+
+[node name="Footer" type="Label" parent="WindowPanel/VBox/BodyMargins/Body"]
+modulate = Color(1, 1, 1, 0.7)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 22
+text = "HELP / RESUME / RESTART / MENU / QUIT"
+horizontal_alignment = 1
+
+[node name="TypeSfx" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3_type")
+volume_db = 6.0
+
+[node name="SfxClick" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("4_click")
+volume_db = 3.0
