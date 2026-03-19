@@ -56,6 +56,11 @@ var _recovery_hold_time: float = 0.0
 var _pending_drop_after_ricochet: bool = false
 var _ricochet_drop_left: float = 0.0
 
+var _auto_recall_time_left: float = -1.0
+var _stasis_tick_left: float = 0.0
+var _second_chance_used: bool = false
+var _infinite_shot: bool = false
+
 var _pickup_indicator_base_scale: Vector3 = Vector3.ONE
 var _thread_line_mesh: MeshInstance3D = null
 var _thread_line_immediate: ImmediateMesh = null
@@ -71,6 +76,12 @@ func _ready() -> void:
 
 func is_dropped() -> bool:
 	return state == State.DROPPED
+
+
+func pull_to_hand() -> void:
+	var player := get_tree().get_first_node_in_group("player")
+	if player != null and player is Node3D:
+		start_remote_recovery(player as Node3D)
 
 
 func start_remote_recovery(target: Node3D) -> void:
@@ -98,14 +109,23 @@ func stop_remote_recovery() -> void:
 func fire(origin: Vector3, direction: Vector3, size_mult_in: float = 1.0) -> void:
 	var dir: Vector3 = direction.normalized()
 
+	_infinite_shot = (not Run.survival_mode) and Run.infinite_enabled
+	_second_chance_used = false
+	_auto_recall_time_left = -1.0
+	_stasis_tick_left = 0.0
+
 	# In survival: ignore charge/size perk
 	size_mult = max(0.25, size_mult_in)
+	if not Run.survival_mode and Run.heavy_null:
+		size_mult *= Run.heavy_null_size_mult
 	scale = Vector3.ONE * size_mult
 
 	global_position = origin + dir * (0.6 + 0.25 * size_mult)
 
 	# In survival: perks ignored
 	var spd_mult: float = 1.0 if Run.survival_mode else Run.null_speed_mult
+	if not Run.survival_mode and Run.heavy_null:
+		spd_mult *= Run.heavy_null_speed_mult
 	velocity = dir * (Constants.NULL_SPEED * spd_mult)
 
 	state = State.FIRED
@@ -123,6 +143,8 @@ func fire(origin: Vector3, direction: Vector3, size_mult_in: float = 1.0) -> voi
 	bounces_left = 0 if Run.survival_mode else Run.null_bounces
 	pierce_left = 0 if Run.survival_mode else Run.null_pierce
 	range_mult = 1.0 if Run.survival_mode else Run.null_range_mult
+	if not Run.survival_mode and Run.heavy_null:
+		range_mult *= Run.heavy_null_range_mult
 
 	if pickup_indicator != null:
 		pickup_indicator.visible = false
@@ -150,6 +172,20 @@ func _physics_process(delta: float) -> void:
 		_update_thread_lock_visual()
 		if pickup_indicator != null:
 			pickup_indicator.position.y = 0.7 + sin(t * 6.0) * 0.08
+
+		if Run.auto_recall and not _remote_recovering and _auto_recall_time_left >= 0.0:
+			_auto_recall_time_left -= delta
+			if _auto_recall_time_left <= 0.0:
+				var player_auto := get_tree().get_first_node_in_group("player")
+				if player_auto != null and player_auto is Node3D:
+					_spawn_world_pulse_ring(1.8, 0.18, 0.05, 0.2, 0.95)
+					start_remote_recovery(player_auto as Node3D)
+
+		if Run.stasis_field and not _remote_recovering:
+			_stasis_tick_left -= delta
+			if _stasis_tick_left <= 0.0:
+				_apply_stasis_field_pulse()
+				_stasis_tick_left = maxf(Run.stasis_field_interval, 0.08)
 
 		if _remote_recovering:
 			if _recovery_target == null or not is_instance_valid(_recovery_target):
@@ -280,9 +316,10 @@ func _apply_homing(delta: float) -> void:
 	velocity = new_dir * speed
 
 
-func _find_nearest_enemy() -> Node3D:
+func _find_nearest_enemy(max_radius: float = INF) -> Node3D:
 	var best: Node3D = null
 	var best_d2: float = INF
+	var radius_d2: float = INF if is_inf(max_radius) else max_radius * max_radius
 
 	for n in get_tree().get_nodes_in_group("enemy"):
 		if not (n is Node3D):
@@ -292,6 +329,8 @@ func _find_nearest_enemy() -> Node3D:
 		if _recent_hit.has(iid):
 			continue
 		var d2: float = e.global_position.distance_squared_to(global_position)
+		if d2 > radius_d2:
+			continue
 		if d2 < best_d2:
 			best_d2 = d2
 			best = e
@@ -393,6 +432,10 @@ func _handle_enemy_hit(enemy_node: Node) -> bool:
 	if is_queued_for_deletion():
 		return true
 
+	if _infinite_shot:
+		queue_free()
+		return true
+
 	if pierce_left > 0:
 		pierce_left -= 1
 		return false
@@ -440,6 +483,13 @@ func _is_boss_reflector(node: Node) -> bool:
 
 
 func _drop() -> void:
+	if _infinite_shot:
+		queue_free()
+		return
+
+	if Run.second_chance and not _second_chance_used and _try_second_chance_redirect():
+		return
+
 	_remote_recovering = false
 	_recovery_target = null
 	_recovery_hold_time = 0.0
@@ -451,6 +501,8 @@ func _drop() -> void:
 	velocity = Vector3.ZERO
 	global_position.y += 0.05
 	_ghost_timer = 0.0
+	_auto_recall_time_left = Run.auto_recall_delay if Run.auto_recall else -1.0
+	_stasis_tick_left = 0.0
 
 	if pickup_indicator != null:
 		pickup_indicator.visible = true
@@ -468,6 +520,7 @@ func pickup() -> void:
 	stop_remote_recovery()
 	_set_thread_lock_visible(false)
 	_apply_pickup_upgrades()
+	Signals.null_recovered.emit(global_position)
 	if pickup_indicator != null:
 		pickup_indicator.visible = false
 		pickup_indicator.scale = _pickup_indicator_base_scale
@@ -492,6 +545,7 @@ func _apply_drop_upgrades() -> void:
 				enemy.call("apply_impact_stun", Run.impact_pulse_stun, dir, Run.impact_pulse_strength)
 			elif enemy.has_method("apply_push"):
 				enemy.call("apply_push", dir, Run.impact_pulse_strength, 0.0, Run.impact_pulse_stun)
+			_ping_enemy_visual(enemy, 0.18)
 
 	if Run.ground_echo:
 		used_pulse = true
@@ -499,7 +553,8 @@ func _apply_drop_upgrades() -> void:
 			_ping_enemy_visual(enemy, Run.ground_echo_flash_time)
 
 	if used_pulse:
-		_play_pickup_indicator_pulse(1.75, 0.16)
+		_spawn_world_pulse_ring(maxf(Run.impact_pulse_radius, 2.0), 0.24, 0.03, 0.15, 0.85)
+		_play_pickup_indicator_pulse(2.1, 0.22)
 
 
 func _apply_pickup_upgrades() -> void:
@@ -519,7 +574,86 @@ func _apply_pickup_upgrades() -> void:
 		elif enemy.has_method("apply_push"):
 			enemy.call("apply_push", dir, 0.0, 0.0, Run.null_freeze_stun)
 
-		_ping_enemy_visual(enemy, 0.14)
+		_ping_enemy_visual(enemy, 0.20)
+
+	_spawn_world_pulse_ring(maxf(Run.null_freeze_radius, 2.0), 0.26, 0.05, 0.15, 1.0)
+	_play_pickup_indicator_pulse(1.9, 0.20)
+
+
+func _try_second_chance_redirect() -> bool:
+	var target: Node3D = _find_nearest_enemy(Run.second_chance_search_radius)
+	if target == null:
+		return false
+
+	var to_target: Vector3 = target.global_position - global_position
+	if to_target.length_squared() <= 0.00001:
+		return false
+
+	_second_chance_used = true
+	state = State.FIRED
+	velocity = to_target.normalized() * maxf(velocity.length(), Constants.NULL_SPEED * 0.95)
+	traveled = maxf(traveled - 2.5, 0.0)
+	_pending_drop_after_ricochet = false
+	_ricochet_drop_left = 0.0
+	_spawn_world_pulse_ring(2.2, 0.18, 0.06, 0.12, 0.95)
+	return true
+
+
+func _apply_stasis_field_pulse() -> void:
+	if not Run.stasis_field:
+		return
+
+	for enemy in _get_enemies_in_radius(global_position, Run.stasis_field_radius):
+		var dir: Vector3 = (enemy.global_position - global_position)
+		dir.y = 0.0
+		if dir.length() <= 0.001:
+			dir = Vector3.FORWARD
+		else:
+			dir = dir.normalized()
+
+		if enemy.has_method("apply_impact_stun"):
+			enemy.call("apply_impact_stun", Run.stasis_field_stun, dir, 0.0)
+		elif enemy.has_method("apply_push"):
+			enemy.call("apply_push", dir, 0.0, 0.0, Run.stasis_field_stun)
+
+		_ping_enemy_visual(enemy, 0.12)
+
+	_spawn_world_pulse_ring(maxf(Run.stasis_field_radius, 2.0), 0.18, 0.02, 0.12, 0.55)
+	_play_pickup_indicator_pulse(1.35, 0.10)
+
+
+func _spawn_world_pulse_ring(radius: float, duration: float, y_offset: float = 0.04, start_scale: float = 0.15, start_alpha: float = 0.8) -> void:
+	if get_tree() == null or get_tree().current_scene == null:
+		return
+
+	var ring := MeshInstance3D.new()
+	var mesh := CylinderMesh.new()
+	mesh.top_radius = 1.0
+	mesh.bottom_radius = 1.0
+	mesh.height = 0.025
+	mesh.radial_segments = 32
+	mesh.rings = 1
+	ring.mesh = mesh
+	ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	ring.scale = Vector3(start_scale, 1.0, start_scale)
+
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.albedo_color = Color(1, 1, 1, start_alpha)
+	mat.emission_enabled = true
+	mat.emission = Color(1, 1, 1)
+	mat.no_depth_test = true
+	ring.material_override = mat
+
+	get_tree().current_scene.add_child(ring)
+	ring.global_position = global_position + Vector3(0.0, y_offset, 0.0)
+
+	var tween := ring.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(ring, "scale", Vector3(radius, 1.0, radius), duration)
+	tween.tween_property(mat, "albedo_color", Color(1, 1, 1, 0.0), duration)
+	tween.chain().tween_callback(Callable(ring, "queue_free"))
 
 
 func _get_enemies_in_radius(center: Vector3, radius: float) -> Array[Node3D]:

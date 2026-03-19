@@ -34,6 +34,8 @@ signal player_died()
 signal null_ready_changed(is_ready: bool)
 @warning_ignore("unused_signal")
 signal null_dropped(pos: Vector3)
+@warning_ignore("unused_signal")
+signal null_recovered(pos: Vector3)
 
 # UI / progression
 @warning_ignore("unused_signal")

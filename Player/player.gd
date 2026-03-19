@@ -91,6 +91,7 @@ var _cam_base_pos: Vector3
 var _knock_t: float = 0.0
 var _downed_invuln_t: float = 0.0
 var _knockback_gravity_current: float = 0.0
+var _recovery_iframe_t: float = 0.0
 
 const GRAVITY: float = 20.0
 
@@ -192,6 +193,7 @@ func _ready() -> void:
 
 	Signals.player_hit.connect(_on_player_hit)
 	Signals.enemy_killed.connect(_on_enemy_killed)
+	Signals.null_recovered.connect(_on_null_recovered)
 
 	_set_body_downed(false)
 
@@ -396,9 +398,12 @@ func _process(delta: float) -> void:
 	if Run.charge_shot_enabled and _charging and not Run.survival_mode:
 		_charge_time += delta
 
+	_recovery_iframe_t = maxf(_recovery_iframe_t - delta, 0.0)
+
 	_update_hand_effects(delta)
 	_update_body_effects(delta)
 	_update_camera_tilt(delta)
+	_update_upgrade_feedback_visuals()
 
 func _physics_process(delta: float) -> void:
 	if state == PState.KNOCKBACK:
@@ -645,6 +650,8 @@ func _physics_downed(delta: float) -> void:
 func _on_player_hit(knockback_dir: Vector3) -> void:
 	if dash_time_left > 0.0 and Run.dash_invulnerable:
 		return
+	if _recovery_iframe_t > 0.0:
+		return
 
 	if is_recovering_null:
 		is_recovering_null = false
@@ -704,6 +711,12 @@ func _set_body_downed(downed: bool) -> void:
 		body_sprite.visible = not downed
 	if body_down_sprite:
 		body_down_sprite.visible = downed
+
+func _on_null_recovered(_pos: Vector3) -> void:
+	if not Run.recovery_iframe:
+		return
+	_recovery_iframe_t = maxf(_recovery_iframe_t, Run.recovery_iframe_seconds)
+
 
 func _on_enemy_killed(_enemy: Node) -> void:
 	if state == PState.DOWNED:
@@ -986,6 +999,34 @@ func _update_camera_tilt(delta: float) -> void:
 	target_rot.x += deg_to_rad(-input_z * camera_tilt_forward_deg)
 
 	camera.rotation = camera.rotation.lerp(target_rot, delta * camera_tilt_lerp_speed)
+
+func _update_upgrade_feedback_visuals() -> void:
+	var intensity: float = 1.0
+	var alpha: float = 1.0
+	var pulse: float = 0.85 + 0.15 * (0.5 + 0.5 * sin(Time.get_ticks_msec() * 0.018))
+
+	if Run.panic_boost and not Run.null_ready:
+		intensity = maxf(intensity, 1.15)
+
+	if dash_time_left > 0.0 and Run.dash_invulnerable:
+		intensity = maxf(intensity, 1.35 * pulse)
+
+	if _recovery_iframe_t > 0.0:
+		intensity = maxf(intensity, 1.45 * pulse)
+
+	var mod := Color(intensity, intensity, intensity, alpha)
+
+	if is_instance_valid(body_sprite):
+		body_sprite.modulate = mod
+	if is_instance_valid(body_down_sprite):
+		body_down_sprite.modulate = mod
+	if is_instance_valid(hand):
+		hand.modulate = mod
+	if is_instance_valid(hand_recovery):
+		hand_recovery.modulate = mod
+	if is_instance_valid(shoot_ring) and not _charging and not shoot_ring.visible:
+		shoot_ring.modulate = Color(1, 1, 1, 1)
+
 
 func _play_shoot_sfx() -> void:
 	if not is_instance_valid(shoot_sfx):

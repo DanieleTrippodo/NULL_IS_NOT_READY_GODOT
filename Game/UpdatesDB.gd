@@ -28,9 +28,15 @@ const UPDATE_IDS: Array[String] = [
 	"IMPACT_PULSE",
 	"THREAD_LOCK",
 	"NULL_FREEZE",
+	"AUTO_RECALL",
+	"RECOVERY_IFRAME",
+	"STASIS_FIELD",
+	"SECOND_CHANCE",
+	"HEAVY_NULL",
 	"OVERCLOCK",
 	"GROUND_ECHO",
-	"RAM_PATCH"
+	"RAM_PATCH",
+	"INFINITE"
 ]
 
 const DATA := {
@@ -114,14 +120,14 @@ const DATA := {
 
 	"PANIC_BOOST": {
 		"title": "PANIC BOOST",
-		"desc": "Gain bonus speed while NULL is not ready.",
+		"desc": "Gain a major speed boost while NULL is not ready.",
 		"rarity": UpdateRarity.RARE,
 		"base_price_min": 5,
 		"base_price_max": 8,
 		"rotatable": true,
 		"size": Vector2i(3, 2),
 		"cells": [Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1), Vector2i(1, 0)],
-		"tradeoff_desc": "Strong under pressure, but useless while stable.",
+		"tradeoff_desc": "Only activates in danger, but it activates hard.",
 		"icon_path": "res://Art/Cards/Icons/PANIC_BOOST.png"
 	},
 
@@ -179,27 +185,27 @@ const DATA := {
 
 	"HOMING_NUDGE": {
 		"title": "HOMING NUDGE",
-		"desc": "Adds slight target correction to NULL.",
+		"desc": "Adds strong target correction to NULL.",
 		"rarity": UpdateRarity.RARE,
 		"base_price_min": 5,
 		"base_price_max": 8,
 		"rotatable": true,
 		"size": Vector2i(2, 3),
 		"cells": [Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1), Vector2i(1, 2)],
-		"tradeoff_desc": "Helpful, but bulkier than it looks.",
+		"tradeoff_desc": "Makes shots far more reliable, but it still wants vertical space.",
 		"icon_path": "res://Art/Cards/Icons/HOMING_NUDGE.png"
 	},
 
 	"DASH_UNLOCK": {
 		"title": "ENERGY DASH",
-		"desc": "Replaces the base dash with a longer burst that grants brief dash invulnerability.",
+		"desc": "Replaces the base dash with a much longer burst that grants dash invulnerability.",
 		"rarity": UpdateRarity.EPIC,
 		"base_price_min": 9,
 		"base_price_max": 14,
 		"rotatable": true,
 		"size": Vector2i(3, 2),
 		"cells": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(1, 1), Vector2i(2, 1)],
-		"tradeoff_desc": "Very strong escape tool, but it takes awkward space and a longer cooldown.",
+		"tradeoff_desc": "Very strong escape tool, but still costs premium space.",
 		"icon_path": "res://Art/Cards/Icons/DASH_UNLOCK.png"
 	},
 
@@ -213,12 +219,12 @@ const DATA := {
 		"size": Vector2i(3, 2),
 		"cells": [Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1), Vector2i(2, 0)],
 		"tradeoff_desc": "Great for making space, but it only works while grounded and moving.",
-		"icon_path": "res://Art/Cards/Icons/SPRINT.png"
+		"icon_path": "res://Art/Cards/Icons/SLIDE_DODGE.png"
 	},
 
 	"CHARGE_SHOT": {
 		"title": "CHARGE SHOT",
-		"desc": "Hold the shot to fire a larger charged NULL.",
+		"desc": "Hold the shot briefly to fire a much larger charged NULL.",
 		"rarity": UpdateRarity.EPIC,
 		"base_price_min": 9,
 		"base_price_max": 14,
@@ -229,7 +235,7 @@ const DATA := {
 			Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1),
 			Vector2i(1, 2)
 		],
-		"tradeoff_desc": "Extremely strong, but expensive in both money and space.",
+		"tradeoff_desc": "Huge payoff, but still expensive in both money and space.",
 		"icon_path": "res://Art/Cards/Icons/CHARGE_SHOT.png"
 	},
 
@@ -248,23 +254,23 @@ const DATA := {
 
 	"SLOWMO_RECOVERY": {
 		"title": "SLOWMO RECOVERY",
-		"desc": "Slows time while NULL is on the ground.",
+		"desc": "Heavily slows time while NULL is on the ground.",
 		"rarity": UpdateRarity.RARE,
 		"base_price_min": 5,
 		"base_price_max": 8,
 		"rotatable": false,
 		"size": Vector2i(2, 2),
 		"cells": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1)],
-		"tradeoff_desc": "Defensive and compact.",
+		"tradeoff_desc": "Defensive and compact, but it only matters after a miss.",
 		"icon_path": "res://Art/Cards/Icons/SLOWMO_RECOVERY.png"
 	},
 
 	"IMPACT_PULSE": {
 		"title": "IMPACT PULSE",
-		"desc": "A missed NULL emits a short-range pulse that pushes back nearby enemies.",
+		"desc": "A missed NULL emits a large shock pulse that throws back nearby enemies.",
 		"rarity": UpdateRarity.RARE,
-		"base_price_min": 5,
-		"base_price_max": 8,
+		"base_price_min": 6,
+		"base_price_max": 9,
 		"rotatable": true,
 		"size": Vector2i(3, 3),
 		"cells": [
@@ -272,7 +278,7 @@ const DATA := {
 			Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1),
 			Vector2i(1, 2)
 		],
-		"tradeoff_desc": "Turns a miss into breathing room, but it takes premium space.",
+		"tradeoff_desc": "Turns a miss into a panic button, but it takes premium space.",
 		"icon_path": "res://Art/Cards/Icons/IMPACT_PULSE.png"
 	},
 
@@ -291,15 +297,80 @@ const DATA := {
 
 	"NULL_FREEZE": {
 		"title": "NULL FREEZE",
-		"desc": "Recovering NULL briefly freezes nearby enemies.",
+		"desc": "Recovering NULL freezes nearby enemies for a noticeable moment.",
 		"rarity": UpdateRarity.RARE,
-		"base_price_min": 5,
-		"base_price_max": 8,
+		"base_price_min": 6,
+		"base_price_max": 9,
 		"rotatable": true,
 		"size": Vector2i(2, 3),
 		"cells": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(0, 2)],
 		"tradeoff_desc": "Excellent panic tool, but the tall shape is awkward.",
 		"icon_path": "res://Art/Cards/Icons/NULL_FREEZE.png"
+	},
+
+	"AUTO_RECALL": {
+		"title": "AUTO RECALL",
+		"desc": "If NULL stays on the ground too long, it automatically starts flying back to you.",
+		"rarity": UpdateRarity.EPIC,
+		"base_price_min": 10,
+		"base_price_max": 15,
+		"rotatable": true,
+		"size": Vector2i(3, 3),
+		"cells": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0), Vector2i(1, 1), Vector2i(1, 2)],
+		"tradeoff_desc": "Very forgiving, but it takes a lot of useful central space.",
+		"icon_path": "res://Art/Cards/Icons/AUTO_RECALL.png"
+	},
+
+	"RECOVERY_IFRAME": {
+		"title": "RECOVERY I-FRAME",
+		"desc": "Recovering NULL grants a short burst of invulnerability.",
+		"rarity": UpdateRarity.RARE,
+		"base_price_min": 6,
+		"base_price_max": 10,
+		"rotatable": true,
+		"size": Vector2i(2, 3),
+		"cells": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(1, 1), Vector2i(1, 2)],
+		"tradeoff_desc": "Excellent safety net, but you only feel it when you commit to a pickup.",
+		"icon_path": "res://Art/Cards/Icons/RECOVERY_IFRAME.png"
+	},
+
+	"STASIS_FIELD": {
+		"title": "STASIS FIELD",
+		"desc": "A dropped NULL emits repeated stasis pulses that lock nearby enemies in place.",
+		"rarity": UpdateRarity.EPIC,
+		"base_price_min": 10,
+		"base_price_max": 15,
+		"rotatable": true,
+		"size": Vector2i(3, 3),
+		"cells": [Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1), Vector2i(0, 2), Vector2i(2, 2)],
+		"tradeoff_desc": "Absurdly strong for recovery, but it hogs a lot of R.A.M.",
+		"icon_path": "res://Art/Cards/Icons/STASIS_FIELD.png"
+	},
+
+	"SECOND_CHANCE": {
+		"title": "SECOND CHANCE",
+		"desc": "If a shot would fail, NULL gets one emergency redirect toward a nearby enemy.",
+		"rarity": UpdateRarity.EPIC,
+		"base_price_min": 12,
+		"base_price_max": 16,
+		"rotatable": true,
+		"size": Vector2i(4, 3),
+		"cells": [Vector2i(0, 1), Vector2i(1, 0), Vector2i(1, 1), Vector2i(1, 2), Vector2i(2, 1), Vector2i(3, 1)],
+		"tradeoff_desc": "Incredibly powerful shot correction, but very expensive in space and cost.",
+		"icon_path": "res://Art/Cards/Icons/SECOND_CHANCE.png"
+	},
+
+	"HEAVY_NULL": {
+		"title": "HEAVY NULL",
+		"desc": "NULL becomes larger and easier to land, but it travels slower and reaches less distance.",
+		"rarity": UpdateRarity.RARE,
+		"base_price_min": 6,
+		"base_price_max": 9,
+		"rotatable": true,
+		"size": Vector2i(3, 2),
+		"cells": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0), Vector2i(1, 1)],
+		"tradeoff_desc": "Makes hits easier, but intentionally weakens speed and range.",
+		"icon_path": "res://Art/Cards/Icons/HEAVY_NULL.png"
 	},
 
 	"OVERCLOCK": {
@@ -339,6 +410,24 @@ const DATA := {
 		"cells": [Vector2i(0, 0), Vector2i(0, 1), Vector2i(1, 1), Vector2i(1, 2)],
 		"tradeoff_desc": "Extremely convenient, so the shape is intentionally awkward and the price is high.",
 		"icon_path": "res://Art/Cards/Icons/RAM_PATCH.png"
+	},
+
+	"INFINITE": {
+		"title": "INFINITE",
+		"desc": "NULL is no longer consumed when firing. You can keep shooting forever.",
+		"rarity": UpdateRarity.EPIC,
+		"base_price_min": 50,
+		"base_price_max": 50,
+		"rotatable": false,
+		"size": Vector2i(4, 4),
+		"cells": [
+			Vector2i(1, 0), Vector2i(2, 0),
+			Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1), Vector2i(3, 1),
+			Vector2i(0, 2), Vector2i(1, 2), Vector2i(2, 2), Vector2i(3, 2),
+			Vector2i(1, 3), Vector2i(2, 3)
+		],
+		"tradeoff_desc": "Totally breaks the core rule in your favor, so it is intentionally massive and extremely expensive.",
+		"icon_path": "res://Art/Cards/Icons/INFINITE.png"
 	}
 }
 

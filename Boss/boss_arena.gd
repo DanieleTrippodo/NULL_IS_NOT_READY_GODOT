@@ -140,6 +140,18 @@ func _exit_tree() -> void:
 
 
 func _process(delta: float) -> void:
+	if null_instance != null and not is_instance_valid(null_instance):
+		null_instance = null
+
+	if Run.slowmo_recovery and Run.null_dropped:
+		Engine.time_scale = Run.slowmo_scale
+	else:
+		Engine.time_scale = 1.0
+
+	if Run.pickup_magnet and Run.null_dropped and null_instance != null and is_instance_valid(null_instance):
+		if player != null and is_instance_valid(player) and player.global_position.distance_to(null_instance.global_position) <= 2.2:
+			_on_request_pickup()
+
 	if state == BossState.DEAD or restarting or _victory_transitioning:
 		return
 
@@ -748,28 +760,32 @@ func _on_boss_teleport_sequence_finished() -> void:
 func _on_request_shoot(origin: Vector3, direction: Vector3, size_mult: float = 1.0) -> void:
 	if restarting or _victory_transitioning:
 		return
-	if not Run.null_ready:
+	if not Run.null_ready and not Run.infinite_enabled:
 		return
 	if null_projectile_scene == null:
 		return
 
-	Run.null_ready = false
-	Run.null_dropped = false
-	Signals.null_ready_changed.emit(false)
-
 	var p: Node = null_projectile_scene.instantiate()
 	if not (p is Node3D):
-		Run.null_ready = true
-		Signals.null_ready_changed.emit(true)
+		if not Run.infinite_enabled:
+			Run.null_ready = true
+			Signals.null_ready_changed.emit(true)
 		return
 
-	null_instance = p as Node3D
-	add_child(null_instance)
+	if not Run.infinite_enabled:
+		Run.null_ready = false
+		Run.null_dropped = false
+		Signals.null_ready_changed.emit(false)
 
-	if null_instance.has_method("fire"):
-		null_instance.call("fire", origin, direction, size_mult)
+	var proj := p as Node3D
+	add_child(proj)
+	if not Run.infinite_enabled:
+		null_instance = proj
+
+	if proj.has_method("fire"):
+		proj.call("fire", origin, direction, size_mult)
 	else:
-		null_instance.global_position = origin
+		proj.global_position = origin
 
 
 func _on_request_pickup() -> void:

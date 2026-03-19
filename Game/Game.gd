@@ -326,9 +326,8 @@ func _physics_process(_delta: float) -> void:
 	if Run.pickup_magnet and Run.null_dropped:
 		if null_instance != null and is_instance_valid(null_instance):
 			var player := _get_player()
-			if player != null:
-				if player.global_position.distance_to(null_instance.global_position) <= magnet_radius:
-					_on_request_pickup()
+			if player != null and player.global_position.distance_to(null_instance.global_position) <= magnet_radius:
+				_on_request_pickup()
 
 # ------------------------------------------------------------
 # Wave button / block flow
@@ -682,30 +681,37 @@ func _spawn_enemy(scene: PackedScene, desired_pos: Vector3) -> Node3D:
 # ------------------------------------------------------------
 # NULL / player requests
 # ------------------------------------------------------------
-func _on_request_shoot(origin: Vector3, direction: Vector3, _extra: Variant = null) -> void:
+func _on_request_shoot(origin: Vector3, direction: Vector3, extra: Variant = 1.0) -> void:
 	if restarting or wave_transitioning:
 		return
 	if world_frozen:
 		return
-	if not Run.null_ready:
+	if not Run.null_ready and not Run.infinite_enabled:
 		return
 
-	Run.null_ready = false
-	Run.null_dropped = false
-	Signals.null_ready_changed.emit(false)
+	var size_mult: float = 1.0
+	if typeof(extra) in [TYPE_FLOAT, TYPE_INT]:
+		size_mult = maxf(float(extra), 0.1)
 
 	var p := null_projectile_scene.instantiate()
 	if not (p is Node3D):
-		Run.null_ready = true
-		Signals.null_ready_changed.emit(true)
+		if not Run.infinite_enabled:
+			Run.null_ready = true
+			Signals.null_ready_changed.emit(true)
 		return
+
+	if not Run.infinite_enabled:
+		Run.null_ready = false
+		Run.null_dropped = false
+		Signals.null_ready_changed.emit(false)
 
 	var proj := p as Node3D
 	world.add_child(proj)
-	null_instance = proj
+	if not Run.infinite_enabled:
+		null_instance = proj
 
 	if proj.has_method("fire"):
-		proj.call("fire", origin, direction)
+		proj.call("fire", origin, direction, size_mult)
 	else:
 		proj.global_position = origin
 

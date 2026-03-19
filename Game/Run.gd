@@ -64,7 +64,7 @@ func get_perk_preview_lines(id: String) -> Array[String]:
 			lines.append("Move speed: %.2fx" % min(move_speed_mult + 0.15, 1.5))
 
 		"PANIC_BOOST":
-			lines.append("NOT READY speed: %.2fx" % panic_speed_mult)
+			lines.append("NOT READY speed: %.2fx" % 1.60)
 
 		"SLOW_TURRETS":
 			lines.append("Turret interval: %.2fx" % max(turret_interval_mult - 0.1, 0.7))
@@ -80,11 +80,12 @@ func get_perk_preview_lines(id: String) -> Array[String]:
 
 		"HOMING_NUDGE":
 			lines.append("Homing: ON")
-			lines.append("Max angle: %.0f°" % homing_max_angle_deg)
+			lines.append("Max angle: %.0f°" % 14.0)
+			lines.append("Turn speed: %.1f" % 20.0)
 
 		"DASH_UNLOCK":
 			lines.append("Energy Dash: ON")
-			lines.append("Range: +%d%%" % int(round((dash_strength_mult - 1.0) * 100.0)))
+			lines.append("Range: +%d%%" % int(round((2.15 - 1.0) * 100.0)))
 			lines.append("Invulnerable: YES")
 
 		"SLIDE_DODGE":
@@ -94,8 +95,8 @@ func get_perk_preview_lines(id: String) -> Array[String]:
 
 		"CHARGE_SHOT":
 			lines.append("Charge: ON")
-			lines.append("Charge time: %.1fs" % charge_shot_seconds)
-			lines.append("Charge scale: %.2fx" % charge_shot_scale)
+			lines.append("Charge time: %.1fs" % 1.15)
+			lines.append("Charge scale: %.2fx" % 2.0)
 
 		"PULL_TO_HAND":
 			lines.append("Pull: ON")
@@ -103,11 +104,12 @@ func get_perk_preview_lines(id: String) -> Array[String]:
 			lines.append("Max distance: %.0f" % pull_max_distance)
 
 		"SLOWMO_RECOVERY":
-			lines.append("Slowmo scale: %.2f" % slowmo_scale)
+			lines.append("Slowmo scale: %.2f" % 0.60)
 
 		"IMPACT_PULSE":
 			lines.append("Pulse: ON")
-			lines.append("Radius: %.1f" % impact_pulse_radius)
+			lines.append("Radius: %.1f" % 8.0)
+			lines.append("Stun: %.2fs" % 0.85)
 
 		"THREAD_LOCK":
 			lines.append("Thread: ON")
@@ -115,7 +117,30 @@ func get_perk_preview_lines(id: String) -> Array[String]:
 
 		"NULL_FREEZE":
 			lines.append("Pickup freeze: ON")
-			lines.append("Radius: %.1f" % null_freeze_radius)
+			lines.append("Radius: %.1f" % 6.0)
+			lines.append("Freeze: %.2fs" % 1.0)
+
+		"AUTO_RECALL":
+			lines.append("Auto recall: ON")
+			lines.append("Delay: %.1fs" % 1.20)
+
+		"RECOVERY_IFRAME":
+			lines.append("Recovery i-frame: ON")
+			lines.append("Duration: %.2fs" % 0.85)
+
+		"STASIS_FIELD":
+			lines.append("Stasis field: ON")
+			lines.append("Radius: %.1f" % 5.5)
+			lines.append("Pulse every: %.2fs" % 0.35)
+
+		"SECOND_CHANCE":
+			lines.append("Second chance: ON")
+			lines.append("Retarget radius: %.1f" % 18.0)
+
+		"HEAVY_NULL":
+			lines.append("Heavy NULL: ON")
+			lines.append("Size: %.2fx" % 1.50)
+			lines.append("Speed: %.0f%%" % int(round(0.78 * 100.0)))
 
 		"OVERCLOCK":
 			lines.append("Recovery pull: +%d%%" % int(round((overclock_pull_speed_mult - 1.0) * 100.0)))
@@ -132,6 +157,10 @@ func get_perk_preview_lines(id: String) -> Array[String]:
 				ram_cols + 1,
 				ram_rows + 1
 			])
+
+		"INFINITE":
+			lines.append("Infinite shots: ON")
+			lines.append("NULL never leaves your hand")
 
 		_:
 			pass
@@ -185,9 +214,9 @@ var slide_push_mult: float = 1.0
 
 # Charge shot
 var charge_shot_enabled: bool = false
-var charge_shot_seconds: float = 3.0
-var charge_shot_scale: float = 1.5
-var charge_shake_strength: float = 0.05
+var charge_shot_seconds: float = 1.15
+var charge_shot_scale: float = 2.0
+var charge_shake_strength: float = 0.08
 
 # Recovery / risk
 var pull_to_hand: bool = false
@@ -197,21 +226,42 @@ var pull_cancel_move_dist: float = 0.75
 var pull_move_mult: float = 0.35
 
 var panic_boost: bool = false
-var panic_speed_mult: float = 1.2
+var panic_speed_mult: float = 1.6
 
 var slowmo_recovery: bool = false
-var slowmo_scale: float = 0.85
+var slowmo_scale: float = 0.60
 
 var impact_pulse: bool = false
-var impact_pulse_radius: float = 4.5
-var impact_pulse_strength: float = 6.0
-var impact_pulse_stun: float = 0.28
+var impact_pulse_radius: float = 8.0
+var impact_pulse_strength: float = 12.5
+var impact_pulse_stun: float = 0.85
 
 var thread_lock: bool = false
 
 var null_freeze: bool = false
-var null_freeze_radius: float = 4.0
-var null_freeze_stun: float = 0.35
+var null_freeze_radius: float = 6.0
+var null_freeze_stun: float = 1.0
+
+var auto_recall: bool = false
+var auto_recall_delay: float = 1.20
+
+var recovery_iframe: bool = false
+var recovery_iframe_seconds: float = 0.85
+
+var stasis_field: bool = false
+var stasis_field_radius: float = 5.5
+var stasis_field_interval: float = 0.35
+var stasis_field_stun: float = 0.55
+
+var second_chance: bool = false
+var second_chance_search_radius: float = 18.0
+
+var heavy_null: bool = false
+var heavy_null_size_mult: float = 1.50
+var heavy_null_speed_mult: float = 0.78
+var heavy_null_range_mult: float = 0.72
+
+var infinite_enabled: bool = false
 
 var overclock: bool = false
 var overclock_pull_speed_mult: float = 1.45
@@ -224,11 +274,10 @@ var ground_echo_flash_time: float = 0.18
 # Shot modifiers
 var null_pierce: int = 0
 var homing_nudge: bool = false
-var homing_max_angle_deg: float = 6.0
-var homing_turn_speed: float = 10.0
+var homing_max_angle_deg: float = 14.0
+var homing_turn_speed: float = 20.0
 
 var max_null_bounces: int = 3
-
 
 # ------------------------------------------------------------
 # UI FEEDBACK
@@ -268,10 +317,16 @@ var perk_pool: Array[String] = [
 	"IMPACT_PULSE",
 	"THREAD_LOCK",
 	"NULL_FREEZE",
+	"AUTO_RECALL",
+	"RECOVERY_IFRAME",
+	"STASIS_FIELD",
+	"SECOND_CHANCE",
+	"HEAVY_NULL",
 	"OVERCLOCK",
 	"GROUND_ECHO",
 
-	"RAM_PATCH"
+	"RAM_PATCH",
+	"INFINITE"
 ]
 
 
@@ -397,9 +452,9 @@ func _reset_runtime_stats_to_base() -> void:
 	slide_push_mult = 1.0
 
 	charge_shot_enabled = false
-	charge_shot_seconds = 3.0
-	charge_shot_scale = 1.5
-	charge_shake_strength = 0.05
+	charge_shot_seconds = 1.15
+	charge_shot_scale = 2.0
+	charge_shake_strength = 0.08
 
 	pull_to_hand = false
 	pull_channel_seconds = 0.6
@@ -407,23 +462,43 @@ func _reset_runtime_stats_to_base() -> void:
 	pull_cancel_move_dist = 0.75
 	pull_move_mult = 0.35
 
-
 	panic_boost = false
-	panic_speed_mult = 1.2
+	panic_speed_mult = 1.6
 
 	slowmo_recovery = false
-	slowmo_scale = 0.85
+	slowmo_scale = 0.60
 
 	impact_pulse = false
-	impact_pulse_radius = 4.5
-	impact_pulse_strength = 6.0
-	impact_pulse_stun = 0.28
+	impact_pulse_radius = 8.0
+	impact_pulse_strength = 12.5
+	impact_pulse_stun = 0.85
 
 	thread_lock = false
 
 	null_freeze = false
-	null_freeze_radius = 4.0
-	null_freeze_stun = 0.35
+	null_freeze_radius = 6.0
+	null_freeze_stun = 1.0
+
+	auto_recall = false
+	auto_recall_delay = 1.20
+
+	recovery_iframe = false
+	recovery_iframe_seconds = 0.85
+
+	stasis_field = false
+	stasis_field_radius = 5.5
+	stasis_field_interval = 0.35
+	stasis_field_stun = 0.55
+
+	second_chance = false
+	second_chance_search_radius = 18.0
+
+	heavy_null = false
+	heavy_null_size_mult = 1.50
+	heavy_null_speed_mult = 0.78
+	heavy_null_range_mult = 0.72
+
+	infinite_enabled = false
 
 	overclock = false
 	overclock_pull_speed_mult = 1.45
@@ -435,10 +510,8 @@ func _reset_runtime_stats_to_base() -> void:
 
 	null_pierce = 0
 	homing_nudge = false
-	homing_max_angle_deg = 6.0
-	homing_turn_speed = 10.0
-
-
+	homing_max_angle_deg = 14.0
+	homing_turn_speed = 20.0
 # ------------------------------------------------------------
 # R.A.M. DIMENSIONS
 # ------------------------------------------------------------
@@ -847,6 +920,7 @@ func _apply_equipped_update_effect(id: String) -> void:
 
 		"PANIC_BOOST":
 			panic_boost = true
+			panic_speed_mult = maxf(panic_speed_mult, 1.6)
 
 		"SLOW_TURRETS":
 			turret_interval_mult = max(turret_interval_mult - 0.1, 0.7)
@@ -862,12 +936,14 @@ func _apply_equipped_update_effect(id: String) -> void:
 
 		"HOMING_NUDGE":
 			homing_nudge = true
+			homing_max_angle_deg = maxf(homing_max_angle_deg, 14.0)
+			homing_turn_speed = maxf(homing_turn_speed, 20.0)
 
 		"DASH_UNLOCK":
 			dash_enabled = true
-			dash_strength_mult = 1.65
-			dash_duration_mult = 1.35
-			dash_cooldown_mult = 1.18
+			dash_strength_mult = maxf(dash_strength_mult, 2.15)
+			dash_duration_mult = maxf(dash_duration_mult, 1.55)
+			dash_cooldown_mult = minf(dash_cooldown_mult, 0.95)
 			dash_invulnerable = true
 
 		"SLIDE_DODGE":
@@ -879,21 +955,54 @@ func _apply_equipped_update_effect(id: String) -> void:
 
 		"CHARGE_SHOT":
 			charge_shot_enabled = true
+			charge_shot_seconds = minf(charge_shot_seconds, 1.15)
+			charge_shot_scale = maxf(charge_shot_scale, 2.0)
+			charge_shake_strength = maxf(charge_shake_strength, 0.08)
 
 		"PULL_TO_HAND":
 			pull_to_hand = true
 
 		"SLOWMO_RECOVERY":
 			slowmo_recovery = true
+			slowmo_scale = minf(slowmo_scale, 0.60)
 
 		"IMPACT_PULSE":
 			impact_pulse = true
+			impact_pulse_radius = maxf(impact_pulse_radius, 8.0)
+			impact_pulse_strength = maxf(impact_pulse_strength, 12.5)
+			impact_pulse_stun = maxf(impact_pulse_stun, 0.85)
 
 		"THREAD_LOCK":
 			thread_lock = true
 
 		"NULL_FREEZE":
 			null_freeze = true
+			null_freeze_radius = maxf(null_freeze_radius, 6.0)
+			null_freeze_stun = maxf(null_freeze_stun, 1.0)
+
+		"AUTO_RECALL":
+			auto_recall = true
+			auto_recall_delay = minf(auto_recall_delay, 1.20)
+
+		"RECOVERY_IFRAME":
+			recovery_iframe = true
+			recovery_iframe_seconds = maxf(recovery_iframe_seconds, 0.85)
+
+		"STASIS_FIELD":
+			stasis_field = true
+			stasis_field_radius = maxf(stasis_field_radius, 5.5)
+			stasis_field_interval = minf(stasis_field_interval, 0.35)
+			stasis_field_stun = maxf(stasis_field_stun, 0.55)
+
+		"SECOND_CHANCE":
+			second_chance = true
+			second_chance_search_radius = maxf(second_chance_search_radius, 18.0)
+
+		"HEAVY_NULL":
+			heavy_null = true
+			heavy_null_size_mult = maxf(heavy_null_size_mult, 1.50)
+			heavy_null_speed_mult = minf(heavy_null_speed_mult, 0.78)
+			heavy_null_range_mult = minf(heavy_null_range_mult, 0.72)
 
 		"OVERCLOCK":
 			overclock = true
@@ -904,7 +1013,8 @@ func _apply_equipped_update_effect(id: String) -> void:
 		"RAM_PATCH":
 			pass
 
-
+		"INFINITE":
+			infinite_enabled = true
 # ------------------------------------------------------------
 # LEGACY SHOP / PERK FLOW
 # ------------------------------------------------------------
@@ -960,8 +1070,9 @@ func _apply(id: String) -> void:
 
 		"PANIC_BOOST":
 			panic_boost = true
+			panic_speed_mult = maxf(panic_speed_mult, 1.6)
 			last_perk_title = "PANIC BOOST"
-			last_perk_desc = "Gain bonus speed while NULL is not ready."
+			last_perk_desc = "Gain a major speed boost while NULL is not ready."
 
 		"SLOW_TURRETS":
 			turret_interval_mult = max(turret_interval_mult - 0.1, 0.7)
@@ -985,17 +1096,19 @@ func _apply(id: String) -> void:
 
 		"HOMING_NUDGE":
 			homing_nudge = true
+			homing_max_angle_deg = maxf(homing_max_angle_deg, 14.0)
+			homing_turn_speed = maxf(homing_turn_speed, 20.0)
 			last_perk_title = "HOMING NUDGE"
-			last_perk_desc = "Adds slight target correction to NULL."
+			last_perk_desc = "Adds strong target correction to NULL."
 
 		"DASH_UNLOCK":
 			dash_enabled = true
-			dash_strength_mult = 1.65
-			dash_duration_mult = 1.35
-			dash_cooldown_mult = 1.18
+			dash_strength_mult = maxf(dash_strength_mult, 2.15)
+			dash_duration_mult = maxf(dash_duration_mult, 1.55)
+			dash_cooldown_mult = minf(dash_cooldown_mult, 0.95)
 			dash_invulnerable = true
 			last_perk_title = "ENERGY DASH"
-			last_perk_desc = "Replaces the base dash with a longer invulnerable burst."
+			last_perk_desc = "Replaces the base dash with a much longer invulnerable burst."
 
 		"SLIDE_DODGE":
 			slide_dodge = true
@@ -1008,8 +1121,11 @@ func _apply(id: String) -> void:
 
 		"CHARGE_SHOT":
 			charge_shot_enabled = true
+			charge_shot_seconds = minf(charge_shot_seconds, 1.15)
+			charge_shot_scale = maxf(charge_shot_scale, 2.0)
+			charge_shake_strength = maxf(charge_shake_strength, 0.08)
 			last_perk_title = "CHARGE SHOT"
-			last_perk_desc = "Hold the shot to fire a larger charged NULL."
+			last_perk_desc = "Hold the shot briefly to fire a much larger charged NULL."
 
 		"PULL_TO_HAND":
 			pull_to_hand = true
@@ -1018,13 +1134,17 @@ func _apply(id: String) -> void:
 
 		"SLOWMO_RECOVERY":
 			slowmo_recovery = true
+			slowmo_scale = minf(slowmo_scale, 0.60)
 			last_perk_title = "SLOWMO RECOVERY"
-			last_perk_desc = "Slows time while NULL is on the ground."
+			last_perk_desc = "Heavily slows time while NULL is on the ground."
 
 		"IMPACT_PULSE":
 			impact_pulse = true
+			impact_pulse_radius = maxf(impact_pulse_radius, 8.0)
+			impact_pulse_strength = maxf(impact_pulse_strength, 12.5)
+			impact_pulse_stun = maxf(impact_pulse_stun, 0.85)
 			last_perk_title = "IMPACT PULSE"
-			last_perk_desc = "A missed NULL emits a short-range pulse that pushes back nearby enemies."
+			last_perk_desc = "A missed NULL emits a huge pulse that throws nearby enemies away."
 
 		"THREAD_LOCK":
 			thread_lock = true
@@ -1033,8 +1153,44 @@ func _apply(id: String) -> void:
 
 		"NULL_FREEZE":
 			null_freeze = true
+			null_freeze_radius = maxf(null_freeze_radius, 6.0)
+			null_freeze_stun = maxf(null_freeze_stun, 1.0)
 			last_perk_title = "NULL FREEZE"
-			last_perk_desc = "Recovering NULL briefly freezes nearby enemies."
+			last_perk_desc = "Recovering NULL freezes nearby enemies for a noticeable moment."
+
+		"AUTO_RECALL":
+			auto_recall = true
+			auto_recall_delay = minf(auto_recall_delay, 1.20)
+			last_perk_title = "AUTO RECALL"
+			last_perk_desc = "A dropped NULL automatically begins flying back to you after a short delay."
+
+		"RECOVERY_IFRAME":
+			recovery_iframe = true
+			recovery_iframe_seconds = maxf(recovery_iframe_seconds, 0.85)
+			last_perk_title = "RECOVERY I-FRAME"
+			last_perk_desc = "Recovering NULL grants a short burst of invulnerability."
+
+		"STASIS_FIELD":
+			stasis_field = true
+			stasis_field_radius = maxf(stasis_field_radius, 5.5)
+			stasis_field_interval = minf(stasis_field_interval, 0.35)
+			stasis_field_stun = maxf(stasis_field_stun, 0.55)
+			last_perk_title = "STASIS FIELD"
+			last_perk_desc = "A dropped NULL emits repeated stasis pulses that lock nearby enemies in place."
+
+		"SECOND_CHANCE":
+			second_chance = true
+			second_chance_search_radius = maxf(second_chance_search_radius, 18.0)
+			last_perk_title = "SECOND CHANCE"
+			last_perk_desc = "If a shot would fail, NULL gets one emergency redirect toward a nearby enemy."
+
+		"HEAVY_NULL":
+			heavy_null = true
+			heavy_null_size_mult = maxf(heavy_null_size_mult, 1.50)
+			heavy_null_speed_mult = minf(heavy_null_speed_mult, 0.78)
+			heavy_null_range_mult = minf(heavy_null_range_mult, 0.72)
+			last_perk_title = "HEAVY NULL"
+			last_perk_desc = "NULL becomes larger and easier to land, but slower and shorter-ranged."
 
 		"OVERCLOCK":
 			overclock = true
@@ -1049,6 +1205,11 @@ func _apply(id: String) -> void:
 		"RAM_PATCH":
 			last_perk_title = "RAM PATCH"
 			last_perk_desc = "Adds +1 row and +1 column to your R.A.M. grid."
+
+		"INFINITE":
+			infinite_enabled = true
+			last_perk_title = "INFINITE"
+			last_perk_desc = "NULL is no longer consumed when firing. You can keep shooting forever."
 
 	if Signals.has_signal("perk_granted"):
 		Signals.perk_granted.emit(last_perk_title, last_perk_desc)

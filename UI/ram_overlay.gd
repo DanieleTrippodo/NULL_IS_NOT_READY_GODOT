@@ -529,6 +529,37 @@ func _draw_chip_symbol(update_id: String, rect: Rect2, is_preview: bool) -> void
 			grid_control.draw_line(Vector2(x1, cy), Vector2(x2, cy), col, 2.0)
 			grid_control.draw_line(Vector2(x1, y2), Vector2(x2, y2), col, 2.0)
 
+		"AUTO_RECALL":
+			grid_control.draw_line(Vector2(x2, cy), Vector2(x1 + 8.0, cy), col, 2.0)
+			grid_control.draw_line(Vector2(x1 + 8.0, cy), Vector2(x1 + 15.0, cy - 6.0), col, 2.0)
+			grid_control.draw_line(Vector2(x1 + 8.0, cy), Vector2(x1 + 15.0, cy + 6.0), col, 2.0)
+			grid_control.draw_arc(Vector2(cx, cy), 11.0, PI * 0.15, PI * 1.55, 18, col, 2.0)
+
+		"RECOVERY_IFRAME":
+			grid_control.draw_rect(Rect2(cx - 8.0, cy - 10.0, 16.0, 20.0), col, false, 2.0)
+			grid_control.draw_line(Vector2(cx, y1 + 2.0), Vector2(cx, y2 - 2.0), col, 2.0)
+
+		"STASIS_FIELD":
+			grid_control.draw_circle(Vector2(cx, cy), 5.0, col)
+			grid_control.draw_circle(Vector2(cx, cy), 10.0, Color(col.r, col.g, col.b, col.a * 0.65), false, 2.0)
+			grid_control.draw_rect(Rect2(cx - 2.0, y1 + 2.0, 4.0, y2 - y1 - 4.0), col, true)
+
+		"SECOND_CHANCE":
+			grid_control.draw_line(Vector2(x1, cy), Vector2(cx, cy), col, 2.0)
+			grid_control.draw_line(Vector2(cx, cy), Vector2(x2 - 8.0, y1 + 4.0), col, 2.0)
+			grid_control.draw_line(Vector2(cx, cy), Vector2(x2 - 8.0, y2 - 4.0), col, 2.0)
+			grid_control.draw_circle(Vector2(cx, cy), 3.0, col)
+
+		"HEAVY_NULL":
+			grid_control.draw_circle(Vector2(cx, cy), 10.0, col, false, 2.5)
+			grid_control.draw_line(Vector2(cx - 6.0, cy + 12.0), Vector2(cx + 6.0, cy + 12.0), col, 2.0)
+			grid_control.draw_line(Vector2(cx - 3.0, cy + 8.0), Vector2(cx - 3.0, cy + 15.0), col, 2.0)
+			grid_control.draw_line(Vector2(cx + 3.0, cy + 8.0), Vector2(cx + 3.0, cy + 15.0), col, 2.0)
+
+		"INFINITE":
+			grid_control.draw_arc(Vector2(cx - 6.0, cy), 6.0, PI * 0.25, PI * 1.75, 18, col, 2.0)
+			grid_control.draw_arc(Vector2(cx + 6.0, cy), 6.0, -PI * 0.75, PI * 0.75, 18, col, 2.0)
+
 		_:
 			grid_control.draw_circle(Vector2(cx, cy), 3.0, col)
 
