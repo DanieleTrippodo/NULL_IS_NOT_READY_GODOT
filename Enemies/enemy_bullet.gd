@@ -21,7 +21,7 @@ func _ready() -> void:
 	monitorable = true
 
 
-func fire(origin: Vector3, direction: Vector3, speed: float = -1.0, owner: Node = null) -> void:
+func fire(origin: Vector3, direction: Vector3, speed: float = -1.0, shooter_owner: Node = null) -> void:
 	global_position = origin
 
 	var dir: Vector3 = direction
@@ -33,8 +33,8 @@ func fire(origin: Vector3, direction: Vector3, speed: float = -1.0, owner: Node 
 
 	velocity = dir * final_speed
 	life = default_life
-	shooter = owner
-	_owner_ignore_left = owner_ignore_time if owner != null else 0.0
+	shooter = shooter_owner
+	_owner_ignore_left = owner_ignore_time if shooter_owner != null else 0.0
 	_reflected = false
 	_spent = false
 

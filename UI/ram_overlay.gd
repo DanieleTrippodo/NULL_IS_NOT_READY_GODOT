@@ -373,15 +373,15 @@ func _draw_chip_notches(rect: Rect2, is_preview: bool) -> void:
 	var col: Color = PIECE_DETAIL if not is_preview else Color(0.08, 0.08, 0.09, 0.50)
 	var s: float = 5.0
 
-	var tl := Rect2(rect.position.x + 3.0, rect.position.y + 3.0, s, s)
-	var tr := Rect2(rect.position.x + rect.size.x - s - 3.0, rect.position.y + 3.0, s, s)
-	var bl := Rect2(rect.position.x + 3.0, rect.position.y + rect.size.y - s - 3.0, s, s)
-	var br := Rect2(rect.position.x + rect.size.x - s - 3.0, rect.position.y + rect.size.y - s - 3.0, s, s)
+	var top_left_rect := Rect2(rect.position.x + 3.0, rect.position.y + 3.0, s, s)
+	var top_right_rect := Rect2(rect.position.x + rect.size.x - s - 3.0, rect.position.y + 3.0, s, s)
+	var bottom_left_rect := Rect2(rect.position.x + 3.0, rect.position.y + rect.size.y - s - 3.0, s, s)
+	var bottom_right_rect := Rect2(rect.position.x + rect.size.x - s - 3.0, rect.position.y + rect.size.y - s - 3.0, s, s)
 
-	grid_control.draw_rect(tl, col, true)
-	grid_control.draw_rect(tr, col, true)
-	grid_control.draw_rect(bl, col, true)
-	grid_control.draw_rect(br, col, true)
+	grid_control.draw_rect(top_left_rect, col, true)
+	grid_control.draw_rect(top_right_rect, col, true)
+	grid_control.draw_rect(bottom_left_rect, col, true)
+	grid_control.draw_rect(bottom_right_rect, col, true)
 
 
 func _draw_chip_pins(rect: Rect2, is_preview: bool) -> void:

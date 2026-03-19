@@ -62,7 +62,6 @@ var not_ready_size: Vector2 = Vector2(22, 22)
 
 var _survival_active: bool = false
 var _recovery_active: bool = false
-var _recovery_hold_time: float = 0.0
 var _overlay_current_strength: float = 0.0
 
 var _glitch_t: float = 0.0

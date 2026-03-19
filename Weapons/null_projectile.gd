@@ -599,9 +599,9 @@ func _ensure_thread_lock_visuals() -> void:
 	add_child(_thread_line_mesh)
 
 
-func _set_thread_lock_visible(is_visible: bool) -> void:
+func _set_thread_lock_visible(visible_now: bool) -> void:
 	if _thread_line_mesh != null and is_instance_valid(_thread_line_mesh):
-		_thread_line_mesh.visible = is_visible
+		_thread_line_mesh.visible = visible_now
 
 
 func _update_thread_lock_visual() -> void:
