@@ -266,6 +266,7 @@ mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 42
 text = "MASTER VOLUME: 80"
 flat = true
+alignment = 0
 
 [node name="FullscreenValue" type="Button" parent="UI/SettingsPanel/CenterContainer/VBoxContainer"]
 layout_mode = 2
@@ -274,6 +275,7 @@ mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 42
 text = "FULLSCREEN: ON"
 flat = true
+alignment = 0
 
 [node name="ResolutionValue" type="Button" parent="UI/SettingsPanel/CenterContainer/VBoxContainer"]
 layout_mode = 2
@@ -282,6 +284,7 @@ mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 42
 text = "RESOLUTION:"
 flat = true
+alignment = 0
 
 [node name="MouseSensValue" type="Button" parent="UI/SettingsPanel/CenterContainer/VBoxContainer"]
 layout_mode = 2
@@ -290,6 +293,7 @@ mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 42
 text = "MOUSE SENS: 0.0020"
 flat = true
+alignment = 0
 
 [node name="CameraTiltValue" type="Button" parent="UI/SettingsPanel/CenterContainer/VBoxContainer"]
 layout_mode = 2
@@ -298,6 +302,7 @@ mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 42
 text = "CAMERA TILT: ON"
 flat = true
+alignment = 0
 
 [node name="BackValue" type="Button" parent="UI/SettingsPanel/CenterContainer/VBoxContainer"]
 layout_mode = 2
