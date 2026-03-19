@@ -336,7 +336,7 @@ func _physics_process(_delta: float) -> void:
 func _is_shop_checkpoint_depth() -> bool:
 	if tutorial_mode:
 		return false
-	return Run.depth > 1 and (((Run.depth - 1) % 5) == 0)
+	return Run.depth > 1 and (((Run.depth - 1) % 3) == 0)
 
 func _should_show_wave_button() -> bool:
 	if tutorial_mode:

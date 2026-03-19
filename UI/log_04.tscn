@@ -24,8 +24,8 @@ theme_override_constants/separation = 10
 [node name="Header" type="Label" parent="VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
-text = "BOX REPORT // ERROR ANALYSIS
-EVENT: MISS DETECTED"
+text = "M.A.M.M.A. // TRAINING
+STATE: ACTIVE"
 
 [node name="Separator" type="Label" parent="VBox"]
 layout_mode = 2
@@ -41,26 +41,28 @@ theme_override_font_sizes/bold_font_size = 34
 theme_override_font_sizes/bold_italics_font_size = 34
 theme_override_font_sizes/italics_font_size = 34
 theme_override_font_sizes/mono_font_size = 34
-text = "[BOX]: Projectile lost.
+text = "Entities appear inside the chamber.
+They move without hesitation.
 
-[BOX]: Subject hesitation detected.
+The fragment hesitates.
 
-[M.A.M.M.A.]: Continue observation.
+Then it moves.
+
+[BOX]: The subject shows signs of distress.
+
+[M.A.M.M.A.]: Good.
 
 [BOX]: Clarification requested.
 
-[M.A.M.M.A.]: Recovery is the lesson. Not accuracy.
+[M.A.M.M.A.]: Growth requires resistance.
 
-[BOX]: Noted.
-
-BOX]: QUESTION _ does failure occur when the mistake happens,
-or when movement stops?"
+The chamber becomes smaller, not in space, but in options."
 scroll_active = false
 
 [node name="LogIndex" type="Label" parent="VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
-text = "LOG 4/9"
+text = "LOG 4/6"
 
 [node name="LogSFX" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("1_ghi7c")

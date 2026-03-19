@@ -110,6 +110,7 @@ mesh = SubResource("BoxMesh_avk14")
 surface_material_override/0 = SubResource("StandardMaterial3D_mnyru")
 
 [node name="MAP" type="CSGCombiner3D" parent="."]
+transform = Transform3D(-0.57357645, -0.819152, 0, 0.819152, -0.57357645, 0, 0, 0, 1, 0, 1.2752578, 0)
 use_collision = true
 
 [node name="CSGTorus3D" type="CSGTorus3D" parent="MAP"]

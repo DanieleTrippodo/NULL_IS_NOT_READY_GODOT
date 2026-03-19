@@ -160,6 +160,8 @@ func _on_input_text_changed(new_text: String) -> void:
 
 func _on_input_submitted(raw_text: String) -> void:
 	var command := raw_text.strip_edges().to_lower()
+	var raw_trimmed := raw_text.strip_edges()
+	var lower_trimmed := raw_trimmed.to_lower()
 
 	if input_line != null:
 		input_line.clear()
@@ -172,6 +174,25 @@ func _on_input_submitted(raw_text: String) -> void:
 	_flush_pending_typed_output()
 	_play_click_sfx()
 	_print_prompt(command)
+
+	if _handle_easter_egg(command):
+		return
+
+	if lower_trimmed.begins_with("echo "):
+		var echo_text := raw_trimmed.substr(5, raw_trimmed.length() - 5).strip_edges()
+		if echo_text.is_empty():
+			_print_error_instant("ERROR: INPUT NOT VALID")
+		else:
+			_queue_typed_line(echo_text)
+		_scroll_to_bottom()
+		call_deferred("_focus_input")
+		return
+
+	if lower_trimmed == "echo":
+		_print_error_instant("ERROR: INPUT NOT VALID")
+		_scroll_to_bottom()
+		call_deferred("_focus_input")
+		return
 
 	match command:
 		"help":
@@ -194,6 +215,42 @@ func _on_input_submitted(raw_text: String) -> void:
 			_scroll_to_bottom()
 			call_deferred("_focus_input")
 			return
+
+func _handle_easter_egg(command: String) -> bool:
+	var normalized := command.strip_edges().to_lower()
+	var compact := normalized.replace(".", "").replace(" ", "").replace("-", "").replace("_", "")
+
+	var egg_text := ""
+
+	match normalized:
+		"ddd":
+			egg_text = "Hi! I'm the game developer. How did you find me? I've been working hard on this, my first video game, which I developed in just a month. I hope you're enjoying it. I have a lot of other ideas, even more interesting than the ones you're seeing now, but I just haven't had time to implement them. I hope to see you as a player again soon."
+
+		"bad ideas game jam":
+			egg_text = "This is the jam this game is participating in, organized by the video game development studio \"Bad Ideas Production\""
+
+		"null":
+			egg_text = "It's a little piece of you. Never lose it."
+
+		"nulla":
+			egg_text = "is that you?.. do you like your name?"
+
+		"box":
+			egg_text = "you can call him Father"
+
+		"m.a.m.m.a.", "m.a.m.m.a", "mamma":
+			egg_text = "Modular Anomaly Management & Monitoring Authority - or if you like, Mom"
+
+	if egg_text.is_empty() and compact == "mamma":
+		egg_text = "Modular Anomaly Management & Monitoring Authority - or if you like, Mom"
+
+	if egg_text.is_empty():
+		return false
+
+	_queue_typed_line(egg_text)
+	_scroll_to_bottom()
+	call_deferred("_focus_input")
+	return true
 
 func _queue_typed_line(text: String) -> void:
 	_queued_typed_lines.append(text)
@@ -283,19 +340,17 @@ func _move_window(target_position: Vector2) -> void:
 	)
 
 func _center_window() -> void:
-	if window_panel == null or not is_inside_tree():
+	if window_panel == null:
 		return
 
 	await get_tree().process_frame
-	if not is_inside_tree() or window_panel == null:
-		return
 
 	var viewport_size := get_viewport().get_visible_rect().size
 	var panel_size := window_panel.size
 	window_panel.position = ((viewport_size - panel_size) * 0.5).round()
 
 func _focus_input() -> void:
-	if not _open or input_line == null or not is_inside_tree():
+	if not _open or input_line == null:
 		return
 
 	input_line.grab_focus()

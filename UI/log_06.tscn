@@ -1,7 +1,6 @@
-[gd_scene load_steps=3 format=3 uid="uid://cyhtuqa1pdl7b"]
+[gd_scene load_steps=2 format=3 uid="uid://cyhtuqa1pdl7b"]
 
 [ext_resource type="AudioStream" uid="uid://wcnr40kvcf5r" path="res://Audio/SFX/LogComputer.mp3" id="1_q5uxb"]
-[ext_resource type="AudioStream" uid="uid://d3ptsvur60byg" path="res://Audio/SFX/breath.mp3" id="2_v7of2"]
 
 [node name="Log06" type="Control"]
 layout_mode = 3
@@ -25,7 +24,8 @@ theme_override_constants/separation = 10
 [node name="Header" type="Label" parent="VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
-text = "BOX REPORT // AUDIO ANOMALY"
+text = "BOX REPORT // EXTERNAL SIGNAL
+STATUS: UNKNOWN"
 
 [node name="Separator" type="Label" parent="VBox"]
 layout_mode = 2
@@ -41,32 +41,39 @@ theme_override_font_sizes/bold_font_size = 34
 theme_override_font_sizes/bold_italics_font_size = 34
 theme_override_font_sizes/italics_font_size = 34
 theme_override_font_sizes/mono_font_size = 34
-text = "[BOX]: Respiration-like waveform detected.
+text = "Something exists beyond the chamber.
 
-[BOX]: Chamber hardware contains no respiratory systems.
+It does not enter.
+It does not move away.
 
-[M.A.M.M.A].: Log anomaly. Continue training.
+It remains.
 
-[BOX]: Advisory issued — If you hear the system “breathing”, ignore it.
-It is not supposed to have lungs.
+Watching.
 
-[BOX]: QUESTION _ if something breathes inside a sealed machine,
-what exactly is alive?"
+[BOX]: External signal detected outside the box.
+
+[BOX]: Pattern does not match known systems.
+
+[M.A.M.M.A.]: Do not interact.
+
+[BOX]: Reason requested.
+
+[M.A.M.M.A.]: Because I do not understand it.
+
+The fragment continues to move.
+
+The chamber continues to hold.
+
+The outside does not."
 scroll_active = false
 
 [node name="LogIndex" type="Label" parent="VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
-text = "LOG 6/9"
+text = "LOG 6/6"
 
 [node name="LogSFX" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("1_q5uxb")
-volume_db = 0.03
-autoplay = true
-parameters/looping = true
-
-[node name="BreathSFX" type="AudioStreamPlayer" parent="."]
-stream = ExtResource("2_v7of2")
 volume_db = 0.03
 autoplay = true
 parameters/looping = true

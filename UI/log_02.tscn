@@ -24,9 +24,8 @@ theme_override_constants/separation = 10
 [node name="Header" type="Label" parent="VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
-text = "BOX REPORT // LOADOUT CHECK
-RESOURCE: NULL
-ALLOCATION: 1"
+text = "M.A.M.M.A. // DEVELOPMENT
+PROCESS: GROWTH"
 
 [node name="Separator" type="Label" parent="VBox"]
 layout_mode = 2
@@ -42,25 +41,28 @@ theme_override_font_sizes/bold_font_size = 34
 theme_override_font_sizes/bold_italics_font_size = 34
 theme_override_font_sizes/italics_font_size = 34
 theme_override_font_sizes/mono_font_size = 34
-text = "[BOX]: Subject equipped with one projectile.
+text = "The fragment begins to repeat actions.
+Patterns form where none existed before.
 
-[BOX]: Additional ammunition unavailable.
+Movement becomes intention.
 
-[M.A.M.M.A.]: Correct.
+[BOX]: Why create a system without knowledge?
 
-[BOX]: Probability of failure increased.
+[M.A.M.M.A.]: Knowledge creates repetition.
 
-[M.A.M.M.A.]: That is the purpose.
+[BOX]: And repetition is inefficient?
 
-[BOX]: QUESTION _ does scarcity improve decision making?
+[M.A.M.M.A.]: Repetition is predictable.
+Predictable systems fail outside controlled environments.
 
-[M.A.M.M.A.]: Scarcity reveals it."
+The fragment does not understand this.
+It continues to move anyway."
 scroll_active = false
 
 [node name="LogIndex" type="Label" parent="VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
-text = "LOG 2/9"
+text = "LOG 2/6"
 
 [node name="LogSFX" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("1_hnghs")

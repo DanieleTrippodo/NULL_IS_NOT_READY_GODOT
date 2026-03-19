@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://cxydsp1rqodpm"]
+[gd_scene load_steps=3 format=3 uid="uid://cxydsp1rqodpm"]
 
 [ext_resource type="AudioStream" uid="uid://wcnr40kvcf5r" path="res://Audio/SFX/LogComputer.mp3" id="1_tmp7u"]
+[ext_resource type="AudioStream" uid="uid://d3ptsvur60byg" path="res://Audio/SFX/breath.mp3" id="2_hspy2"]
 
 [node name="Log05" type="Control"]
 layout_mode = 3
@@ -24,7 +25,7 @@ theme_override_constants/separation = 10
 [node name="Header" type="Label" parent="VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
-text = "BOX REPORT // EDGE CONTACT"
+text = "BOX REPORT // AUDIO"
 
 [node name="Separator" type="Label" parent="VBox"]
 layout_mode = 2
@@ -40,26 +41,39 @@ theme_override_font_sizes/bold_font_size = 34
 theme_override_font_sizes/bold_italics_font_size = 34
 theme_override_font_sizes/italics_font_size = 34
 theme_override_font_sizes/mono_font_size = 34
-text = "[BOX]: Subject interacting with boundary surface.
+text = "There is a moment of stillness.
 
-[BOX]: Boundary response: none.
+The chamber should be silent.
 
-[M.A.M.M.A.]: Expected.
+It is not.
 
-[BOX]: Subject repeats contact.
+[BOX]: Respiration-like waveform detected.
 
-[M.A.M.M.A.]: Ignore.
+[BOX]: Chamber contains no lungs.
 
-[BOX]: QUESTION _ why do intelligent entities request permission from walls?"
+[M.A.M.M.A.]: Log anomaly. Continue training.
+
+[BOX]: Advisory issued:
+
+If you hear the system “breathing”, ignore it.
+It is not supposed to have lungs.
+
+It does not feel like silence anymore."
 scroll_active = false
 
 [node name="LogIndex" type="Label" parent="VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
-text = "LOG 5/9"
+text = "LOG 5/6"
 
 [node name="LogSFX" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("1_tmp7u")
+volume_db = 0.03
+autoplay = true
+parameters/looping = true
+
+[node name="BreathSFX" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_hspy2")
 volume_db = 0.03
 autoplay = true
 parameters/looping = true

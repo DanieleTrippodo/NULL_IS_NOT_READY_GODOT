@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://t7fxtwr2768g"]
+[gd_scene load_steps=10 format=3 uid="uid://t7fxtwr2768g"]
 
 [ext_resource type="Script" uid="uid://bnyo3nlk88hp8" path="res://Levels/arena.gd" id="1_ng0qe"]
 [ext_resource type="PackedScene" uid="uid://bma8hhlddfbkd" path="res://Interactables/wave_start_button.tscn" id="2_56ss8"]
@@ -28,6 +28,13 @@ stencil_flags = 2
 stencil_color = Color(1, 1, 1, 1)
 stencil_outline_thickness = 0.057
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ng0qe"]
+diffuse_mode = 3
+specular_mode = 1
+albedo_texture = ExtResource("3_yrrrl")
+uv1_scale = Vector3(9.31, 9.31, 9.31)
+texture_filter = 0
+
 [node name="Arena6" type="Node3D"]
 script = ExtResource("1_ng0qe")
 
@@ -37,19 +44,19 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.46497726, -22.753704)
 [node name="SpawnPoints" type="Node3D" parent="."]
 
 [node name="Spawn_1" type="Marker3D" parent="SpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.967656, 0, -16.980114)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.625244, 0, -8.887081)
 
 [node name="Spawn_2" type="Marker3D" parent="SpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.067362, 0, 10.149227)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.748769, 0, 10.149227)
 
 [node name="Spawn_3" type="Marker3D" parent="SpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.025758, 0, -0.17236233)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.025758, 0, 7.1922016)
 
 [node name="PlayerSpawn" type="Marker3D" parent="SpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15526962, 0, -5.9633565)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15526962, 0, -10.188873)
 
 [node name="TerminalSpawn" type="Marker3D" parent="SpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.0957537, 0.11398608, -0.2285142)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.8247013, 0.11398608, -0.2285142)
 
 [node name="Map_Geometry" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 17.689478, 0)
@@ -106,7 +113,685 @@ surface_material_override/0 = SubResource("StandardMaterial3D_mnyru")
 use_collision = true
 
 [node name="CSGTorus3D" type="CSGTorus3D" parent="MAP"]
-transform = Transform3D(3.11, 0, 0, 0, -0.15582621, -3.1060936, 0, 3.1060936, -0.15582621, 0, 1.2392873, 0)
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 10.629985)
 inner_radius = 0.6981843
 outer_radius = 0.5350332
 sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D2" type="CSGTorus3D" parent="MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 10.39081)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D3" type="CSGTorus3D" parent="MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 10.095312)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D4" type="CSGTorus3D" parent="MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 9.785362)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D5" type="CSGTorus3D" parent="MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 9.546187)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D6" type="CSGTorus3D" parent="MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 9.2506895)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D7" type="CSGTorus3D" parent="MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 8.927325)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D8" type="CSGTorus3D" parent="MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 8.68815)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D9" type="CSGTorus3D" parent="MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 8.3926525)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D10" type="CSGTorus3D" parent="MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 8.082703)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D11" type="CSGTorus3D" parent="MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 7.8435273)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D12" type="CSGTorus3D" parent="MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 7.5480294)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D13" type="CSGTorus3D" parent="MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 7.2198358)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D14" type="CSGTorus3D" parent="MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 6.980661)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D15" type="CSGTorus3D" parent="MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 6.685163)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D16" type="CSGTorus3D" parent="MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 6.375213)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D17" type="CSGTorus3D" parent="MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 6.1360383)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D18" type="CSGTorus3D" parent="MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 5.84054)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D19" type="CSGTorus3D" parent="MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 5.5171757)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D20" type="CSGTorus3D" parent="MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 5.278001)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D21" type="CSGTorus3D" parent="MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 4.982503)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D22" type="CSGTorus3D" parent="MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 4.672553)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D23" type="CSGTorus3D" parent="MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 4.433378)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D24" type="CSGTorus3D" parent="MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 4.1378803)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="MAP" type="CSGCombiner3D" parent="MAP"]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -10.9322, 0, 0)
+use_collision = true
+
+[node name="CSGTorus3D" type="CSGTorus3D" parent="MAP/MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 4.0393972)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D2" type="CSGTorus3D" parent="MAP/MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 3.8002224)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D3" type="CSGTorus3D" parent="MAP/MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 3.5047245)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D4" type="CSGTorus3D" parent="MAP/MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 3.1947744)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D5" type="CSGTorus3D" parent="MAP/MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 2.9555995)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D6" type="CSGTorus3D" parent="MAP/MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 2.6601017)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D7" type="CSGTorus3D" parent="MAP/MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 2.3367374)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D8" type="CSGTorus3D" parent="MAP/MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 2.0975626)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D9" type="CSGTorus3D" parent="MAP/MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 1.8020647)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D10" type="CSGTorus3D" parent="MAP/MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 1.4921145)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D11" type="CSGTorus3D" parent="MAP/MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 1.2529397)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D12" type="CSGTorus3D" parent="MAP/MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 0.9574418)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D13" type="CSGTorus3D" parent="MAP/MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 0.62924814)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D14" type="CSGTorus3D" parent="MAP/MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 0.39007333)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D15" type="CSGTorus3D" parent="MAP/MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 0.094575435)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D16" type="CSGTorus3D" parent="MAP/MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, -0.21537468)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D17" type="CSGTorus3D" parent="MAP/MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, -0.45454952)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D18" type="CSGTorus3D" parent="MAP/MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, -0.75004745)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D19" type="CSGTorus3D" parent="MAP/MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, -1.0734117)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D20" type="CSGTorus3D" parent="MAP/MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, -1.3125865)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D21" type="CSGTorus3D" parent="MAP/MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, -1.6080844)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D22" type="CSGTorus3D" parent="MAP/MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, -1.9180346)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D23" type="CSGTorus3D" parent="MAP/MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, -2.1572094)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D24" type="CSGTorus3D" parent="MAP/MAP"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, -2.4527073)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="MAP2" type="CSGCombiner3D" parent="MAP"]
+transform = Transform3D(0.99999994, 0, 0, 0, 1, 0, 0, 0, 0.99999994, 0, 0, -9.560609)
+use_collision = true
+
+[node name="CSGTorus3D" type="CSGTorus3D" parent="MAP/MAP2"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 4.0393972)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D2" type="CSGTorus3D" parent="MAP/MAP2"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 3.8002224)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D3" type="CSGTorus3D" parent="MAP/MAP2"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 3.5047245)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D4" type="CSGTorus3D" parent="MAP/MAP2"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 3.1947744)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D5" type="CSGTorus3D" parent="MAP/MAP2"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 2.9555995)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D6" type="CSGTorus3D" parent="MAP/MAP2"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 2.6601017)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D7" type="CSGTorus3D" parent="MAP/MAP2"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 2.3367374)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D8" type="CSGTorus3D" parent="MAP/MAP2"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 2.0975626)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D9" type="CSGTorus3D" parent="MAP/MAP2"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 1.8020647)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D10" type="CSGTorus3D" parent="MAP/MAP2"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 1.4921145)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D11" type="CSGTorus3D" parent="MAP/MAP2"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 1.2529397)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D12" type="CSGTorus3D" parent="MAP/MAP2"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 0.9574418)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D13" type="CSGTorus3D" parent="MAP/MAP2"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 0.62924814)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D14" type="CSGTorus3D" parent="MAP/MAP2"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 0.39007333)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D15" type="CSGTorus3D" parent="MAP/MAP2"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 0.094575435)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D16" type="CSGTorus3D" parent="MAP/MAP2"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, -0.21537468)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D17" type="CSGTorus3D" parent="MAP/MAP2"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, -0.45454952)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D18" type="CSGTorus3D" parent="MAP/MAP2"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, -0.75004745)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D19" type="CSGTorus3D" parent="MAP/MAP2"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, -1.0734117)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D20" type="CSGTorus3D" parent="MAP/MAP2"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, -1.3125865)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D21" type="CSGTorus3D" parent="MAP/MAP2"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, -1.6080844)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D22" type="CSGTorus3D" parent="MAP/MAP2"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, -1.9180346)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D23" type="CSGTorus3D" parent="MAP/MAP2"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, -2.1572094)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D24" type="CSGTorus3D" parent="MAP/MAP2"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, -2.4527073)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="MAP3" type="CSGCombiner3D" parent="MAP"]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 8.222401, 0, -0.17133331)
+use_collision = true
+
+[node name="CSGTorus3D" type="CSGTorus3D" parent="MAP/MAP3"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 4.0393972)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D2" type="CSGTorus3D" parent="MAP/MAP3"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 3.8002224)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D3" type="CSGTorus3D" parent="MAP/MAP3"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 3.5047245)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D4" type="CSGTorus3D" parent="MAP/MAP3"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 3.1947744)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D5" type="CSGTorus3D" parent="MAP/MAP3"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 2.9555995)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D6" type="CSGTorus3D" parent="MAP/MAP3"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 2.6601017)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D7" type="CSGTorus3D" parent="MAP/MAP3"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 2.3367374)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D8" type="CSGTorus3D" parent="MAP/MAP3"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 2.0975626)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D9" type="CSGTorus3D" parent="MAP/MAP3"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 1.8020647)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D10" type="CSGTorus3D" parent="MAP/MAP3"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 1.4921145)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D11" type="CSGTorus3D" parent="MAP/MAP3"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 1.2529397)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D12" type="CSGTorus3D" parent="MAP/MAP3"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 0.9574418)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D13" type="CSGTorus3D" parent="MAP/MAP3"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 0.62924814)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D14" type="CSGTorus3D" parent="MAP/MAP3"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 0.39007333)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D15" type="CSGTorus3D" parent="MAP/MAP3"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, 0.094575435)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D16" type="CSGTorus3D" parent="MAP/MAP3"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, -0.21537468)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D17" type="CSGTorus3D" parent="MAP/MAP3"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, -0.45454952)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D18" type="CSGTorus3D" parent="MAP/MAP3"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, -0.75004745)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D19" type="CSGTorus3D" parent="MAP/MAP3"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, -1.0734117)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D20" type="CSGTorus3D" parent="MAP/MAP3"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, -1.3125865)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D21" type="CSGTorus3D" parent="MAP/MAP3"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, -1.6080844)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D22" type="CSGTorus3D" parent="MAP/MAP3"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, -1.9180346)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D23" type="CSGTorus3D" parent="MAP/MAP3"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, -2.1572094)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")
+
+[node name="CSGTorus3D24" type="CSGTorus3D" parent="MAP/MAP3"]
+transform = Transform3D(2.605, 0, 0, 0, -1.1386817e-07, -2.605, 0, 2.605, -1.1386817e-07, 0, 1.2392873, -2.4527073)
+inner_radius = 0.6981843
+outer_radius = 0.5350332
+sides = 28
+material = SubResource("StandardMaterial3D_ng0qe")

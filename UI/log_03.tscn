@@ -24,8 +24,7 @@ theme_override_constants/separation = 10
 [node name="Header" type="Label" parent="VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
-text = "BOX REPORT // SIMULATION ACTIVE
-ENTITIES: DEPLOYED"
+text = "BOX SYSTEM // ENVIRONMENT"
 
 [node name="Separator" type="Label" parent="VBox"]
 layout_mode = 2
@@ -41,25 +40,26 @@ theme_override_font_sizes/bold_font_size = 34
 theme_override_font_sizes/bold_italics_font_size = 34
 theme_override_font_sizes/italics_font_size = 34
 theme_override_font_sizes/mono_font_size = 34
-text = "[BOX]: Hostile entities entering chamber.
+text = "The fragment tests the limits of the chamber.
+It reaches the walls. The walls do not answer.
 
-[M.A.M.M.A.]: Correction. Not hostile.
+It tries again.
 
-[BOX]: Clarify designation.
+[BOX]: The subject is attempting to exit.
 
-[M.A.M.M.A.]: Pressure.
+[M.A.M.M.A.]: It is not ready.
 
-[BOX]: Pressure applied through pursuit behavior.
+[BOX]: Then why create an exit?
 
-[BOX]: Subject response indicates perception of threat.
+[M.A.M.M.A.]: Because it must learn to leave.
 
-[BOX]: QUESTION _ if something chases you without intention, is the fear still justified?"
+The chamber remains closed."
 scroll_active = false
 
 [node name="LogIndex" type="Label" parent="VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
-text = "LOG 3/9"
+text = "LOG 3/6"
 
 [node name="LogSFX" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("1_hl4qr")
