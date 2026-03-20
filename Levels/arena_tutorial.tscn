@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3 uid="uid://bmh5v3pstny5c"]
+[gd_scene load_steps=24 format=3 uid="uid://bmh5v3pstny5c"]
 
 [ext_resource type="Texture2D" uid="uid://b0yc6digipfue" path="res://Levels/Floor.jpg" id="1_c58mu"]
 [ext_resource type="PackedScene" uid="uid://cqkyne466bpru" path="res://Interactables/tutorial_spawn_button.tscn" id="2_h6fp6"]
@@ -15,6 +15,7 @@
 [ext_resource type="PackedScene" uid="uid://dsavgjys26mwd" path="res://Props/tutorial_tips_enemy_turret.tscn" id="12_7gcc6"]
 [ext_resource type="PackedScene" uid="uid://b1lensbj13536" path="res://Props/tutorial_tips_enemy_stealer.tscn" id="13_st4hc"]
 [ext_resource type="AudioStream" uid="uid://r4244igtf0qm" path="res://Audio/SFX/EasterEggMorse.mp3" id="14_5xvcw"]
+[ext_resource type="PackedScene" uid="uid://ihaj12oxxir1" path="res://Props/tutorial_tips_enemy_drifterturret.tscn" id="16_iscol"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_h6fp6"]
 size = Vector3(30, 1, 30)
@@ -237,3 +238,6 @@ material = SubResource("StandardMaterial3D_cfit7")
 
 [node name="TutorialBossButton" parent="." instance=ExtResource("11_i73tf")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -35.756252, 0.4112035, 35.67051)
+
+[node name="TutorialTipsEnemy_DRIFTERTURRET" parent="." instance=ExtResource("16_iscol")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.494286, 0, 0.9082351)
