@@ -226,7 +226,7 @@ func _handle_easter_egg(command: String) -> bool:
 		"ddd":
 			egg_text = "Hi! I'm the game developer. How did you find me? I've been working hard on this, my first video game, which I developed in just a month. I hope you're enjoying it. I have a lot of other ideas, even more interesting than the ones you're seeing now, but I just haven't had time to implement them. I hope to see you as a player again soon."
 
-		"bad ideas game jam":
+		"bad ideas game jam", "bad ideas", "game jam":
 			egg_text = "This is the jam this game is participating in, organized by the video game development studio \"Bad Ideas Production\""
 
 		"null":
