@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://bqx7iv2by87ct"
 path.s3tc="res://.godot/imported/WaveStart.png-4c0127ddc06e384d6e8b22904e190804.s3tc.ctex"
+path.etc2="res://.godot/imported/WaveStart.png-4c0127ddc06e384d6e8b22904e190804.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://Interactables/WaveStart.png"
-dest_files=["res://.godot/imported/WaveStart.png-4c0127ddc06e384d6e8b22904e190804.s3tc.ctex"]
+dest_files=["res://.godot/imported/WaveStart.png-4c0127ddc06e384d6e8b22904e190804.s3tc.ctex", "res://.godot/imported/WaveStart.png-4c0127ddc06e384d6e8b22904e190804.etc2.ctex"]
 
 [params]
 

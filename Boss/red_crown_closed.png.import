@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://bftg6fc5m77kt"
 path.s3tc="res://.godot/imported/red_crown_closed.png-b5262b94c2d7b87c3988370cd9dc5043.s3tc.ctex"
+path.etc2="res://.godot/imported/red_crown_closed.png-b5262b94c2d7b87c3988370cd9dc5043.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://Boss/red_crown_closed.png"
-dest_files=["res://.godot/imported/red_crown_closed.png-b5262b94c2d7b87c3988370cd9dc5043.s3tc.ctex"]
+dest_files=["res://.godot/imported/red_crown_closed.png-b5262b94c2d7b87c3988370cd9dc5043.s3tc.ctex", "res://.godot/imported/red_crown_closed.png-b5262b94c2d7b87c3988370cd9dc5043.etc2.ctex"]
 
 [params]
 

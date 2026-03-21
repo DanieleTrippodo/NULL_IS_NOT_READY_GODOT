@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://brax60tkshll8"
 path.s3tc="res://.godot/imported/Terminal1.png.png-e39ebc30d2a1cd255ddb9c3605e2507f.s3tc.ctex"
+path.etc2="res://.godot/imported/Terminal1.png.png-e39ebc30d2a1cd255ddb9c3605e2507f.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://Art/Terminals/Terminal1.png.png"
-dest_files=["res://.godot/imported/Terminal1.png.png-e39ebc30d2a1cd255ddb9c3605e2507f.s3tc.ctex"]
+dest_files=["res://.godot/imported/Terminal1.png.png-e39ebc30d2a1cd255ddb9c3605e2507f.s3tc.ctex", "res://.godot/imported/Terminal1.png.png-e39ebc30d2a1cd255ddb9c3605e2507f.etc2.ctex"]
 
 [params]
 

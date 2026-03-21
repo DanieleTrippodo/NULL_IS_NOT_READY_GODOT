@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://cbqcomhn35cfv"
 path.s3tc="res://.godot/imported/Stealer.png-ce5d7763266e8c25b4f7a30c1c0d59db.s3tc.ctex"
+path.etc2="res://.godot/imported/Stealer.png-ce5d7763266e8c25b4f7a30c1c0d59db.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://Enemies/StealerSprite/Stealer.png"
-dest_files=["res://.godot/imported/Stealer.png-ce5d7763266e8c25b4f7a30c1c0d59db.s3tc.ctex"]
+dest_files=["res://.godot/imported/Stealer.png-ce5d7763266e8c25b4f7a30c1c0d59db.s3tc.ctex", "res://.godot/imported/Stealer.png-ce5d7763266e8c25b4f7a30c1c0d59db.etc2.ctex"]
 
 [params]
 

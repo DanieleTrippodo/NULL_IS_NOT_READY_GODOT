@@ -6,6 +6,7 @@ extends CharacterBody3D
 
 @onready var body_sprite: Sprite3D = $Body
 @onready var body_down_sprite: Sprite3D = $Body_Down
+@onready var leg_sprite: AnimatedSprite3D = $Leg
 @onready var left_arm_push: AnimatedSprite3D = $Head/Camera/ViewModel/LeftArmPush
 @onready var hand_recovery: Sprite3D = $Head/Camera/ViewModel/HandRecovery
 @onready var hand: Sprite3D = $Head/Camera/ViewModel/Hand
@@ -19,6 +20,11 @@ enum PState { NORMAL, KNOCKBACK, DOWNED }
 # -------------------------
 @export_range(0.0, 89.0, 0.5) var normal_pitch_limit_deg: float = 85.0
 @export_range(0.0, 89.0, 0.5) var downed_pitch_limit_deg: float = 25.0
+
+@export_group("Mobile Look")
+@export_range(0.0005, 0.02, 0.0001) var touch_look_sensitivity: float = 0.0042
+
+var _mobile_controls: Node = null
 
 # -------------------------
 # KNOCKBACK / DOWNED
@@ -147,6 +153,11 @@ const SLIDE_STRENGTH: float = 16.0
 @export_range(0.0, 0.1, 0.0005) var body_walk_amp_y: float = 0.012
 @export_range(0.0, 10.0, 0.1) var body_walk_rot_deg: float = 1.2
 
+@export_group("Leg Animation")
+@export_range(0.0, 30.0, 0.1) var leg_turn_deg: float = 10.0
+@export_range(0.0, 20.0, 0.1) var leg_turn_lerp_speed: float = 8.0
+@export_range(0.1, 4.0, 0.05) var leg_walk_speed_scale: float = 1.0
+
 @export_group("Camera Tilt")
 @export var camera_tilt_enabled: bool = true
 @export_range(0.0, 10.0, 0.1) var camera_tilt_side_deg: float = 2.2
@@ -168,13 +179,72 @@ var _body_base_scale: Vector3 = Vector3.ONE
 var _body_idle_t: float = 0.0
 var _body_walk_t: float = 0.0
 
+var _leg_base_rot: Vector3 = Vector3.ZERO
+
 var _shoot_ring_base_scale: Vector3 = Vector3.ONE
 var _shoot_ring_tween: Tween
 var _camera_base_rot: Vector3 = Vector3.ZERO
 
+
+func _get_mobile_controls() -> Node:
+	if is_instance_valid(_mobile_controls):
+		return _mobile_controls
+
+	var nodes := get_tree().get_nodes_in_group("mobile_controls")
+	if nodes.is_empty():
+		return null
+
+	_mobile_controls = nodes[0]
+	return _mobile_controls
+
+func _is_mobile_controls_active() -> bool:
+	var mobile := _get_mobile_controls()
+	if mobile == null:
+		return false
+	if not mobile.has_method("is_mobile_active"):
+		return false
+	return mobile.call("is_mobile_active")
+
+func _get_move_input_planar() -> Vector2:
+	if _is_mobile_controls_active():
+		var mobile := _get_mobile_controls()
+		if mobile != null and mobile.has_method("get_move_vector"):
+			var mv: Variant = mobile.call("get_move_vector")
+			if mv is Vector2:
+				var v: Vector2 = mv
+				if v.length() > 1.0:
+					v = v.normalized()
+				return v
+
+	return Input.get_vector("move_left", "move_right", "move_back", "move_forward")
+
+func _apply_look_delta(relative: Vector2, sensitivity: float) -> void:
+	_hand_look_input = relative
+
+	yaw -= relative.x * sensitivity
+	pitch -= relative.y * sensitivity
+
+	var limit_deg: float = normal_pitch_limit_deg
+	if state == PState.DOWNED:
+		limit_deg = downed_pitch_limit_deg
+	pitch = clamp(pitch, deg_to_rad(-limit_deg), deg_to_rad(limit_deg))
+
+	rotation.y = yaw
+	head.rotation.x = pitch
+
+func apply_mobile_look_delta(relative: Vector2) -> void:
+	if input_locked:
+		return
+	if is_recovering_null:
+		return
+	_apply_look_delta(relative, touch_look_sensitivity)
+
 func _ready() -> void:
 	_camera_base_y = $Head/Camera.position.y
-	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	if _is_mobile_controls_active():
+		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	else:
+		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	set_process_unhandled_input(true)
 	set_process(true)
 
@@ -206,6 +276,11 @@ func _ready() -> void:
 		_body_base_rot = body_sprite.rotation
 		_body_base_scale = body_sprite.scale
 
+	if is_instance_valid(leg_sprite):
+		_leg_base_rot = leg_sprite.rotation
+		leg_sprite.play(&"idle")
+		leg_sprite.speed_scale = 1.0
+
 	if is_instance_valid(shoot_ring):
 		_shoot_ring_base_scale = shoot_ring.scale
 		shoot_ring.visible = false
@@ -214,6 +289,11 @@ func _ready() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if input_locked:
 		return
+
+	if _is_mobile_controls_active() and event is InputEventMouseButton:
+		var mb := event as InputEventMouseButton
+		if mb.button_index == MOUSE_BUTTON_LEFT or mb.button_index == MOUSE_BUTTON_RIGHT:
+			return
 
 	if is_recovering_null:
 		if event.is_action_released("swap"):
@@ -402,6 +482,7 @@ func _process(delta: float) -> void:
 
 	_update_hand_effects(delta)
 	_update_body_effects(delta)
+	_update_leg_effects(delta)
 	_update_camera_tilt(delta)
 	_update_upgrade_feedback_visuals()
 
@@ -460,16 +541,10 @@ func _physics_process(delta: float) -> void:
 	_update_downed_camera(delta)
 
 func _physics_normal(delta: float) -> void:
-	var input_dir: Vector3 = Vector3.ZERO
-	if Input.is_action_pressed("move_forward"):
-		input_dir.z -= 1.0
-	if Input.is_action_pressed("move_back"):
-		input_dir.z += 1.0
-	if Input.is_action_pressed("move_left"):
-		input_dir.x -= 1.0
-	if Input.is_action_pressed("move_right"):
-		input_dir.x += 1.0
-	input_dir = input_dir.normalized()
+	var move_input: Vector2 = _get_move_input_planar()
+	var input_dir: Vector3 = Vector3(move_input.x, 0.0, -move_input.y)
+	if input_dir.length() > 1.0:
+		input_dir = input_dir.normalized()
 
 	var dir: Vector3 = transform.basis * input_dir
 	dir.y = 0.0
@@ -711,6 +786,13 @@ func _set_body_downed(downed: bool) -> void:
 		body_sprite.visible = not downed
 	if body_down_sprite:
 		body_down_sprite.visible = downed
+	if leg_sprite:
+		leg_sprite.visible = not downed
+		if downed:
+			leg_sprite.stop()
+		else:
+			leg_sprite.play(&"idle")
+			leg_sprite.speed_scale = 1.0
 
 func _on_null_recovered(_pos: Vector3) -> void:
 	if not Run.recovery_iframe:
@@ -934,15 +1016,7 @@ func _update_body_effects(delta: float) -> void:
 		target_scale.z = base_scale.z
 
 	if body_walk_enabled:
-		var move_input: Vector2 = Vector2.ZERO
-		if Input.is_action_pressed("move_forward"):
-			move_input.y += 1.0
-		if Input.is_action_pressed("move_back"):
-			move_input.y -= 1.0
-		if Input.is_action_pressed("move_left"):
-			move_input.x -= 1.0
-		if Input.is_action_pressed("move_right"):
-			move_input.x += 1.0
+		var move_input: Vector2 = _get_move_input_planar()
 
 		var is_moving: bool = move_input.length() > 0.0 and state == PState.NORMAL and is_on_floor()
 
@@ -970,6 +1044,61 @@ func _update_body_effects(delta: float) -> void:
 	body_sprite.rotation = body_sprite.rotation.lerp(target_rot, delta * 6.0)
 	body_sprite.scale = body_sprite.scale.lerp(target_scale, delta * 6.0)
 
+func _update_leg_effects(delta: float) -> void:
+	if not is_instance_valid(leg_sprite):
+		return
+
+	if not leg_sprite.visible:
+		return
+
+	var move_input: Vector2 = Vector2.ZERO
+	if state == PState.NORMAL and not input_locked and not is_recovering_null:
+		move_input = _get_move_input_planar()
+
+	var is_moving: bool = move_input.length() > 0.1 and state == PState.NORMAL and is_on_floor()
+
+	# A = rotazione leggera a sinistra
+	# D = rotazione leggera a destra
+	var target_rot: Vector3 = _leg_base_rot
+	target_rot.z += deg_to_rad(-move_input.x * leg_turn_deg)
+	leg_sprite.rotation = leg_sprite.rotation.lerp(target_rot, delta * leg_turn_lerp_speed)
+
+	if not is_moving:
+		_play_leg_idle()
+		return
+
+	# S = reverse
+	var reverse_walk: bool = move_input.y < -0.1
+	_play_leg_walk(reverse_walk)
+
+
+func _play_leg_idle() -> void:
+	if not is_instance_valid(leg_sprite):
+		return
+
+	if leg_sprite.animation != &"idle" or not leg_sprite.is_playing():
+		leg_sprite.play(&"idle")
+	leg_sprite.speed_scale = 1.0
+
+
+func _play_leg_walk(reverse: bool) -> void:
+	if not is_instance_valid(leg_sprite):
+		return
+
+	if leg_sprite.animation != &"walk" or not leg_sprite.is_playing():
+		leg_sprite.play(&"walk")
+
+	if reverse:
+		if leg_sprite.speed_scale >= 0.0:
+			leg_sprite.play(&"walk", -leg_walk_speed_scale, true)
+		else:
+			leg_sprite.speed_scale = -leg_walk_speed_scale
+	else:
+		if leg_sprite.speed_scale <= 0.0:
+			leg_sprite.play(&"walk")
+		leg_sprite.speed_scale = leg_walk_speed_scale
+
+
 func _update_camera_tilt(delta: float) -> void:
 	var tilt_enabled: bool = camera_tilt_enabled and Settings.camera_tilt_enabled
 
@@ -985,14 +1114,9 @@ func _update_camera_tilt(delta: float) -> void:
 	var input_z: float = 0.0
 
 	if state == PState.NORMAL and not input_locked and not is_recovering_null:
-		if Input.is_action_pressed("move_left"):
-			input_x -= 1.0
-		if Input.is_action_pressed("move_right"):
-			input_x += 1.0
-		if Input.is_action_pressed("move_forward"):
-			input_z -= 1.0
-		if Input.is_action_pressed("move_back"):
-			input_z += 1.0
+		var move_input: Vector2 = _get_move_input_planar()
+		input_x = move_input.x
+		input_z = -move_input.y
 
 	var target_rot: Vector3 = _camera_base_rot
 	target_rot.z += deg_to_rad(-input_x * camera_tilt_side_deg)

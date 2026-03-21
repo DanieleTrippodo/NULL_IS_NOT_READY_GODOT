@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=3 uid="uid://db66pbuu3ii4u"]
+[gd_scene load_steps=26 format=3 uid="uid://db66pbuu3ii4u"]
 
 [ext_resource type="Script" uid="uid://pfb6mfm6lhf8" path="res://Game/Game.gd" id="1_0rotx"]
 [ext_resource type="PackedScene" uid="uid://bmh5v3pstny5c" path="res://Levels/arena_tutorial.tscn" id="2_0rotx"]
@@ -23,6 +23,8 @@
 [ext_resource type="PackedScene" uid="uid://bhkaynd3qjg8j" path="res://UI/hud.tscn" id="20_lsedi"]
 [ext_resource type="PackedScene" path="res://UI/pause_terminal.tscn" id="25_pause"]
 [ext_resource type="AudioStream" uid="uid://mh2uti7himha" path="res://Audio/SFX/KillSound.mp3" id="21_v4bmq"]
+
+[ext_resource type="PackedScene" path="res://UI/mobile_controls.tscn" id="31_mobile"]
 
 [sub_resource type="Environment" id="Environment_3xx61"]
 background_mode = 1
@@ -60,6 +62,8 @@ magnet_radius = 3.0
 [node name="UIRoot" type="CanvasLayer" parent="."]
 
 [node name="HUD" parent="UIRoot" instance=ExtResource("20_lsedi")]
+
+[node name="MobileControls" parent="UIRoot" instance=ExtResource("31_mobile")]
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.02476363, 0.99969333, 0, -0.99969333, 0.02476363, 0, 2.0265074, 0)

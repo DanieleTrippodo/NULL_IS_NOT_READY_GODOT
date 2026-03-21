@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://cpu4w5qtsnk1j"
 path.s3tc="res://.godot/imported/Frame7.png-94f7c572890b12645c59735a8250451e.s3tc.ctex"
+path.etc2="res://.godot/imported/Frame7.png-94f7c572890b12645c59735a8250451e.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://Player/pushAnimation/Frame7.png"
-dest_files=["res://.godot/imported/Frame7.png-94f7c572890b12645c59735a8250451e.s3tc.ctex"]
+dest_files=["res://.godot/imported/Frame7.png-94f7c572890b12645c59735a8250451e.s3tc.ctex", "res://.godot/imported/Frame7.png-94f7c572890b12645c59735a8250451e.etc2.ctex"]
 
 [params]
 

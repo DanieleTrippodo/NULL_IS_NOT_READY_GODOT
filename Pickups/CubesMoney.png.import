@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://duoktrt4k7npc"
 path.s3tc="res://.godot/imported/CubesMoney.png-d877ab415d36e18c782cafc54b879c77.s3tc.ctex"
+path.etc2="res://.godot/imported/CubesMoney.png-d877ab415d36e18c782cafc54b879c77.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://Pickups/CubesMoney.png"
-dest_files=["res://.godot/imported/CubesMoney.png-d877ab415d36e18c782cafc54b879c77.s3tc.ctex"]
+dest_files=["res://.godot/imported/CubesMoney.png-d877ab415d36e18c782cafc54b879c77.s3tc.ctex", "res://.godot/imported/CubesMoney.png-d877ab415d36e18c782cafc54b879c77.etc2.ctex"]
 
 [params]
 

@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://br10bb5ejfw30"
 path.s3tc="res://.godot/imported/RecoveryHnads.png-716ed70d3da8157fb664d1860a24b363.s3tc.ctex"
+path.etc2="res://.godot/imported/RecoveryHnads.png-716ed70d3da8157fb664d1860a24b363.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://Player/RecoveryHnads.png"
-dest_files=["res://.godot/imported/RecoveryHnads.png-716ed70d3da8157fb664d1860a24b363.s3tc.ctex"]
+dest_files=["res://.godot/imported/RecoveryHnads.png-716ed70d3da8157fb664d1860a24b363.s3tc.ctex", "res://.godot/imported/RecoveryHnads.png-716ed70d3da8157fb664d1860a24b363.etc2.ctex"]
 
 [params]
 

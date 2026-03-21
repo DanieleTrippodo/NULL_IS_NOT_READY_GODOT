@@ -1,0 +1,96 @@
+[gd_scene load_steps=19 format=3]
+
+[ext_resource type="Script" path="res://UI/mobile_controls.gd" id="1_mobile"]
+[ext_resource type="Script" path="res://UI/dynamic_stick.gd" id="2_stick"]
+[ext_resource type="Texture2D" path="res://UI/mobile_icons/shoot.png" id="4_shoot"]
+[ext_resource type="Texture2D" path="res://UI/mobile_icons/shoot_pressed.png" id="5_shoot_p"]
+[ext_resource type="Texture2D" path="res://UI/mobile_icons/dash.png" id="6_dash"]
+[ext_resource type="Texture2D" path="res://UI/mobile_icons/dash_pressed.png" id="7_dash_p"]
+[ext_resource type="Texture2D" path="res://UI/mobile_icons/jump.png" id="8_jump"]
+[ext_resource type="Texture2D" path="res://UI/mobile_icons/jump_pressed.png" id="9_jump_p"]
+[ext_resource type="Texture2D" path="res://UI/mobile_icons/interact.png" id="10_interact"]
+[ext_resource type="Texture2D" path="res://UI/mobile_icons/interact_pressed.png" id="11_interact_p"]
+[ext_resource type="Texture2D" path="res://UI/mobile_icons/recall.png" id="12_recall"]
+[ext_resource type="Texture2D" path="res://UI/mobile_icons/recall_pressed.png" id="13_recall_p"]
+[ext_resource type="Texture2D" path="res://UI/mobile_icons/push.png" id="14_push"]
+[ext_resource type="Texture2D" path="res://UI/mobile_icons/push_pressed.png" id="15_push_p"]
+[ext_resource type="Texture2D" path="res://UI/mobile_icons/pause.png" id="16_pause"]
+[ext_resource type="Texture2D" path="res://UI/mobile_icons/pause_pressed.png" id="17_pause_p"]
+[ext_resource type="Texture2D" path="res://UI/mobile_icons/ram.png" id="18_ram"]
+[ext_resource type="Texture2D" path="res://UI/mobile_icons/ram_pressed.png" id="19_ram_p"]
+
+[node name="MobileControls" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_mobile")
+
+[node name="DynamicStick" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_stick")
+
+[node name="ShootButton" type="TextureRect" parent="."]
+mouse_filter = 2
+stretch_mode = 5
+texture = ExtResource("4_shoot")
+metadata/normal_texture = ExtResource("4_shoot")
+metadata/pressed_texture = ExtResource("5_shoot_p")
+
+[node name="DashButton" type="TextureRect" parent="."]
+mouse_filter = 2
+stretch_mode = 5
+texture = ExtResource("6_dash")
+metadata/normal_texture = ExtResource("6_dash")
+metadata/pressed_texture = ExtResource("7_dash_p")
+
+[node name="JumpButton" type="TextureRect" parent="."]
+mouse_filter = 2
+stretch_mode = 5
+texture = ExtResource("8_jump")
+metadata/normal_texture = ExtResource("8_jump")
+metadata/pressed_texture = ExtResource("9_jump_p")
+
+[node name="InteractButton" type="TextureRect" parent="."]
+mouse_filter = 2
+stretch_mode = 5
+texture = ExtResource("10_interact")
+metadata/normal_texture = ExtResource("10_interact")
+metadata/pressed_texture = ExtResource("11_interact_p")
+
+[node name="RecallButton" type="TextureRect" parent="."]
+mouse_filter = 2
+stretch_mode = 5
+texture = ExtResource("12_recall")
+metadata/normal_texture = ExtResource("12_recall")
+metadata/pressed_texture = ExtResource("13_recall_p")
+
+[node name="PushButton" type="TextureRect" parent="."]
+mouse_filter = 2
+stretch_mode = 5
+texture = ExtResource("14_push")
+metadata/normal_texture = ExtResource("14_push")
+metadata/pressed_texture = ExtResource("15_push_p")
+
+[node name="PauseButton" type="TextureRect" parent="."]
+mouse_filter = 2
+stretch_mode = 5
+texture = ExtResource("16_pause")
+metadata/normal_texture = ExtResource("16_pause")
+metadata/pressed_texture = ExtResource("17_pause_p")
+
+[node name="RamButton" type="TextureRect" parent="."]
+mouse_filter = 2
+stretch_mode = 5
+texture = ExtResource("18_ram")
+metadata/normal_texture = ExtResource("18_ram")
+metadata/pressed_texture = ExtResource("19_ram_p")

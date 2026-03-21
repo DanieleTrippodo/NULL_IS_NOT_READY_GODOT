@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://cvjc8s4nygw6b"
 path.s3tc="res://.godot/imported/Enemy_Bullet_Sprite.png-50582c48cfd0c3c63199041dcd92902e.s3tc.ctex"
+path.etc2="res://.godot/imported/Enemy_Bullet_Sprite.png-50582c48cfd0c3c63199041dcd92902e.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://Enemies/Enemy_Bullet_Sprite.png"
-dest_files=["res://.godot/imported/Enemy_Bullet_Sprite.png-50582c48cfd0c3c63199041dcd92902e.s3tc.ctex"]
+dest_files=["res://.godot/imported/Enemy_Bullet_Sprite.png-50582c48cfd0c3c63199041dcd92902e.s3tc.ctex", "res://.godot/imported/Enemy_Bullet_Sprite.png-50582c48cfd0c3c63199041dcd92902e.etc2.ctex"]
 
 [params]
 

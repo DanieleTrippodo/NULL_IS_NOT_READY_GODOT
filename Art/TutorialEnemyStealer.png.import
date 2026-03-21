@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://b3qvqwlbctpuh"
 path.s3tc="res://.godot/imported/TutorialEnemyStealer.png-7ab8432b739c6888045e41294ab5af88.s3tc.ctex"
+path.etc2="res://.godot/imported/TutorialEnemyStealer.png-7ab8432b739c6888045e41294ab5af88.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://Art/TutorialEnemyStealer.png"
-dest_files=["res://.godot/imported/TutorialEnemyStealer.png-7ab8432b739c6888045e41294ab5af88.s3tc.ctex"]
+dest_files=["res://.godot/imported/TutorialEnemyStealer.png-7ab8432b739c6888045e41294ab5af88.s3tc.ctex", "res://.godot/imported/TutorialEnemyStealer.png-7ab8432b739c6888045e41294ab5af88.etc2.ctex"]
 
 [params]
 

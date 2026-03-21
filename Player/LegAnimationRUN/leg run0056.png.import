@@ -2,17 +2,18 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dyjbapkskxgrw"
-path.s3tc="res://.godot/imported/Body.png-d9e50cdc3700c1f36eb70412b275734a.s3tc.ctex"
+uid="uid://egxkx1bkicwx"
+path.s3tc="res://.godot/imported/leg run0056.png-20cbde6d327183b366ba72e0662a62a6.s3tc.ctex"
+path.etc2="res://.godot/imported/leg run0056.png-20cbde6d327183b366ba72e0662a62a6.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
-source_file="res://Player/Body.png"
-dest_files=["res://.godot/imported/Body.png-d9e50cdc3700c1f36eb70412b275734a.s3tc.ctex"]
+source_file="res://Player/LegAnimationRUN/leg run0056.png"
+dest_files=["res://.godot/imported/leg run0056.png-20cbde6d327183b366ba72e0662a62a6.s3tc.ctex", "res://.godot/imported/leg run0056.png-20cbde6d327183b366ba72e0662a62a6.etc2.ctex"]
 
 [params]
 

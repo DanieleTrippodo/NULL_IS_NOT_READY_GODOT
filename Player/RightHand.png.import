@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dghif7tb6g2is"
 path.s3tc="res://.godot/imported/RightHand.png-269419b051cd4091110a6fab40e98333.s3tc.ctex"
+path.etc2="res://.godot/imported/RightHand.png-269419b051cd4091110a6fab40e98333.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://Player/RightHand.png"
-dest_files=["res://.godot/imported/RightHand.png-269419b051cd4091110a6fab40e98333.s3tc.ctex"]
+dest_files=["res://.godot/imported/RightHand.png-269419b051cd4091110a6fab40e98333.s3tc.ctex", "res://.godot/imported/RightHand.png-269419b051cd4091110a6fab40e98333.etc2.ctex"]
 
 [params]
 

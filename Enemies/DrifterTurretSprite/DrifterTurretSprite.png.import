@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://brka4bm54q8nc"
 path.s3tc="res://.godot/imported/DrifterTurretSprite.png-169c8d6699c2d94ca8cdf8da75d6eba9.s3tc.ctex"
+path.etc2="res://.godot/imported/DrifterTurretSprite.png-169c8d6699c2d94ca8cdf8da75d6eba9.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://Enemies/DrifterTurretSprite/DrifterTurretSprite.png"
-dest_files=["res://.godot/imported/DrifterTurretSprite.png-169c8d6699c2d94ca8cdf8da75d6eba9.s3tc.ctex"]
+dest_files=["res://.godot/imported/DrifterTurretSprite.png-169c8d6699c2d94ca8cdf8da75d6eba9.s3tc.ctex", "res://.godot/imported/DrifterTurretSprite.png-169c8d6699c2d94ca8cdf8da75d6eba9.etc2.ctex"]
 
 [params]
 

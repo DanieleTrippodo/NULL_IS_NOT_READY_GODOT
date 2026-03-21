@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://chrs5qai2cd1t"
 path.s3tc="res://.godot/imported/ShopPortal.png-8dd3c38f674640af6d9dc84e7e9ef8a8.s3tc.ctex"
+path.etc2="res://.godot/imported/ShopPortal.png-8dd3c38f674640af6d9dc84e7e9ef8a8.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://Interactables/ShopPortal.png"
-dest_files=["res://.godot/imported/ShopPortal.png-8dd3c38f674640af6d9dc84e7e9ef8a8.s3tc.ctex"]
+dest_files=["res://.godot/imported/ShopPortal.png-8dd3c38f674640af6d9dc84e7e9ef8a8.s3tc.ctex", "res://.godot/imported/ShopPortal.png-8dd3c38f674640af6d9dc84e7e9ef8a8.etc2.ctex"]
 
 [params]
 

@@ -1,4 +1,4 @@
-[gd_scene load_steps=34 format=3 uid="uid://bgwcyyqw3ssa1"]
+[gd_scene load_steps=35 format=3 uid="uid://bgwcyyqw3ssa1"]
 
 [ext_resource type="Script" uid="uid://pfb6mfm6lhf8" path="res://Game/Game.gd" id="1_wd0a0"]
 [ext_resource type="PackedScene" uid="uid://8w3pg480ojvn" path="res://Levels/arena.tscn" id="2_lv82p"]
@@ -32,6 +32,8 @@
 [ext_resource type="PackedScene" uid="uid://v4ewo7pjscrf" path="res://UI/game_over_overlay.tscn" id="21_w1287"]
 [ext_resource type="PackedScene" uid="uid://dng4eaf7gu0ym" path="res://UI/pause_terminal.tscn" id="25_pause"]
 [ext_resource type="AudioStream" uid="uid://bq24w5ct2iyhg" path="res://Audio/BGM/NULL_Combat_Loop.ogg" id="30_8v8om"]
+
+[ext_resource type="PackedScene" path="res://UI/mobile_controls.tscn" id="31_mobile"]
 
 [sub_resource type="Environment" id="Environment_3xx61"]
 background_mode = 1
@@ -72,6 +74,8 @@ magnet_radius = 3.0
 [node name="UIRoot" type="CanvasLayer" parent="."]
 
 [node name="HUD" parent="UIRoot" instance=ExtResource("6_g5pn2")]
+
+[node name="MobileControls" parent="UIRoot" instance=ExtResource("31_mobile")]
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.02476363, 0.99969333, 0, -0.99969333, 0.02476363, 0, 2.0265074, 0)

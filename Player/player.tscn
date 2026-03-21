@@ -1,8 +1,9 @@
-[gd_scene load_steps=24 format=3 uid="uid://c8uc2jlabtxn5"]
+[gd_scene load_steps=97 format=3 uid="uid://c8uc2jlabtxn5"]
 
 [ext_resource type="Script" uid="uid://dhtpslx53p3b5" path="res://Player/player.gd" id="1_l8h54"]
-[ext_resource type="Texture2D" uid="uid://8l8fnewfoi4l" path="res://Player/Nullabreast.png" id="2_dkpta"]
+[ext_resource type="Texture2D" uid="uid://baung4bs6nir7" path="res://Player/NullabreastDARKER.png" id="2_c7st8"]
 [ext_resource type="Texture2D" uid="uid://ck42bify45vkc" path="res://Player/Body_Down.png" id="3_btcbx"]
+[ext_resource type="Texture2D" uid="uid://cl1w7i8bpj523" path="res://Player/leg Idle0001.png" id="4_c7st8"]
 [ext_resource type="Texture2D" uid="uid://b04yl61hoqrjn" path="res://Player/pushAnimation/Frame0.png" id="4_dkpta"]
 [ext_resource type="Texture2D" uid="uid://clvlpki0s7b8d" path="res://Player/pushAnimation/Frame1.png" id="5_lfmf2"]
 [ext_resource type="Texture2D" uid="uid://cw1e0pir0idc4" path="res://Player/pushAnimation/Frame2.png" id="6_pisgm"]
@@ -21,8 +22,305 @@
 [ext_resource type="Texture2D" uid="uid://bnitp82n0jibx" path="res://Player/ShootRing.png" id="19_o28un"]
 [ext_resource type="Texture2D" uid="uid://br10bb5ejfw30" path="res://Player/RecoveryHnads.png" id="20_n471f"]
 [ext_resource type="AudioStream" uid="uid://df0namkmn60if" path="res://Audio/SFX/NullShoot.mp3" id="21_7emwf"]
+[ext_resource type="PackedScene" path="res://UI/mobile_controls.tscn" id="22_mobile"]
+[ext_resource type="Texture2D" uid="uid://cjcq870k5skex" path="res://Player/LegAnimationRUN/leg run0001.png" id="23_leg0001"]
+[ext_resource type="Texture2D" uid="uid://b8lglt4riamut" path="res://Player/LegAnimationRUN/leg run0002.png" id="23_leg0002"]
+[ext_resource type="Texture2D" uid="uid://d2fqhat7hwxba" path="res://Player/LegAnimationRUN/leg run0003.png" id="23_leg0003"]
+[ext_resource type="Texture2D" uid="uid://qiljqcry7g74" path="res://Player/LegAnimationRUN/leg run0004.png" id="23_leg0004"]
+[ext_resource type="Texture2D" uid="uid://chmomb3r6d3wh" path="res://Player/LegAnimationRUN/leg run0005.png" id="23_leg0005"]
+[ext_resource type="Texture2D" uid="uid://bcg18a4xnaxnv" path="res://Player/LegAnimationRUN/leg run0006.png" id="23_leg0006"]
+[ext_resource type="Texture2D" uid="uid://q7hynx3bk0hm" path="res://Player/LegAnimationRUN/leg run0007.png" id="23_leg0007"]
+[ext_resource type="Texture2D" uid="uid://b5lybjldpnf6m" path="res://Player/LegAnimationRUN/leg run0008.png" id="23_leg0008"]
+[ext_resource type="Texture2D" uid="uid://kkxtxk4yb1cy" path="res://Player/LegAnimationRUN/leg run0009.png" id="23_leg0009"]
+[ext_resource type="Texture2D" uid="uid://do3jlt27pttd6" path="res://Player/LegAnimationRUN/leg run0010.png" id="23_leg0010"]
+[ext_resource type="Texture2D" uid="uid://btpvy3q3k8cnh" path="res://Player/LegAnimationRUN/leg run0011.png" id="23_leg0011"]
+[ext_resource type="Texture2D" uid="uid://nbljv5umvt13" path="res://Player/LegAnimationRUN/leg run0012.png" id="23_leg0012"]
+[ext_resource type="Texture2D" uid="uid://c1fu6dhou8u5c" path="res://Player/LegAnimationRUN/leg run0013.png" id="23_leg0013"]
+[ext_resource type="Texture2D" uid="uid://bclhcx0g3rch3" path="res://Player/LegAnimationRUN/leg run0014.png" id="23_leg0014"]
+[ext_resource type="Texture2D" uid="uid://b33m4mcibbmee" path="res://Player/LegAnimationRUN/leg run0015.png" id="23_leg0015"]
+[ext_resource type="Texture2D" uid="uid://l7718neyowip" path="res://Player/LegAnimationRUN/leg run0016.png" id="23_leg0016"]
+[ext_resource type="Texture2D" uid="uid://b1hiih2036322" path="res://Player/LegAnimationRUN/leg run0017.png" id="23_leg0017"]
+[ext_resource type="Texture2D" uid="uid://dh7w7pipk2v8r" path="res://Player/LegAnimationRUN/leg run0018.png" id="23_leg0018"]
+[ext_resource type="Texture2D" uid="uid://hpb2he3cr4yb" path="res://Player/LegAnimationRUN/leg run0019.png" id="23_leg0019"]
+[ext_resource type="Texture2D" uid="uid://uqjgckf2j6i6" path="res://Player/LegAnimationRUN/leg run0020.png" id="23_leg0020"]
+[ext_resource type="Texture2D" uid="uid://detv6cvs7anrw" path="res://Player/LegAnimationRUN/leg run0021.png" id="23_leg0021"]
+[ext_resource type="Texture2D" uid="uid://rw8lj7c3aq0e" path="res://Player/LegAnimationRUN/leg run0022.png" id="23_leg0022"]
+[ext_resource type="Texture2D" uid="uid://dhmae1nfdm1hi" path="res://Player/LegAnimationRUN/leg run0023.png" id="23_leg0023"]
+[ext_resource type="Texture2D" uid="uid://l5033thnlb1m" path="res://Player/LegAnimationRUN/leg run0024.png" id="23_leg0024"]
+[ext_resource type="Texture2D" uid="uid://c5iua8m2qho16" path="res://Player/LegAnimationRUN/leg run0025.png" id="23_leg0025"]
+[ext_resource type="Texture2D" uid="uid://dts3hy7wxhr1h" path="res://Player/LegAnimationRUN/leg run0026.png" id="23_leg0026"]
+[ext_resource type="Texture2D" uid="uid://ckk7sh5scclx8" path="res://Player/LegAnimationRUN/leg run0027.png" id="23_leg0027"]
+[ext_resource type="Texture2D" uid="uid://j58wgqiog2rb" path="res://Player/LegAnimationRUN/leg run0028.png" id="23_leg0028"]
+[ext_resource type="Texture2D" uid="uid://cyepdy8bxlkxt" path="res://Player/LegAnimationRUN/leg run0029.png" id="23_leg0029"]
+[ext_resource type="Texture2D" uid="uid://cqxfm5kugouhv" path="res://Player/LegAnimationRUN/leg run0030.png" id="23_leg0030"]
+[ext_resource type="Texture2D" uid="uid://cyyx3jd46hmwa" path="res://Player/LegAnimationRUN/leg run0031.png" id="23_leg0031"]
+[ext_resource type="Texture2D" uid="uid://d2q44w67yn8tw" path="res://Player/LegAnimationRUN/leg run0032.png" id="23_leg0032"]
+[ext_resource type="Texture2D" uid="uid://cjfdl4sbmts7p" path="res://Player/LegAnimationRUN/leg run0033.png" id="23_leg0033"]
+[ext_resource type="Texture2D" uid="uid://dygljf68bmuxc" path="res://Player/LegAnimationRUN/leg run0034.png" id="23_leg0034"]
+[ext_resource type="Texture2D" uid="uid://bg2ddpk06ky6j" path="res://Player/LegAnimationRUN/leg run0035.png" id="23_leg0035"]
+[ext_resource type="Texture2D" uid="uid://c3c2jkpitjko6" path="res://Player/LegAnimationRUN/leg run0036.png" id="23_leg0036"]
+[ext_resource type="Texture2D" uid="uid://boap4bvpdtvv5" path="res://Player/LegAnimationRUN/leg run0037.png" id="23_leg0037"]
+[ext_resource type="Texture2D" uid="uid://cfdg1farac2f2" path="res://Player/LegAnimationRUN/leg run0038.png" id="23_leg0038"]
+[ext_resource type="Texture2D" uid="uid://bhtbk2qvsrvyt" path="res://Player/LegAnimationRUN/leg run0039.png" id="23_leg0039"]
+[ext_resource type="Texture2D" uid="uid://kh7jas6h4ivb" path="res://Player/LegAnimationRUN/leg run0040.png" id="23_leg0040"]
+[ext_resource type="Texture2D" uid="uid://bbr7c767ldu5q" path="res://Player/LegAnimationRUN/leg run0041.png" id="23_leg0041"]
+[ext_resource type="Texture2D" uid="uid://djln8k0a2n5cm" path="res://Player/LegAnimationRUN/leg run0042.png" id="23_leg0042"]
+[ext_resource type="Texture2D" uid="uid://b8xi5gk3wflpt" path="res://Player/LegAnimationRUN/leg run0043.png" id="23_leg0043"]
+[ext_resource type="Texture2D" uid="uid://ciit30l211jp" path="res://Player/LegAnimationRUN/leg run0044.png" id="23_leg0044"]
+[ext_resource type="Texture2D" uid="uid://ch6ai63mdte8j" path="res://Player/LegAnimationRUN/leg run0045.png" id="23_leg0045"]
+[ext_resource type="Texture2D" uid="uid://dfao2qa1yjbh4" path="res://Player/LegAnimationRUN/leg run0046.png" id="23_leg0046"]
+[ext_resource type="Texture2D" uid="uid://bvtrm3bgl4ylj" path="res://Player/LegAnimationRUN/leg run0047.png" id="23_leg0047"]
+[ext_resource type="Texture2D" uid="uid://vn4nsqtwmn2q" path="res://Player/LegAnimationRUN/leg run0048.png" id="23_leg0048"]
+[ext_resource type="Texture2D" uid="uid://dlu1e8rn0phwb" path="res://Player/LegAnimationRUN/leg run0049.png" id="23_leg0049"]
+[ext_resource type="Texture2D" uid="uid://dls4ra7l20ctc" path="res://Player/LegAnimationRUN/leg run0050.png" id="23_leg0050"]
+[ext_resource type="Texture2D" uid="uid://c1m36f81alo5k" path="res://Player/LegAnimationRUN/leg run0051.png" id="23_leg0051"]
+[ext_resource type="Texture2D" uid="uid://bjh7uthf577ut" path="res://Player/LegAnimationRUN/leg run0052.png" id="23_leg0052"]
+[ext_resource type="Texture2D" uid="uid://bfjwajuk1udni" path="res://Player/LegAnimationRUN/leg run0053.png" id="23_leg0053"]
+[ext_resource type="Texture2D" uid="uid://b0tywkhhi0b5e" path="res://Player/LegAnimationRUN/leg run0054.png" id="23_leg0054"]
+[ext_resource type="Texture2D" uid="uid://d3l84x6605w1r" path="res://Player/LegAnimationRUN/leg run0055.png" id="23_leg0055"]
+[ext_resource type="Texture2D" uid="uid://egxkx1bkicwx" path="res://Player/LegAnimationRUN/leg run0056.png" id="23_leg0056"]
+[ext_resource type="Texture2D" uid="uid://c352tp88egeog" path="res://Player/LegAnimationRUN/leg run0057.png" id="23_leg0057"]
+[ext_resource type="Texture2D" uid="uid://ctuuavldoo8uq" path="res://Player/LegAnimationRUN/leg run0058.png" id="23_leg0058"]
+[ext_resource type="Texture2D" uid="uid://bnkeu7b4wlxkc" path="res://Player/LegAnimationRUN/leg run0059.png" id="23_leg0059"]
+[ext_resource type="Texture2D" uid="uid://fg2vao688hx8" path="res://Player/LegAnimationRUN/leg run0060.png" id="23_leg0060"]
+[ext_resource type="Texture2D" uid="uid://b8nc58ewmtwji" path="res://Player/LegAnimationRUN/leg run0061.png" id="23_leg0061"]
+[ext_resource type="Texture2D" uid="uid://322n1fvl3ot" path="res://Player/LegAnimationRUN/leg run0062.png" id="23_leg0062"]
+[ext_resource type="Texture2D" uid="uid://crq15jtlbvbwg" path="res://Player/LegAnimationRUN/leg run0063.png" id="23_leg0063"]
+[ext_resource type="Texture2D" uid="uid://gt4v5puc1q3j" path="res://Player/LegAnimationRUN/leg run0064.png" id="23_leg0064"]
+[ext_resource type="Texture2D" uid="uid://dh1hos83y3olg" path="res://Player/LegAnimationRUN/leg run0065.png" id="23_leg0065"]
+[ext_resource type="Texture2D" uid="uid://cxmgjcqs18ud8" path="res://Player/LegAnimationRUN/leg run0066.png" id="23_leg0066"]
+[ext_resource type="Texture2D" uid="uid://cltrojtjpg42w" path="res://Player/LegAnimationRUN/leg run0067.png" id="23_leg0067"]
+[ext_resource type="Texture2D" uid="uid://b0pk2r0awhyt0" path="res://Player/LegAnimationRUN/leg run0068.png" id="23_leg0068"]
+[ext_resource type="Texture2D" uid="uid://1v0xeoe75v7u" path="res://Player/LegAnimationRUN/leg run0069.png" id="23_leg0069"]
+[ext_resource type="Texture2D" uid="uid://nbx40h1td8fs" path="res://Player/LegAnimationRUN/leg run0070.png" id="23_leg0070"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_hvfyp"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_leg"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("4_c7st8")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("23_leg0001")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0002")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0003")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0004")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0005")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0006")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0007")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0008")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0009")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0010")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0011")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0012")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0013")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0014")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0015")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0016")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0017")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0018")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0019")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0020")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0021")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0022")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0023")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0024")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0025")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0026")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0027")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0028")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0029")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0030")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0031")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0032")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0033")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0034")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0035")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0036")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0037")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0038")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0039")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0040")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0041")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0042")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0043")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0044")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0045")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0046")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0047")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0048")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0049")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0050")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0051")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0052")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0053")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0054")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0055")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0056")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0057")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0058")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0059")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0060")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0061")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0062")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0063")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0064")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0065")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0066")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0067")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0068")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0069")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_leg0070")
+}],
+"loop": true,
+"name": &"walk",
+"speed": 60.0
+}]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_btcbx"]
 animations = [{
@@ -82,11 +380,11 @@ downed_cam_offset_y = -0.95
 downed_invuln_seconds = 0.8
 
 [node name="Body" type="Sprite3D" parent="."]
-transform = Transform3D(0.069, 0, 0, 0, -3.0160858e-09, 0.069, 0, -0.069, -3.0160858e-09, 0, -0.34450436, -0.43808374)
+transform = Transform3D(0.059, 0, 0, 0, -2.578972e-09, 0.059, 0, -0.059, -2.578972e-09, 0, -0.2685532, -0.43808374)
 visible = false
 texture_filter = 0
 render_priority = 1
-texture = ExtResource("2_dkpta")
+texture = ExtResource("2_c7st8")
 
 [node name="Body_Down" type="Sprite3D" parent="."]
 transform = Transform3D(0.135, 0, 0, 0, 0.135, 0, 0, 0, 0.135, -0.19245908, -0.66381145, -0.3018834)
@@ -97,6 +395,13 @@ texture = ExtResource("3_btcbx")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 shape = SubResource("CapsuleShape3D_hvfyp")
+
+[node name="Leg" type="AnimatedSprite3D" parent="."]
+transform = Transform3D(0.065, 0, 0, 0, -2.8412401e-09, 0.065, 0, -0.065, -2.8412401e-09, 0.04296112, -0.74339414, -0.51458484)
+visible = false
+texture_filter = 0
+sprite_frames = SubResource("SpriteFrames_leg")
+animation = &"idle"
 
 [node name="Head" type="Node3D" parent="."]
 
@@ -145,3 +450,5 @@ target_position = Vector3(0, 0, -100)
 
 [node name="PushSfx" type="AudioStreamPlayer3D" parent="."]
 max_distance = 12.0
+
+[node name="MobileControls" parent="." instance=ExtResource("22_mobile")]
