@@ -1,0 +1,61 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://UI/boss_transition.gd" id="1_boss_transition"]
+
+[node name="BossTransition" type="CanvasLayer"]
+script = ExtResource("1_boss_transition")
+layer = 50
+
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Background" type="ColorRect" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Noise" type="ColorRect" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(1, 1, 1, 0.1)
+
+[node name="CenterContainer" type="CenterContainer" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Root/CenterContainer"]
+layout_mode = 2
+theme_override_constants/separation = 14
+alignment = 1
+
+[node name="MainLabel" type="Label" parent="Root/CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 34
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+horizontal_alignment = 1
+text = "THE BOX RELEASES THE FRAGMENT"
+
+[node name="SubLabel" type="Label" parent="Root/CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(1, 1, 1, 0.8)
+horizontal_alignment = 1
+text = "BOX://FRAGMENT_RELEASE"

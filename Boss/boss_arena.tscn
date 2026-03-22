@@ -28,10 +28,10 @@ size = Vector3(14, 0.6, 14)
 size = Vector3(14, 0.6, 14)
 
 [sub_resource type="StandardMaterial3D" id="3"]
+shading_mode = 0
+diffuse_mode = 3
+specular_mode = 1
 albedo_texture = ExtResource("2_l52h3")
-roughness = 0.75
-emission_enabled = true
-emission_energy_multiplier = 0.25
 uv1_scale = Vector3(28.02, 28.02, 28.02)
 
 [sub_resource type="BoxShape3D" id="5"]
@@ -59,7 +59,6 @@ environment = SubResource("1")
 
 [node name="Sun" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.8504748, -0.5260159, -1.873981e-05, 0.29052633, 0.4697595, -0.83361894, 0.43850556, 0.7089665, 0.55234003, 0, 18.7344, 0)
-light_energy = 1.7
 shadow_enabled = true
 
 [node name="ArenaCenter" type="Marker3D" parent="."]
@@ -77,6 +76,7 @@ mesh = SubResource("2")
 surface_material_override/0 = SubResource("3")
 
 [node name="ArenaWalls" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 4.765, 0, 0, 0, 1, 0, 0, 0)
 
 [node name="LeftWall" type="StaticBody3D" parent="ArenaWalls" groups=["boss_wall", "null_passthrough"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.2, 0.8, 0)

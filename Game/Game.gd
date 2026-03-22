@@ -19,11 +19,15 @@ extends Node
 # money + shop
 @export var money_cube_scene: PackedScene
 @export var shop_portal_scene: PackedScene
+@export var boss_terminal_scene: PackedScene
+@export var boss_arena_scene: PackedScene
+@export var boss_transition_scene: PackedScene
 
 @onready var world: Node3D = $World
 @onready var arena_root: Node3D = $World/ArenaRoot
 @onready var player_root: Node3D = $World/PlayerRoot
 @onready var enemies_root: Node3D = $World/EnemiesRoot
+@onready var boss_root: Node3D = $World/BossRoot
 @onready var hud: Node = $UIRoot/HUD
 
 @export var terminal_scene: PackedScene
@@ -44,13 +48,17 @@ var combat_bgm_default_volume_db: float = -15.0
 var rng := RandomNumberGenerator.new()
 var terminal_instance: Node3D = null
 var terminal_overlay: CanvasLayer = null
+var boss_transition_overlay: CanvasLayer = null
 
 var arena_instance: Node3D = null
+var boss_terminal_instance: Node3D = null
+var boss_arena_instance: Node3D = null
 var null_instance: Node3D = null
 var enemies_alive: int = 0
 
 var restarting: bool = false
 var wave_transitioning: bool = false
+var boss_transitioning: bool = false
 var world_frozen: bool = false
 
 enum ArenaState { WAIT_START, IN_WAVE, POST_WAVE }
@@ -81,13 +89,15 @@ const FADE_TIME: float = 0.25
 const WAVE_FREEZE_TIME: float = 0.35
 
 const KILL_FLASH_TIME := 0.09
+const BOSS_UNLOCK_WAVE: int = 23
 
 func _ready() -> void:
 	rng.randomize()
 	Engine.time_scale = 1.0
 	combat_bgm_default_volume_db = combat_bgm.volume_db if combat_bgm != null else pause_bgm_volume_db
 
-	if not Run.returning_from_shop:
+	var preserve_run_state: bool = Run.returning_from_shop or Run.boss_terminal_unlocked or Run.in_boss_fight
+	if not preserve_run_state:
 		Run.reset()
 	else:
 		Run.returning_from_shop = false
@@ -118,10 +128,15 @@ func _ready() -> void:
 	_setup_terminal_overlay()
 	_setup_game_over_overlay()
 	_setup_pause_terminal()
+	_setup_boss_transition_overlay()
 	
 	_stop_combat_bgm()
 
-	if not tutorial_mode:
+	if Run.in_boss_fight:
+		call_deferred("_start_boss_encounter", true)
+	elif Run.boss_terminal_unlocked:
+		_spawn_boss_terminal()
+	elif not tutorial_mode:
 		_queue_auto_start_next_wave()
 
 func _play_combat_bgm() -> void:
@@ -231,10 +246,23 @@ func _setup_pause_terminal() -> void:
 	if pause_terminal.has_signal("command_requested"):
 		pause_terminal.command_requested.connect(_on_pause_terminal_command_requested)
 
+
+func _setup_boss_transition_overlay() -> void:
+	if boss_transition_scene == null:
+		return
+
+	var o := boss_transition_scene.instantiate()
+	if not (o is CanvasLayer):
+		return
+
+	boss_transition_overlay = o as CanvasLayer
+	add_child(boss_transition_overlay)
+	boss_transition_overlay.visible = false
+
 func _can_open_pause_terminal() -> bool:
 	if pause_terminal == null:
 		return false
-	if pause_active or restarting or wave_transitioning:
+	if pause_active or restarting or wave_transitioning or boss_transitioning:
 		return false
 	if terminal_overlay != null and terminal_overlay.visible:
 		return false
@@ -284,6 +312,13 @@ func _set_pause_bgm_attenuation(paused_state: bool) -> void:
 	combat_bgm.volume_db = pause_bgm_volume_db if paused_state else combat_bgm_default_volume_db
 
 func _on_pause_terminal_command_requested(command: String) -> void:
+	if command.begins_with("debug_money:"):
+		var amount_text := command.trim_prefix("debug_money:")
+		var amount := int(amount_text)
+		_close_pause_terminal()
+		_debug_add_money(amount)
+		return
+
 	match command:
 		"resume":
 			_close_pause_terminal()
@@ -302,6 +337,97 @@ func _on_pause_terminal_command_requested(command: String) -> void:
 			_stop_combat_bgm()
 			Run.reset()
 			get_tree().quit()
+		"debug_godmode":
+			_toggle_godmode()
+			_close_pause_terminal()
+		"debug_shop":
+			_close_pause_terminal_for_scene_change()
+			_debug_open_shop()
+		"debug_wave23":
+			_close_pause_terminal()
+			_debug_skip_to_wave_23()
+		"debug_fragment":
+			_close_pause_terminal()
+			_debug_skip_to_fragment_checkpoint()
+
+
+func _debug_cleanup_before_skip() -> void:
+	_stop_combat_bgm()
+	_force_null_return()
+	_cleanup_boss_terminal()
+
+	_free_children(enemies_root)
+	enemies_alive = 0
+
+	for b in get_tree().get_nodes_in_group("enemy_bullet"):
+		if is_instance_valid(b):
+			b.queue_free()
+
+	_cleanup_uncollected_money()
+	_cleanup_shop_portal()
+	_despawn_terminal()
+
+	world_frozen = false
+	restarting = false
+	wave_transitioning = false
+	boss_transitioning = false
+	Engine.time_scale = 1.0
+	_set_world_frozen(false)
+
+	var player := _get_player()
+	if player != null:
+		player.set_process_input(true)
+		player.set_process_unhandled_input(true)
+		player.set_physics_process(true)
+		if player.has_method("set_input_locked"):
+			player.call("set_input_locked", false)
+
+	_free_children(boss_root)
+	boss_arena_instance = null
+
+	_set_state(ArenaState.WAIT_START)
+
+func _debug_skip_to_wave_23() -> void:
+	_debug_cleanup_before_skip()
+
+	Run.depth = 23
+	Run.boss_terminal_unlocked = false
+	Run.in_boss_fight = false
+	Signals.depth_changed.emit(Run.depth)
+
+	_swap_arena_for_current_depth()
+	call_deferred("_start_next_wave")
+
+func _debug_skip_to_fragment_checkpoint() -> void:
+	_debug_cleanup_before_skip()
+
+	Run.depth = 24
+	Run.boss_terminal_unlocked = true
+	Run.in_boss_fight = false
+	Signals.depth_changed.emit(Run.depth)
+
+	_swap_arena_for_current_depth()
+	_spawn_boss_terminal()
+
+
+func _toggle_godmode() -> void:
+	Run.godmode = not Run.godmode
+	print("GODMODE: ", "ON" if Run.godmode else "OFF")
+
+
+func _debug_open_shop() -> void:
+	_stop_combat_bgm()
+	Run.shop_offers.clear()
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	get_tree().change_scene_to_file("res://Shop/shop.tscn")
+
+
+func _debug_add_money(amount: int) -> void:
+	if amount <= 0:
+		return
+
+	Run.add_money(amount)
+	print("DEBUG MONEY ADDED: ", amount)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if restarting or pause_active:
@@ -311,6 +437,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_open_pause_terminal()
 
 func _physics_process(_delta: float) -> void:
+	if Run.in_boss_fight and boss_arena_instance != null:
+		return
 	if restarting or wave_transitioning:
 		Engine.time_scale = 1.0
 		return
@@ -335,9 +463,19 @@ func _physics_process(_delta: float) -> void:
 func _is_shop_checkpoint_depth() -> bool:
 	if tutorial_mode:
 		return false
+	if Run.boss_terminal_unlocked or Run.in_boss_fight:
+		return false
 	return Run.depth > 1 and (((Run.depth - 1) % 3) == 0)
 
+func _should_show_boss_terminal() -> bool:
+	if tutorial_mode:
+		return false
+	return arena_state == ArenaState.WAIT_START and Run.boss_terminal_unlocked and not Run.in_boss_fight
+
 func _should_show_wave_button() -> bool:
+	if Run.boss_terminal_unlocked or Run.in_boss_fight:
+		return false
+
 	if tutorial_mode:
 		return arena_state == ArenaState.WAIT_START
 
@@ -353,6 +491,16 @@ func _refresh_wave_button() -> void:
 	if wave_button is Node3D:
 		(wave_button as Node3D).visible = active
 
+func _refresh_boss_terminal() -> void:
+	if boss_terminal_instance == null:
+		return
+
+	var active := _should_show_boss_terminal()
+	boss_terminal_instance.set("enabled", active)
+
+	if boss_terminal_instance is Node3D:
+		(boss_terminal_instance as Node3D).visible = active
+
 func _setup_wave_button() -> void:
 	if arena_instance == null:
 		return
@@ -364,23 +512,71 @@ func _setup_wave_button() -> void:
 			wave_button.pressed.connect(cb)
 
 	_refresh_wave_button()
+	_refresh_boss_terminal()
 
 func _on_wave_button_pressed() -> void:
-	if restarting or wave_transitioning:
+	if restarting or wave_transitioning or boss_transitioning:
 		return
 	if arena_state != ArenaState.WAIT_START:
 		return
 
 	call_deferred("_start_next_wave")
 
+func _spawn_boss_terminal() -> void:
+	if boss_terminal_scene == null or arena_instance == null:
+		return
+	if Run.in_boss_fight:
+		return
+
+	_cleanup_boss_terminal()
+
+	var t := boss_terminal_scene.instantiate()
+	if not (t is Node3D):
+		return
+
+	boss_terminal_instance = t as Node3D
+	world.add_child(boss_terminal_instance)
+
+	var spawn_pos := arena_instance.global_position
+	if wave_button != null and wave_button is Node3D:
+		spawn_pos = (wave_button as Node3D).global_position
+
+	boss_terminal_instance.global_position = spawn_pos
+	boss_terminal_instance.set_physics_process(not world_frozen)
+
+	if boss_terminal_instance.has_signal("activated"):
+		var cb := Callable(self, "_on_boss_terminal_activated")
+		if not boss_terminal_instance.activated.is_connected(cb):
+			boss_terminal_instance.activated.connect(cb)
+
+	_refresh_boss_terminal()
+
+func _cleanup_boss_terminal() -> void:
+	if boss_terminal_instance != null and is_instance_valid(boss_terminal_instance):
+		boss_terminal_instance.queue_free()
+	boss_terminal_instance = null
+
+func _on_boss_terminal_activated() -> void:
+	if boss_transitioning or restarting:
+		return
+	if arena_state != ArenaState.WAIT_START:
+		return
+	if not Run.boss_terminal_unlocked or Run.in_boss_fight:
+		return
+
+	call_deferred("_begin_boss_transition")
+
 func _set_state(s: int) -> void:
 	arena_state = s
 	_refresh_wave_button()
+	_refresh_boss_terminal()
 
 func _queue_auto_start_next_wave() -> void:
 	if tutorial_mode:
 		return
-	if restarting or wave_transitioning:
+	if Run.boss_terminal_unlocked or Run.in_boss_fight:
+		return
+	if restarting or wave_transitioning or boss_transitioning:
 		return
 	if arena_state != ArenaState.WAIT_START:
 		return
@@ -394,7 +590,9 @@ func _auto_start_next_wave_async() -> void:
 
 	if tutorial_mode:
 		return
-	if restarting or wave_transitioning:
+	if Run.boss_terminal_unlocked or Run.in_boss_fight:
+		return
+	if restarting or wave_transitioning or boss_transitioning:
 		return
 	if arena_state != ArenaState.WAIT_START:
 		return
@@ -406,7 +604,9 @@ func _auto_start_next_wave_async() -> void:
 func _queue_post_wave_auto_continue() -> void:
 	if tutorial_mode:
 		return
-	if restarting or wave_transitioning:
+	if Run.boss_terminal_unlocked or Run.in_boss_fight:
+		return
+	if restarting or wave_transitioning or boss_transitioning:
 		return
 	if arena_state != ArenaState.WAIT_START:
 		return
@@ -420,7 +620,9 @@ func _post_wave_auto_continue_async() -> void:
 
 	if tutorial_mode:
 		return
-	if restarting or wave_transitioning:
+	if Run.boss_terminal_unlocked or Run.in_boss_fight:
+		return
+	if restarting or wave_transitioning or boss_transitioning:
 		return
 	if arena_state != ArenaState.WAIT_START:
 		return
@@ -430,6 +632,9 @@ func _post_wave_auto_continue_async() -> void:
 	_start_next_wave()
 
 func _start_next_wave() -> void:
+	if Run.boss_terminal_unlocked or Run.in_boss_fight or boss_transitioning:
+		return
+
 	_play_combat_bgm()
 	_despawn_terminal()
 	_cleanup_uncollected_money()
@@ -442,7 +647,7 @@ func _start_next_wave() -> void:
 # Wave transition
 # ------------------------------------------------------------
 func _wave_transition() -> void:
-	if restarting or wave_transitioning:
+	if restarting or wave_transitioning or boss_transitioning:
 		return
 
 	wave_transitioning = true
@@ -554,34 +759,92 @@ func _spawn_wave() -> void:
 	spawns.shuffle()
 
 	var d: int = Run.depth
-
 	var total: int = clampi(2 + d, 2, 10)
-	var turrets: int = clampi(floori(float(d) / 3.0), 0, 3)
-	var spikes: int = clampi(floori(float(d) / 2.0), 0, 4)
 
+	var allow_chasers: bool = _arena_allows_enemy_type("chaser") and chaser_scene != null
+	var allow_turrets: bool = _arena_allows_enemy_type("turret") and turret_scene != null
+	var allow_drifters: bool = _arena_allows_enemy_type("drifter_turret") and drifter_turret_scene != null
+	var allow_spikes: bool = _arena_allows_enemy_type("spike") and spike_scene != null
+	var allow_exceptions: bool = _arena_allows_enemy_type("exception") and exception_scene != null
+	var allow_stealers: bool = _arena_allows_enemy_type("stealer") and stealer_scene != null
+
+	var platform_only_mode: bool = (not allow_chasers and not allow_spikes and not allow_exceptions and not allow_stealers and (allow_turrets or allow_drifters))
+
+	var chasers: int = 0
+	var turrets: int = 0
 	var drifters: int = 0
-	if d >= 4 and drifter_turret_scene != null:
-		var p_drifter: float = clampf(0.22 + float(d - 4) * 0.05, 0.0, 0.70)
-		if rng.randf() < p_drifter:
-			drifters = 1
-		if d >= 9 and rng.randf() < 0.18:
-			drifters += 1
-
+	var spikes: int = 0
 	var exceptions: int = 0
-	if d >= 4:
-		var p_elite: float = clampf(0.12 + float(d - 4) * 0.03, 0.0, 0.45)
-		if rng.randf() < p_elite:
-			exceptions = 1
-
 	var stealers: int = 0
-	if d >= 3 and stealer_scene != null:
-		var p_stealer: float = clampf(0.30 + float(d - 3) * 0.06, 0.0, 0.70)
-		if rng.randf() < p_stealer:
-			stealers = 1
-		if d >= 8 and rng.randf() < 0.20:
-			stealers += 1
 
-	var chasers: int = max(1, total - turrets - drifters - spikes - exceptions - stealers)
+	if platform_only_mode:
+		var target_air_total: int = clampi(2 + int(floor(float(d) * 0.65)), 2, 6)
+
+		if allow_turrets:
+			turrets = clampi(1 + int(floor(float(d) / 2.0)), 1, 4)
+
+		if allow_drifters:
+			drifters = 1 if d >= 2 else 0
+			if d >= 5:
+				drifters += 1
+			if d >= 9 and rng.randf() < 0.35:
+				drifters += 1
+			drifters = clampi(drifters, 0, 3)
+
+		var current_air_total: int = turrets + drifters
+		if current_air_total < target_air_total:
+			var missing_air: int = target_air_total - current_air_total
+			if allow_turrets:
+				turrets += missing_air
+			elif allow_drifters:
+				drifters += missing_air
+
+		turrets = clampi(turrets, 0, 5)
+		drifters = clampi(drifters, 0, 4)
+	else:
+		if allow_turrets:
+			turrets = clampi(floori(float(d) / 3.0), 0, 3)
+
+		if allow_spikes:
+			spikes = clampi(floori(float(d) / 2.0), 0, 4)
+
+		if allow_drifters:
+			var p_drifter: float = clampf(0.22 + float(d - 4) * 0.05, 0.0, 0.70)
+			if d >= 4 and rng.randf() < p_drifter:
+				drifters = 1
+			if d >= 9 and rng.randf() < 0.18:
+				drifters += 1
+
+		if allow_exceptions:
+			var p_elite: float = clampf(0.12 + float(d - 4) * 0.03, 0.0, 0.45)
+			if d >= 4 and rng.randf() < p_elite:
+				exceptions = 1
+
+		if allow_stealers:
+			var p_stealer: float = clampf(0.30 + float(d - 3) * 0.06, 0.0, 0.70)
+			if d >= 3 and rng.randf() < p_stealer:
+				stealers = 1
+			if d >= 8 and rng.randf() < 0.20:
+				stealers += 1
+
+		if allow_chasers:
+			chasers = max(1, total - turrets - drifters - spikes - exceptions - stealers)
+
+		var current_total: int = chasers + turrets + drifters + spikes + exceptions + stealers
+		if current_total < 2:
+			var missing_total: int = 2 - current_total
+			if allow_chasers:
+				chasers += missing_total
+			elif allow_turrets:
+				turrets += missing_total
+			elif allow_drifters:
+				drifters += missing_total
+			elif allow_spikes:
+				spikes += missing_total
+			elif allow_exceptions:
+				exceptions += missing_total
+			elif allow_stealers:
+				stealers += missing_total
 
 	var player := _get_player()
 	var used: Array[int] = []
@@ -682,7 +945,9 @@ func _spawn_enemy(scene: PackedScene, desired_pos: Vector3) -> Node3D:
 # NULL / player requests
 # ------------------------------------------------------------
 func _on_request_shoot(origin: Vector3, direction: Vector3, extra: Variant = 1.0) -> void:
-	if restarting or wave_transitioning:
+	if Run.in_boss_fight and boss_arena_instance != null:
+		return
+	if restarting or wave_transitioning or boss_transitioning:
 		return
 	if world_frozen:
 		return
@@ -716,7 +981,9 @@ func _on_request_shoot(origin: Vector3, direction: Vector3, extra: Variant = 1.0
 		proj.global_position = origin
 
 func _on_request_force_drop_null(pos: Vector3) -> void:
-	if restarting or wave_transitioning:
+	if Run.in_boss_fight and boss_arena_instance != null:
+		return
+	if restarting or wave_transitioning or boss_transitioning:
 		return
 	if world_frozen:
 		return
@@ -742,7 +1009,9 @@ func _on_request_force_drop_null(pos: Vector3) -> void:
 		proj.call("_drop")
 
 func _on_request_pickup() -> void:
-	if restarting or wave_transitioning:
+	if Run.in_boss_fight and boss_arena_instance != null:
+		return
+	if restarting or wave_transitioning or boss_transitioning:
 		return
 	if null_instance == null or not is_instance_valid(null_instance):
 		return
@@ -769,7 +1038,9 @@ func _on_request_pickup() -> void:
 	Signals.null_ready_changed.emit(true)
 
 func _on_request_pull_to_hand() -> void:
-	if restarting or wave_transitioning:
+	if Run.in_boss_fight and boss_arena_instance != null:
+		return
+	if restarting or wave_transitioning or boss_transitioning:
 		return
 	if null_instance == null or not is_instance_valid(null_instance):
 		return
@@ -777,7 +1048,9 @@ func _on_request_pull_to_hand() -> void:
 		null_instance.call("pull_to_hand")
 
 func _on_request_recovery_start() -> void:
-	if restarting or wave_transitioning:
+	if Run.in_boss_fight and boss_arena_instance != null:
+		return
+	if restarting or wave_transitioning or boss_transitioning:
 		return
 	if null_instance == null or not is_instance_valid(null_instance):
 		return
@@ -792,6 +1065,8 @@ func _on_request_recovery_start() -> void:
 		null_instance.call("start_remote_recovery", player)
 
 func _on_request_recovery_stop() -> void:
+	if Run.in_boss_fight and boss_arena_instance != null:
+		return
 	if null_instance == null or not is_instance_valid(null_instance):
 		return
 
@@ -805,7 +1080,9 @@ func _on_null_dropped(_arg: Variant = null) -> void:
 # Enemy killed / wave end
 # ------------------------------------------------------------
 func _on_enemy_killed(enemy: Node) -> void:
-	if restarting or wave_transitioning:
+	if Run.in_boss_fight and boss_arena_instance != null:
+		return
+	if restarting or wave_transitioning or boss_transitioning:
 		return
 
 	var death_pos := Vector3.ZERO
@@ -838,13 +1115,21 @@ func _on_enemy_killed(enemy: Node) -> void:
 		_set_state(ArenaState.WAIT_START)
 		return
 
+	var cleared_wave: int = Run.depth
 	Run.depth += 1
 	Signals.depth_changed.emit(Run.depth)
 
 	_set_state(ArenaState.POST_WAVE)
 	_set_state(ArenaState.WAIT_START)
 
-	if _is_shop_checkpoint_depth():
+	if cleared_wave >= BOSS_UNLOCK_WAVE:
+		Run.boss_terminal_unlocked = true
+		Run.in_boss_fight = false
+		_stop_combat_bgm()
+		_cleanup_shop_portal()
+		_despawn_terminal()
+		_spawn_boss_terminal()
+	elif _is_shop_checkpoint_depth():
 		_stop_combat_bgm()
 		_spawn_shop_portal()
 		_maybe_spawn_terminal_in_shop()
@@ -906,6 +1191,8 @@ func _cleanup_uncollected_money() -> void:
 # Shop portal
 # ------------------------------------------------------------
 func _spawn_shop_portal() -> void:
+	if Run.boss_terminal_unlocked or Run.in_boss_fight:
+		return
 	if shop_portal_scene == null or arena_instance == null:
 		return
 
@@ -959,6 +1246,12 @@ func _set_world_frozen(v: bool) -> void:
 	if shop_portal_instance != null and is_instance_valid(shop_portal_instance):
 		(shop_portal_instance as Node).set_physics_process(not v)
 
+	if boss_terminal_instance != null and is_instance_valid(boss_terminal_instance):
+		(boss_terminal_instance as Node).set_physics_process(not v)
+
+	if boss_arena_instance != null and is_instance_valid(boss_arena_instance) and boss_arena_instance.has_method("set_encounter_frozen"):
+		boss_arena_instance.call("set_encounter_frozen", v)
+
 # ------------------------------------------------------------
 # Player died / game over
 # ------------------------------------------------------------
@@ -971,6 +1264,10 @@ func _on_player_died() -> void:
 
 	_cleanup_uncollected_money()
 	_cleanup_shop_portal()
+	_cleanup_boss_terminal()
+
+	if Run.in_boss_fight and boss_arena_instance != null and boss_arena_instance.has_method("notify_external_player_died"):
+		boss_arena_instance.call("notify_external_player_died")
 
 	_set_world_frozen(true)
 
@@ -987,6 +1284,13 @@ func _on_player_died() -> void:
 
 func _on_game_over_retry_pressed() -> void:
 	_stop_combat_bgm()
+	if Run.in_boss_fight:
+		Run.null_ready = true
+		Run.null_dropped = false
+		Run.survival_mode = false
+		get_tree().reload_current_scene()
+		return
+
 	Run.reset()
 	get_tree().reload_current_scene()
 
@@ -1001,6 +1305,90 @@ func _restart_run() -> void:
 
 	Run.reset()
 	get_tree().reload_current_scene()
+
+func _begin_boss_transition() -> void:
+	if boss_transitioning or restarting:
+		return
+	if not Run.boss_terminal_unlocked or Run.in_boss_fight:
+		return
+
+	boss_transitioning = true
+	_stop_combat_bgm()
+	_cleanup_shop_portal()
+	_despawn_terminal()
+	_cleanup_boss_terminal()
+
+	var player := _get_player()
+	if player != null and player.has_method("set_input_locked"):
+		player.call("set_input_locked", true)
+
+	_set_world_frozen(true)
+
+	if boss_transition_overlay != null and boss_transition_overlay.has_method("play_transition"):
+		boss_transition_overlay.call("play_transition")
+		if boss_transition_overlay.has_signal("transition_finished"):
+			await boss_transition_overlay.transition_finished
+	else:
+		await get_tree().create_timer(1.25).timeout
+
+	if restarting:
+		boss_transitioning = false
+		return
+
+	Run.in_boss_fight = true
+	_start_boss_encounter(true)
+	boss_transitioning = false
+
+func _start_boss_encounter(_skip_transition: bool = true) -> void:
+	if boss_arena_scene == null:
+		return
+
+	_cleanup_uncollected_money()
+	_cleanup_shop_portal()
+	_cleanup_boss_terminal()
+	_despawn_terminal()
+	_force_null_return()
+
+	for enemy in enemies_root.get_children():
+		enemy.queue_free()
+	enemies_alive = 0
+
+	_free_children(arena_root)
+	_free_children(boss_root)
+	arena_instance = null
+	wave_button = null
+
+	var player := _get_player()
+	if player == null:
+		boss_transitioning = false
+		return
+
+	var encounter := boss_arena_scene.instantiate()
+	if not (encounter is Node3D):
+		boss_transitioning = false
+		return
+
+	boss_arena_instance = encounter as Node3D
+	if boss_arena_instance.has_method("setup_embedded"):
+		boss_arena_instance.call("setup_embedded", player)
+
+	boss_root.add_child(boss_arena_instance)
+
+	if boss_arena_instance.has_signal("victory_transition_finished"):
+		var cb := Callable(self, "_on_boss_victory_transition_finished")
+		if not boss_arena_instance.victory_transition_finished.is_connected(cb):
+			boss_arena_instance.victory_transition_finished.connect(cb)
+
+	_set_state(ArenaState.IN_WAVE)
+	_set_world_frozen(false)
+
+	if player.has_method("set_input_locked"):
+		player.call("set_input_locked", false)
+
+func _on_boss_victory_transition_finished() -> void:
+	Run.in_boss_fight = false
+	Run.boss_terminal_unlocked = false
+	get_tree().change_scene_to_file("res://UI/end_credits.tscn")
 
 # ------------------------------------------------------------
 # Helpers
@@ -1020,6 +1408,53 @@ func _make_temp_marker(pos: Vector3) -> Node3D:
 	world.add_child(m)
 	m.global_position = pos
 	return m
+
+func _get_arena_allowed_enemy_types() -> PackedStringArray:
+	var out := PackedStringArray()
+	if arena_instance == null:
+		return out
+
+	if arena_instance.has_method("get_allowed_enemy_types"):
+		var method_value: Variant = arena_instance.call("get_allowed_enemy_types")
+		if method_value is PackedStringArray:
+			return method_value
+		if method_value is Array:
+			for item in method_value:
+				out.append(str(item))
+			return out
+
+		return out
+
+	var property_value: Variant = arena_instance.get("allowed_enemy_types")
+	if property_value is PackedStringArray:
+		return property_value
+	if property_value is Array:
+		for item in property_value:
+			out.append(str(item))
+
+	return out
+
+func _arena_allows_enemy_type(enemy_type: String) -> bool:
+	var allowed := _get_arena_allowed_enemy_types()
+	if allowed.is_empty():
+		return true
+	return allowed.has(enemy_type)
+
+func _get_arena_enemy_spawn_scatter_radius() -> float:
+	var default_radius: float = 2.2
+	if arena_instance == null:
+		return default_radius
+
+	if arena_instance.has_method("get_enemy_spawn_scatter_radius"):
+		var method_value: Variant = arena_instance.call("get_enemy_spawn_scatter_radius")
+		if typeof(method_value) == TYPE_FLOAT or typeof(method_value) == TYPE_INT:
+			return maxf(float(method_value), 0.0)
+
+	var property_value: Variant = arena_instance.get("enemy_spawn_scatter_radius")
+	if typeof(property_value) == TYPE_FLOAT or typeof(property_value) == TYPE_INT:
+		return maxf(float(property_value), 0.0)
+
+	return default_radius
 
 func _get_enemy_spawns() -> Array[Node3D]:
 	if arena_instance == null:
@@ -1073,7 +1508,7 @@ func _pick_enemy_spawn_position(body: Node3D, desired_pos: Vector3) -> Vector3:
 
 	for _i in range(24):
 		var angle := rng.randf_range(0.0, TAU)
-		var radius := rng.randf_range(0.0, 2.2)
+		var radius := rng.randf_range(0.0, _get_arena_enemy_spawn_scatter_radius())
 		var candidate := desired_pos + Vector3(cos(angle) * radius, 0.0, sin(angle) * radius)
 		var placed := _place_body_on_floor(body, candidate)
 
@@ -1220,6 +1655,8 @@ func _get_pending_terminal_log_index_for_shop() -> int:
 
 func _maybe_spawn_terminal_in_shop() -> void:
 	_despawn_terminal()
+	if Run.boss_terminal_unlocked or Run.in_boss_fight:
+		return
 
 	if arena_state != ArenaState.WAIT_START:
 		return

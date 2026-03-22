@@ -723,6 +723,8 @@ func _physics_downed(delta: float) -> void:
 	move_and_slide()
 
 func _on_player_hit(knockback_dir: Vector3) -> void:
+	if Run.godmode:
+		return
 	if dash_time_left > 0.0 and Run.dash_invulnerable:
 		return
 	if _recovery_iframe_t > 0.0:

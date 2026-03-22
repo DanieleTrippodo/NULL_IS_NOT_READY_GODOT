@@ -194,6 +194,51 @@ func _on_input_submitted(raw_text: String) -> void:
 		call_deferred("_focus_input")
 		return
 
+	if lower_trimmed == "godmode":
+		_print_system_instant("GODMODE TOGGLED.")
+		command_requested.emit("debug_godmode")
+		return
+
+	if lower_trimmed == "shop":
+		_print_system_instant("SHOP LINK OPENED.")
+		command_requested.emit("debug_shop")
+		return
+
+	if lower_trimmed.begins_with("money "):
+		var amount_text := raw_trimmed.substr(6, raw_trimmed.length() - 6).strip_edges()
+		if amount_text.is_empty() or not amount_text.is_valid_int():
+			_print_error_instant("ERROR: INPUT NOT VALID")
+			_scroll_to_bottom()
+			call_deferred("_focus_input")
+			return
+
+		var amount := int(amount_text)
+		if amount <= 0:
+			_print_error_instant("ERROR: INPUT NOT VALID")
+			_scroll_to_bottom()
+			call_deferred("_focus_input")
+			return
+
+		_print_system_instant("CUBES INJECTED: " + str(amount))
+		command_requested.emit("debug_money:" + str(amount))
+		return
+
+	if lower_trimmed == "money":
+		_print_error_instant("ERROR: INPUT NOT VALID")
+		_scroll_to_bottom()
+		call_deferred("_focus_input")
+		return
+
+	if lower_trimmed == "wave23":
+		_print_system_instant("ACCESS GRANTED.")
+		command_requested.emit("debug_wave23")
+		return
+
+	if lower_trimmed == "fragment":
+		_print_system_instant("FRAGMENT OVERRIDE ACCEPTED.")
+		command_requested.emit("debug_fragment")
+		return
+
 	match command:
 		"help":
 			_queue_typed_line("AVAILABLE COMMANDS:")

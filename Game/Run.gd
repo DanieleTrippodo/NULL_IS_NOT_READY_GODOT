@@ -183,6 +183,9 @@ var terminal_logs_read: Array[bool] = []
 var null_ready: bool = true
 var null_dropped: bool = false
 var survival_mode: bool = false
+var godmode: bool = false
+var boss_terminal_unlocked: bool = false
+var in_boss_fight: bool = false
 
 
 # ------------------------------------------------------------
@@ -408,6 +411,9 @@ func reset() -> void:
 	terminal_logs_read.clear()
 
 	survival_mode = false
+	godmode = false
+	boss_terminal_unlocked = false
+	in_boss_fight = false
 	depth = 1
 	null_ready = true
 	null_dropped = false

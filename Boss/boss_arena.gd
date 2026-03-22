@@ -1,6 +1,7 @@
 extends Node3D
 
 signal boss_defeated
+signal victory_transition_finished
 
 enum BossState {
 	INTRO,
@@ -75,6 +76,7 @@ var hud: Control = null
 var game_over_overlay: Control = null
 var restarting: bool = false
 var _victory_transitioning: bool = false
+var embedded_mode: bool = false
 
 var boss_hits: int = 0
 var phase: int = 1
@@ -114,6 +116,52 @@ var _attack_teleport_pending: bool = false
 var _attack_teleport_in_progress: bool = false
 var _attack_teleport_cooldown_left: float = 0.0
 
+func setup_embedded(shared_player: CharacterBody3D) -> void:
+	embedded_mode = true
+	player = shared_player
+
+
+func _position_embedded_player() -> void:
+	if player == null or not is_instance_valid(player):
+		return
+
+	player.global_position = player_spawn.global_position
+	player.rotation = player_spawn.rotation
+	player.set_process_input(true)
+	player.set_process_unhandled_input(true)
+	player.set_physics_process(true)
+
+	if player.has_method("set_input_locked"):
+		player.call("set_input_locked", false)
+
+
+func set_encounter_frozen(v: bool) -> void:
+	set_process(not v)
+	set_physics_process(not v)
+
+	if boss != null and is_instance_valid(boss):
+		boss.set_process(not v)
+		boss.set_physics_process(not v)
+
+	for child in boss_bullets.get_children():
+		if child is Node:
+			(child as Node).set_process(not v)
+			(child as Node).set_physics_process(not v)
+
+
+func notify_external_player_died() -> void:
+	if restarting or _victory_transitioning:
+		return
+
+	restarting = true
+	state = BossState.DEAD
+	_reset_attack_chain_state()
+	_force_null_return()
+	_kill_intro_darkness_tween()
+
+	if boss != null and boss.has_method("stop_attack"):
+		boss.call("stop_attack")
+
 func _ready() -> void:
 	_rng.randomize()
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
@@ -121,7 +169,10 @@ func _ready() -> void:
 	_connect_signals()
 	_setup_ui()
 	_setup_intro_darkness()
-	_spawn_player()
+	if embedded_mode:
+		_position_embedded_player()
+	else:
+		_spawn_player()
 	_spawn_boss()
 	_play_intro_darkness()
 
@@ -180,6 +231,8 @@ func _connect_signals() -> void:
 		Signals.request_shoot.connect(_on_request_shoot)
 	if not Signals.request_pickup.is_connected(_on_request_pickup):
 		Signals.request_pickup.connect(_on_request_pickup)
+	if not Signals.request_pull_to_hand.is_connected(_on_request_pull_to_hand):
+		Signals.request_pull_to_hand.connect(_on_request_pull_to_hand)
 	if not Signals.request_recovery_start.is_connected(_on_request_recovery_start):
 		Signals.request_recovery_start.connect(_on_request_recovery_start)
 	if not Signals.request_recovery_stop.is_connected(_on_request_recovery_stop):
@@ -188,7 +241,7 @@ func _connect_signals() -> void:
 		Signals.request_force_drop_null.connect(_on_request_force_drop_null)
 	if not Signals.null_dropped.is_connected(_on_null_dropped):
 		Signals.null_dropped.connect(_on_null_dropped)
-	if not Signals.player_died.is_connected(_on_player_died):
+	if not embedded_mode and not Signals.player_died.is_connected(_on_player_died):
 		Signals.player_died.connect(_on_player_died)
 
 
@@ -199,6 +252,8 @@ func _disconnect_signals() -> void:
 		Signals.request_shoot.disconnect(_on_request_shoot)
 	if Signals.request_pickup.is_connected(_on_request_pickup):
 		Signals.request_pickup.disconnect(_on_request_pickup)
+	if Signals.request_pull_to_hand.is_connected(_on_request_pull_to_hand):
+		Signals.request_pull_to_hand.disconnect(_on_request_pull_to_hand)
 	if Signals.request_recovery_start.is_connected(_on_request_recovery_start):
 		Signals.request_recovery_start.disconnect(_on_request_recovery_start)
 	if Signals.request_recovery_stop.is_connected(_on_request_recovery_stop):
@@ -212,6 +267,9 @@ func _disconnect_signals() -> void:
 
 
 func _setup_ui() -> void:
+	if embedded_mode:
+		return
+
 	if hud_scene != null:
 		var hud_instance: Node = hud_scene.instantiate()
 		if hud_instance is Control:
@@ -288,6 +346,10 @@ func _kill_intro_darkness_tween() -> void:
 
 
 func _spawn_player() -> void:
+	if embedded_mode:
+		_position_embedded_player()
+		return
+
 	if player_scene == null:
 		push_error("BossArena: player_scene missing.")
 		return
@@ -629,6 +691,10 @@ func _begin_boss_victory_transition() -> void:
 	Run.null_dropped = false
 	Run.survival_mode = false
 
+	if embedded_mode:
+		emit_signal("victory_transition_finished")
+		return
+
 	if credits_scene != null:
 		get_tree().change_scene_to_packed(credits_scene)
 	else:
@@ -810,6 +876,13 @@ func _on_request_pickup() -> void:
 	Run.null_ready = true
 	Run.null_dropped = false
 	Signals.null_ready_changed.emit(true)
+
+
+func _on_request_pull_to_hand() -> void:
+	if null_instance == null or not is_instance_valid(null_instance):
+		return
+	if null_instance.has_method("pull_to_hand"):
+		null_instance.call("pull_to_hand")
 
 
 func _on_request_recovery_start() -> void:

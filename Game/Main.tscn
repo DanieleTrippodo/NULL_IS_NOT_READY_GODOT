@@ -1,4 +1,4 @@
-[gd_scene load_steps=35 format=3 uid="uid://bgwcyyqw3ssa1"]
+[gd_scene load_steps=40 format=3 uid="uid://bgwcyyqw3ssa1"]
 
 [ext_resource type="Script" uid="uid://pfb6mfm6lhf8" path="res://Game/Game.gd" id="1_wd0a0"]
 [ext_resource type="PackedScene" uid="uid://8w3pg480ojvn" path="res://Levels/arena.tscn" id="2_lv82p"]
@@ -11,8 +11,10 @@
 [ext_resource type="PackedScene" uid="uid://cs3wqut670hke" path="res://Levels/arena_5.tscn" id="6_1us15"]
 [ext_resource type="PackedScene" uid="uid://dcwn63iuwth1h" path="res://Enemies/turret.tscn" id="6_3xx61"]
 [ext_resource type="PackedScene" uid="uid://bhkaynd3qjg8j" path="res://UI/hud.tscn" id="6_g5pn2"]
-[ext_resource type="PackedScene" uid="uid://t7fxtwr2768g" path="res://Levels/arena_6.tscn" id="7_88dst"]
 [ext_resource type="PackedScene" uid="uid://bivvuwcjgan2n" path="res://Enemies/spike.tscn" id="7_f77hp"]
+[ext_resource type="PackedScene" uid="uid://ktiudxdjif5k" path="res://Levels/arena_10.tscn" id="7_p10"]
+[ext_resource type="PackedScene" uid="uid://cqtle306swosm" path="res://Levels/arena_11.tscn" id="7_p11"]
+[ext_resource type="PackedScene" uid="uid://bpbkbhsst3qsl" path="res://Levels/arena_12.tscn" id="7_p12"]
 [ext_resource type="PackedScene" uid="uid://d2t46kkawn2qv" path="res://Enemies/enemy_bullet.tscn" id="7_q34ae"]
 [ext_resource type="PackedScene" uid="uid://bk7xksmg5s47w" path="res://Enemies/stealer.tscn" id="8_3pgyt"]
 [ext_resource type="PackedScene" uid="uid://35ghfkb6ldrl" path="res://Enemies/drifter_turret.tscn" id="8_4d5b2"]
@@ -21,6 +23,9 @@
 [ext_resource type="PackedScene" path="res://Enemies/enemy_death_fx.tscn" id="11_ijkwl"]
 [ext_resource type="PackedScene" uid="uid://gshswk7putnj" path="res://Interactables/shop_portal.tscn" id="11_krex0"]
 [ext_resource type="PackedScene" uid="uid://dqgk2yf0bdgir" path="res://Interactables/terminal.tscn" id="12_3tq7c"]
+[ext_resource type="PackedScene" uid="uid://cv38k14lbvvso" path="res://Boss/boss_arena.tscn" id="12_bossarena"]
+[ext_resource type="PackedScene" uid="uid://c7jrswenrjfll" path="res://Interactables/boss_terminal.tscn" id="12_bossterm"]
+[ext_resource type="PackedScene" path="res://UI/boss_transition.tscn" id="12_bosstrans"]
 [ext_resource type="PackedScene" uid="uid://c1oasgfwdd86n" path="res://UI/terminal_overlay.tscn" id="13_eg2md"]
 [ext_resource type="PackedScene" uid="uid://d0vplx8ahi2jp" path="res://UI/log_01.tscn" id="14_eg2md"]
 [ext_resource type="PackedScene" uid="uid://dlignrjkutci0" path="res://UI/log_02.tscn" id="15_b3cwe"]
@@ -32,7 +37,6 @@
 [ext_resource type="PackedScene" uid="uid://v4ewo7pjscrf" path="res://UI/game_over_overlay.tscn" id="21_w1287"]
 [ext_resource type="PackedScene" uid="uid://dng4eaf7gu0ym" path="res://UI/pause_terminal.tscn" id="25_pause"]
 [ext_resource type="AudioStream" uid="uid://bq24w5ct2iyhg" path="res://Audio/BGM/NULL_Combat_Loop.ogg" id="30_8v8om"]
-
 [ext_resource type="PackedScene" path="res://UI/mobile_controls.tscn" id="31_mobile"]
 
 [sub_resource type="Environment" id="Environment_3xx61"]
@@ -43,7 +47,7 @@ ambient_light_color = Color(0.98234254, 0.9823423, 0.9823424, 1)
 [node name="Node" type="Node"]
 script = ExtResource("1_wd0a0")
 arena_scene = ExtResource("2_lv82p")
-arena_wave_scenes = Array[PackedScene]([ExtResource("3_qvna0"), ExtResource("4_vpdl3"), ExtResource("5_oo4an"), ExtResource("6_1us15"), ExtResource("7_88dst")])
+arena_wave_scenes = Array[PackedScene]([ExtResource("3_qvna0"), ExtResource("4_vpdl3"), ExtResource("5_oo4an"), ExtResource("6_1us15"), ExtResource("7_p10"), ExtResource("7_p11"), ExtResource("7_p12")])
 player_scene = ExtResource("3_w1egk")
 null_projectile_scene = ExtResource("4_rchnd")
 chaser_scene = ExtResource("5_rl4yr")
@@ -56,6 +60,9 @@ enemy_bullet_scene = ExtResource("7_q34ae")
 enemy_death_fx_scene = ExtResource("11_ijkwl")
 money_cube_scene = ExtResource("10_x253o")
 shop_portal_scene = ExtResource("11_krex0")
+boss_terminal_scene = ExtResource("12_bossterm")
+boss_arena_scene = ExtResource("12_bossarena")
+boss_transition_scene = ExtResource("12_bosstrans")
 terminal_scene = ExtResource("12_3tq7c")
 terminal_overlay_scene = ExtResource("13_eg2md")
 terminal_log_scenes = Array[PackedScene]([ExtResource("14_eg2md"), ExtResource("15_b3cwe"), ExtResource("16_wo11f"), ExtResource("17_qvna0"), ExtResource("18_w1287"), ExtResource("19_ijkwl")])
@@ -70,6 +77,8 @@ magnet_radius = 3.0
 [node name="PlayerRoot" type="Node3D" parent="World"]
 
 [node name="EnemiesRoot" type="Node3D" parent="World"]
+
+[node name="BossRoot" type="Node3D" parent="World"]
 
 [node name="UIRoot" type="CanvasLayer" parent="."]
 
