@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://e26t1frcam0i"
-path="res://.godot/imported/leg run0068.png-26474c2a31f538d1cfaad777d7dd2b5e.ctex"
+uid="uid://drb88kjato8oo"
+path="res://.godot/imported/leg run0071.png-cf54bcae161adf97d3872eb0560c8b7e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Player/LegAnimationRUN/leg run0068.png"
-dest_files=["res://.godot/imported/leg run0068.png-26474c2a31f538d1cfaad777d7dd2b5e.ctex"]
+source_file="res://Player/LegAnimationRUN/leg run0071.png"
+dest_files=["res://.godot/imported/leg run0071.png-cf54bcae161adf97d3872eb0560c8b7e.ctex"]
 
 [params]
 
