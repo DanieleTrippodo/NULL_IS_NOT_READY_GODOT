@@ -1,9 +1,14 @@
 # res://Enemies/turret.gd
 extends CharacterBody3D
 
+@export_group("Combat")
 @export var fire_interval: float = 1.6
 @export var bullet_speed: float = 18.0
+@export var muzzle_height: float = 0.8
+@export var muzzle_forward_offset: float = 0.6
+@export var target_height_offset: float = 0.55
 
+@export_group("Push / Stun")
 @export var knock_decay: float = 22.0
 @export var push_collision_window: float = 0.28
 @export var push_collision_min_speed: float = 3.0
@@ -157,16 +162,19 @@ func _physics_process(delta: float) -> void:
 		return
 	timer = 0.0
 
-	var dir: Vector3 = target.global_position - global_position
-	dir.y = 0.0
+	var origin: Vector3 = global_position + Vector3(0.0, muzzle_height, 0.0)
+	var aim_point: Vector3 = target.global_position + Vector3(0.0, target_height_offset, 0.0)
+	var dir: Vector3 = aim_point - origin
+
 	if dir.length() <= 0.001:
 		return
+	
 	dir = dir.normalized()
 
 	var b: Node3D = bullet_scene.instantiate() as Node3D
 	get_tree().current_scene.get_node("World").add_child(b)
 
-	# spawn bullet leggermente avanti/sopra
-	var origin: Vector3 = global_position + Vector3(0, 0.8, 0) + dir * 0.6
+	# spawn bullet leggermente avanti rispetto alla canna, ma ora con mira 3D completa
+	origin += dir * muzzle_forward_offset
 	if b.has_method("fire"):
 		b.fire(origin, dir, bullet_speed, self)

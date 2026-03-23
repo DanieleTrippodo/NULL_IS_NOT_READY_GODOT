@@ -57,12 +57,21 @@ billboard = 1
 texture = ExtResource("6_prompt")
 
 [node name="MessageLabel" type="Label3D" parent="."]
-transform = Transform3D(0.7542814, 0, 0.032932658, 0, 0.755, 0, -0.032932658, 0, 0.7542814, -0.08139596, 1.5470749, -0.18830234)
-billboard = 1
+transform = Transform3D(0.755, 0, 0, 0, 0.755, 0, 0, 0, 0.755, -0.08139596, 1.4226692, -0.11642349)
+texture_filter = 0
 render_priority = 2
 modulate = Color(1, 1, 1, 0.95)
 text = "THE BOX RELEASES
 THE FRAGMENT"
+font_size = 26
+outline_size = 6
+
+[node name="MessageLabel2" type="Label3D" parent="."]
+transform = Transform3D(1.59, 0, 0, 0, 1.59, 0, 0, 0, 1.59, -0.009508558, 0.36463416, -0.11199602)
+texture_filter = 0
+render_priority = 2
+modulate = Color(1, 1, 1, 0.95)
+text = "BOSS ARENA"
 font_size = 26
 outline_size = 6
 

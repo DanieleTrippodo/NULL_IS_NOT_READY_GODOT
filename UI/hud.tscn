@@ -37,13 +37,8 @@ status_rect_size = Vector2(600, 160)
 [node name="StatusIcon" type="TextureRect" parent="."]
 custom_minimum_size = Vector2(320, 120)
 layout_mode = 1
-anchors_preset = -1
-anchor_right = 0.261
-anchor_bottom = 0.13700001
-offset_left = 4.13
-offset_top = 14.81
-offset_right = 23.458008
-offset_bottom = 46.03402
+offset_right = 320.0
+offset_bottom = 120.0
 grow_horizontal = 2
 expand_mode = 1
 stretch_mode = 4
@@ -135,6 +130,7 @@ mouse_filter = 2
 color = Color(1, 1, 1, 0)
 
 [node name="RAMOverlay" parent="." instance=ExtResource("6_0j753")]
+visible = false
 layout_mode = 1
 
 [connection signal="timeout" from="PerkTimer" to="." method="_on_perk_timer_timeout"]

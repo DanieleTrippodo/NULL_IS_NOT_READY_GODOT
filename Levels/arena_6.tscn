@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://t7fxtwr2768g"]
+[gd_scene load_steps=10 format=3 uid="uid://vogwd2jok0eh"]
 
 [ext_resource type="Script" uid="uid://bnyo3nlk88hp8" path="res://Levels/arena.gd" id="1_ng0qe"]
 [ext_resource type="PackedScene" uid="uid://bma8hhlddfbkd" path="res://Interactables/wave_start_button.tscn" id="2_56ss8"]
