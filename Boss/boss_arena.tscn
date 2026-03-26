@@ -1,7 +1,8 @@
-[gd_scene load_steps=14 format=3 uid="uid://cv38k14lbvvso"]
+[gd_scene load_steps=15 format=3 uid="uid://cv38k14lbvvso"]
 
 [ext_resource type="Script" uid="uid://cetvf51qjpgkf" path="res://Boss/boss_arena.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://b0yc6digipfue" path="res://Levels/Floor.jpg" id="2_l52h3"]
+[ext_resource type="AudioStream" uid="uid://bk8725j6qroi7" path="res://Audio/BGM/NULL_Boss_Loop.ogg" id="3_w1qa0"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_l52h3"]
 sky_top_color = Color(0.13737866, 0.051761575, 0.05175195, 1)
@@ -142,3 +143,8 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 color = Color(0, 0, 0, 0.91764706)
+
+[node name="BossBgm" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3_w1qa0")
+volume_db = -12.0
+parameters/looping = true

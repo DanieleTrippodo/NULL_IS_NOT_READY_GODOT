@@ -47,5 +47,6 @@ mesh = SubResource("PlaneMesh_0nthd")
 [node name="ShopSound" type="AudioStreamPlayer3D" parent="."]
 stream = ExtResource("5_kamev")
 volume_db = -2.69
+unit_size = 0.25
 autoplay = true
 parameters/looping = true

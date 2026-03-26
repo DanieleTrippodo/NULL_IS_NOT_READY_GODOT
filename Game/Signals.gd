@@ -48,3 +48,6 @@ signal perk_granted(title: String, description: String)
 signal survival_mode_changed(active: bool)
 @warning_ignore("unused_signal")
 signal recovery_mode_changed(active: bool)
+
+@warning_ignore("unused_signal")
+signal downed_self_recovery_changed(active: bool, remaining: float, total: float)

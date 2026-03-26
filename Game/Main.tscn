@@ -1,4 +1,4 @@
-[gd_scene load_steps=38 format=3 uid="uid://bgwcyyqw3ssa1"]
+[gd_scene load_steps=41 format=3 uid="uid://bgwcyyqw3ssa1"]
 
 [ext_resource type="Script" uid="uid://pfb6mfm6lhf8" path="res://Game/Game.gd" id="1_wd0a0"]
 [ext_resource type="PackedScene" uid="uid://8w3pg480ojvn" path="res://Levels/arena.tscn" id="2_lv82p"]
@@ -36,6 +36,9 @@
 [ext_resource type="PackedScene" uid="uid://dng4eaf7gu0ym" path="res://UI/pause_terminal.tscn" id="25_pause"]
 [ext_resource type="AudioStream" uid="uid://bq24w5ct2iyhg" path="res://Audio/BGM/NULL_Combat_Loop.ogg" id="30_8v8om"]
 [ext_resource type="PackedScene" path="res://UI/mobile_controls.tscn" id="31_mobile"]
+[ext_resource type="AudioStream" uid="uid://dk3c5o5sih4oc" path="res://Audio/BGM/NULL_Ambience_Loop.ogg" id="33_50q1e"]
+[ext_resource type="AudioStream" uid="uid://fbe2soo7h2p7" path="res://Audio/BGM/NULL_Combat_Fast_Loop.ogg" id="35_enun6"]
+[ext_resource type="AudioStream" uid="uid://gefv61sy1rmt" path="res://Audio/BGM/NULL_Starter_Loop.ogg" id="39_enun6"]
 
 [sub_resource type="Environment" id="Environment_3xx61"]
 background_mode = 1
@@ -66,6 +69,9 @@ terminal_overlay_scene = ExtResource("13_eg2md")
 terminal_log_scenes = Array[PackedScene]([ExtResource("14_eg2md"), ExtResource("15_b3cwe"), ExtResource("16_wo11f"), ExtResource("17_qvna0"), ExtResource("18_w1287"), ExtResource("19_ijkwl")])
 game_over_overlay_scene = ExtResource("21_w1287")
 pause_terminal_scene = ExtResource("25_pause")
+safe_music_tracks = Array[AudioStream]([ExtResource("33_50q1e")])
+combat_bgm_early = ExtResource("30_8v8om")
+combat_bgm_late = ExtResource("35_enun6")
 magnet_radius = 3.0
 
 [node name="World" type="Node3D" parent="."]
@@ -99,3 +105,6 @@ volume_db = -6.0
 stream = ExtResource("30_8v8om")
 volume_db = -15.0
 parameters/looping = true
+
+[node name="SafeBgm" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("39_enun6")

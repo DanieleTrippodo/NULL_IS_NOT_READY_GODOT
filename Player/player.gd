@@ -45,6 +45,7 @@ var _mobile_controls: Node = null
 @export var downed_cam_return_speed: float = 12.0
 @export var knockback_min_time: float = 0.22
 @export var downed_invuln_seconds: float = 0.5
+@export var downed_self_revive_seconds: float = 7.0
 
 # -------------------------
 # PUSH (RMB)
@@ -96,6 +97,7 @@ var _cam_base_pos: Vector3
 # timers interni
 var _knock_t: float = 0.0
 var _downed_invuln_t: float = 0.0
+var _downed_self_revive_t: float = 0.0
 var _knockback_gravity_current: float = 0.0
 var _recovery_iframe_t: float = 0.0
 
@@ -264,6 +266,7 @@ func _ready() -> void:
 	Signals.player_hit.connect(_on_player_hit)
 	Signals.enemy_killed.connect(_on_enemy_killed)
 	Signals.null_recovered.connect(_on_null_recovered)
+	Signals.downed_self_recovery_changed.emit(false, 0.0, downed_self_revive_seconds)
 
 	_set_body_downed(false)
 
@@ -491,6 +494,10 @@ func _physics_process(delta: float) -> void:
 		_knock_t += delta
 	if state == PState.DOWNED:
 		_downed_invuln_t = maxf(_downed_invuln_t - delta, 0.0)
+		_downed_self_revive_t = maxf(_downed_self_revive_t - delta, 0.0)
+		Signals.downed_self_recovery_changed.emit(true, _downed_self_revive_t, downed_self_revive_seconds)
+		if _downed_self_revive_t <= 0.0:
+			_exit_downed()
 
 	dash_cd = maxf(dash_cd - delta, 0.0)
 	dash_time_left = maxf(dash_time_left - delta, 0.0)
@@ -741,6 +748,7 @@ func _on_player_hit(knockback_dir: Vector3) -> void:
 	if state == PState.DOWNED:
 		if _downed_invuln_t > 0.0:
 			return
+		Signals.downed_self_recovery_changed.emit(false, 0.0, downed_self_revive_seconds)
 		Signals.player_died.emit()
 		return
 
@@ -771,17 +779,21 @@ func _enter_downed() -> void:
 	state = PState.DOWNED
 	Run.survival_mode = true
 	_downed_invuln_t = downed_invuln_seconds
+	_downed_self_revive_t = downed_self_revive_seconds
 
 	_set_body_downed(true)
 	Signals.survival_mode_changed.emit(true)
+	Signals.downed_self_recovery_changed.emit(true, _downed_self_revive_t, downed_self_revive_seconds)
 
 func _exit_downed() -> void:
 	state = PState.NORMAL
 	Run.survival_mode = false
 	_downed_invuln_t = 0.0
+	_downed_self_revive_t = 0.0
 
 	_set_body_downed(false)
 	Signals.survival_mode_changed.emit(false)
+	Signals.downed_self_recovery_changed.emit(false, 0.0, downed_self_revive_seconds)
 
 func _set_body_downed(downed: bool) -> void:
 	if body_sprite:

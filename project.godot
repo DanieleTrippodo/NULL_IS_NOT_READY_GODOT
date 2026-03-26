@@ -32,8 +32,7 @@ window/size/mode=3
 [editor]
 
 movie_writer/movie_file="E:/Software/Godot 4.4.1/null--is-not-ready/NULL_IS_NOT_READY_GODOT/REC/Video.avi"
-movie_writer/disable_vsync=true
-movie_writer/fps=120
+movie_writer/fps=58
 
 [gui]
 

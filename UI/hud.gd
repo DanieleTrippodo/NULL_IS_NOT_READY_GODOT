@@ -10,6 +10,9 @@ extends Control
 @onready var perk_timer: Timer = $PerkTimer
 
 @onready var fade_rect: ColorRect = $FadeRect
+@onready var downed_recovery_ui: Control = get_node_or_null("DownedRecoveryUI") as Control
+@onready var downed_recovery_label: Label = get_node_or_null("DownedRecoveryUI/DownedRecoveryLabel") as Label
+@onready var downed_recovery_bar: ProgressBar = get_node_or_null("DownedRecoveryUI/DownedRecoveryBar") as ProgressBar
 
 # Se non esiste in hud.tscn, resta null e non crasha
 @onready var survival_overlay: ColorRect = get_node_or_null("SurvivalOverlay") as ColorRect
@@ -69,6 +72,11 @@ var _rng := RandomNumberGenerator.new()
 
 var _status_base_pos: Vector2
 var _cross_base_pos: Vector2
+var _downed_recovery_active: bool = false
+var _downed_recovery_remaining: float = 0.0
+var _downed_recovery_total: float = 7.0
+var _downed_recovery_text_refresh_t: float = 0.0
+var _downed_recovery_display_text: String = ""
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -86,6 +94,9 @@ func _ready() -> void:
 
 	if Signals.has_signal("recovery_mode_changed"):
 		Signals.recovery_mode_changed.connect(_on_recovery_mode_changed)
+
+	if Signals.has_signal("downed_self_recovery_changed"):
+		Signals.downed_self_recovery_changed.connect(_on_downed_self_recovery_changed)
 
 	var cb := Callable(self, "_on_perk_timer_timeout")
 	if not perk_timer.timeout.is_connected(cb):
@@ -119,11 +130,15 @@ func _post_ready_init() -> void:
 		survival_overlay.visible = true
 		_set_survival_overlay_alpha(0.0)
 
+	if downed_recovery_ui != null:
+		downed_recovery_ui.visible = false
+
 	_update_all()
 
 func _process(delta: float) -> void:
 	_update_overlay_strength(delta)
 	_update_survival_glitch(delta)
+	_update_downed_self_recovery_ui(delta)
 
 # -------------------------
 # STATUS ICON LAYOUT
@@ -273,6 +288,66 @@ func _update_survival_glitch(delta: float) -> void:
 	# micro “desync” tra indicatori per feel glitch
 	status_icon.position = _status_base_pos + Vector2(ox, oy)
 	crosshair_tex.position = _cross_base_pos + Vector2(-ox, oy)
+
+func _on_downed_self_recovery_changed(active: bool, remaining: float, total: float) -> void:
+	_downed_recovery_active = active
+	_downed_recovery_remaining = maxf(remaining, 0.0)
+	_downed_recovery_total = maxf(total, 0.001)
+	_downed_recovery_text_refresh_t = 0.0
+
+	if downed_recovery_ui != null:
+		downed_recovery_ui.visible = active
+
+	if downed_recovery_bar != null:
+		downed_recovery_bar.max_value = _downed_recovery_total
+		downed_recovery_bar.value = _downed_recovery_total - _downed_recovery_remaining
+
+	if not active and downed_recovery_label != null:
+		downed_recovery_label.text = ""
+
+func _update_downed_self_recovery_ui(delta: float) -> void:
+	if downed_recovery_ui == null:
+		return
+
+	downed_recovery_ui.visible = _downed_recovery_active
+	if not _downed_recovery_active:
+		return
+
+	if downed_recovery_bar != null:
+		downed_recovery_bar.max_value = _downed_recovery_total
+		downed_recovery_bar.value = _downed_recovery_total - _downed_recovery_remaining
+
+	_downed_recovery_text_refresh_t -= delta
+	if _downed_recovery_text_refresh_t <= 0.0:
+		_downed_recovery_text_refresh_t = _rng.randf_range(0.03, 0.08)
+		_downed_recovery_display_text = _build_downed_console_text()
+
+	if downed_recovery_label != null:
+		downed_recovery_label.text = _downed_recovery_display_text
+
+func _build_downed_console_text() -> String:
+	var seconds_text := "%.1f" % _downed_recovery_remaining
+	var line := "> SELF-RECOVERY IN %ss" % seconds_text
+
+	if _rng.randf() < 0.35:
+		line = _glitch_text(line)
+
+	return line
+
+func _glitch_text(source: String) -> String:
+	var chars := ["#", "@", "%", "?", "!", "/", "\\", "*", "_"]
+	var out := source
+	var changes := _rng.randi_range(1, 3)
+
+	for _i in range(changes):
+		if out.length() <= 4:
+			break
+		var idx := _rng.randi_range(2, out.length() - 2)
+		if out.substr(idx, 1) == " ":
+			continue
+		out = out.substr(0, idx) + chars[_rng.randi_range(0, chars.size() - 1)] + out.substr(idx + 1)
+
+	return out
 
 # -------------------------
 # FADE

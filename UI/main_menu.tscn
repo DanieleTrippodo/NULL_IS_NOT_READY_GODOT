@@ -374,6 +374,10 @@ theme_override_font_sizes/font_size = 32
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 
+[node name="LaSpecialThanks2bel" type="Label" parent="UI/CreditsPanel/CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+
 [node name="Spacer2" type="Control" parent="UI/CreditsPanel/CenterContainer/VBoxContainer"]
 custom_minimum_size = Vector2(30, 20)
 layout_mode = 2

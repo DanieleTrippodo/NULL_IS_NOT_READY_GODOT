@@ -14,6 +14,7 @@ extends Node
 @export var enemy_bullet_scene: PackedScene
 @onready var kill_sfx: AudioStreamPlayer = $KillSfx
 @onready var combat_bgm: AudioStreamPlayer = $CombatBgm
+@onready var safe_bgm: AudioStreamPlayer = $SafeBgm
 @export var enemy_death_fx_scene: PackedScene
 
 # money + shop
@@ -40,10 +41,17 @@ extends Node
 @export var pause_terminal_scene: PackedScene
 @export var pause_bgm_volume_db: float = -24.0
 
+@export var safe_music_tracks: Array[AudioStream] = []
+@export var combat_bgm_early: AudioStream
+@export var combat_bgm_late: AudioStream
+@export var late_combat_depth: int = 11
+
 var game_over_overlay: Control = null
 var pause_terminal: CanvasLayer = null
 var pause_active: bool = false
 var combat_bgm_default_volume_db: float = -15.0
+var safe_bgm_default_volume_db: float = -18.0
+var current_safe_track_index: int = -1
 
 var rng := RandomNumberGenerator.new()
 var terminal_instance: Node3D = null
@@ -95,6 +103,14 @@ func _ready() -> void:
 	rng.randomize()
 	Engine.time_scale = 1.0
 	combat_bgm_default_volume_db = combat_bgm.volume_db if combat_bgm != null else pause_bgm_volume_db
+	safe_bgm_default_volume_db = safe_bgm.volume_db if safe_bgm != null else pause_bgm_volume_db
+
+	if combat_bgm_early == null and combat_bgm != null:
+		combat_bgm_early = combat_bgm.stream
+
+	if safe_bgm != null:
+		if not safe_bgm.finished.is_connected(_on_safe_bgm_finished):
+			safe_bgm.finished.connect(_on_safe_bgm_finished)
 
 	var preserve_run_state: bool = Run.returning_from_shop or Run.boss_terminal_unlocked or Run.in_boss_fight
 	if not preserve_run_state:
@@ -131,6 +147,8 @@ func _ready() -> void:
 	_setup_boss_transition_overlay()
 	
 	_stop_combat_bgm()
+	_stop_safe_bgm()
+	_refresh_music_state()
 
 	if Run.in_boss_fight:
 		call_deferred("_start_boss_encounter", true)
@@ -142,8 +160,12 @@ func _ready() -> void:
 func _play_combat_bgm() -> void:
 	if combat_bgm == null:
 		return
+
+	_refresh_combat_stream()
+
 	if combat_bgm.playing:
 		return
+
 	combat_bgm.play()
 
 func _stop_combat_bgm() -> void:
@@ -152,6 +174,79 @@ func _stop_combat_bgm() -> void:
 	if not combat_bgm.playing:
 		return
 	combat_bgm.stop()
+
+func _stop_safe_bgm() -> void:
+	if safe_bgm == null:
+		return
+	if safe_bgm.playing:
+		safe_bgm.stop()
+
+func _pick_next_safe_track() -> AudioStream:
+	if safe_music_tracks.is_empty():
+		return null
+
+	if safe_music_tracks.size() == 1:
+		current_safe_track_index = 0
+		return safe_music_tracks[0]
+
+	var next_index := current_safe_track_index
+	while next_index == current_safe_track_index:
+		next_index = rng.randi_range(0, safe_music_tracks.size() - 1)
+
+	current_safe_track_index = next_index
+	return safe_music_tracks[next_index]
+
+func _on_safe_bgm_finished() -> void:
+	if arena_state == ArenaState.WAIT_START and not Run.in_boss_fight and not restarting and not boss_transitioning:
+		_play_safe_bgm(true)
+
+func _play_safe_bgm(force_new_track: bool = false) -> void:
+	if safe_bgm == null:
+		return
+	if safe_music_tracks.is_empty():
+		return
+	if safe_bgm.playing and not force_new_track:
+		return
+
+	var chosen := _pick_next_safe_track()
+	if chosen == null:
+		return
+
+	safe_bgm.stop()
+	safe_bgm.stream = chosen
+	safe_bgm.play()
+
+func _refresh_combat_stream() -> void:
+	if combat_bgm == null:
+		return
+
+	var target: AudioStream = combat_bgm_early
+
+	if Run.depth >= late_combat_depth and combat_bgm_late != null:
+		target = combat_bgm_late
+
+	if combat_bgm.stream == target:
+		return
+
+	var was_playing := combat_bgm.playing
+	combat_bgm.stop()
+	combat_bgm.stream = target
+
+	if was_playing:
+		combat_bgm.play()
+
+func _refresh_music_state() -> void:
+	if Run.in_boss_fight or restarting or boss_transitioning:
+		_stop_safe_bgm()
+		_stop_combat_bgm()
+		return
+
+	if arena_state == ArenaState.IN_WAVE:
+		_stop_safe_bgm()
+		_play_combat_bgm()
+	else:
+		_stop_combat_bgm()
+		_play_safe_bgm()
 
 func _play_kill_sfx() -> void:
 	if kill_sfx == null:
@@ -306,10 +401,11 @@ func _close_pause_terminal_for_scene_change() -> void:
 	_set_pause_bgm_attenuation(false)
 
 func _set_pause_bgm_attenuation(paused_state: bool) -> void:
-	if combat_bgm == null:
-		return
+	if combat_bgm != null:
+		combat_bgm.volume_db = pause_bgm_volume_db if paused_state else combat_bgm_default_volume_db
 
-	combat_bgm.volume_db = pause_bgm_volume_db if paused_state else combat_bgm_default_volume_db
+	if safe_bgm != null:
+		safe_bgm.volume_db = pause_bgm_volume_db if paused_state else safe_bgm_default_volume_db
 
 func _on_pause_terminal_command_requested(command: String) -> void:
 	if command.begins_with("debug_money:"):
@@ -325,16 +421,19 @@ func _on_pause_terminal_command_requested(command: String) -> void:
 		"restart":
 			_close_pause_terminal_for_scene_change()
 			_stop_combat_bgm()
+			_stop_safe_bgm()
 			Run.reset()
 			get_tree().reload_current_scene()
 		"menu":
 			_close_pause_terminal_for_scene_change()
 			_stop_combat_bgm()
+			_stop_safe_bgm()
 			Run.reset()
 			get_tree().change_scene_to_file("res://UI/main_menu.tscn")
 		"quit":
 			_close_pause_terminal_for_scene_change()
 			_stop_combat_bgm()
+			_stop_safe_bgm()
 			Run.reset()
 			get_tree().quit()
 		"debug_godmode":
@@ -353,6 +452,7 @@ func _on_pause_terminal_command_requested(command: String) -> void:
 
 func _debug_cleanup_before_skip() -> void:
 	_stop_combat_bgm()
+	_stop_safe_bgm()
 	_force_null_return()
 	_cleanup_boss_terminal()
 
@@ -417,6 +517,7 @@ func _toggle_godmode() -> void:
 
 func _debug_open_shop() -> void:
 	_stop_combat_bgm()
+	_stop_safe_bgm()
 	Run.shop_offers.clear()
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	get_tree().change_scene_to_file("res://Shop/shop.tscn")
@@ -570,6 +671,7 @@ func _set_state(s: int) -> void:
 	arena_state = s
 	_refresh_wave_button()
 	_refresh_boss_terminal()
+	_refresh_music_state()
 
 func _queue_auto_start_next_wave() -> void:
 	if tutorial_mode:
@@ -635,7 +737,6 @@ func _start_next_wave() -> void:
 	if Run.boss_terminal_unlocked or Run.in_boss_fight or boss_transitioning:
 		return
 
-	_play_combat_bgm()
 	_despawn_terminal()
 	_cleanup_uncollected_money()
 	_cleanup_shop_portal()
@@ -1261,6 +1362,7 @@ func _on_player_died() -> void:
 
 	restarting = true
 	_stop_combat_bgm()
+	_stop_safe_bgm()
 
 	_cleanup_uncollected_money()
 	_cleanup_shop_portal()
@@ -1284,6 +1386,7 @@ func _on_player_died() -> void:
 
 func _on_game_over_retry_pressed() -> void:
 	_stop_combat_bgm()
+	_stop_safe_bgm()
 	if Run.in_boss_fight:
 		Run.null_ready = true
 		Run.null_dropped = false
@@ -1296,6 +1399,7 @@ func _on_game_over_retry_pressed() -> void:
 
 func _on_game_over_exit_pressed() -> void:
 	_stop_combat_bgm()
+	_stop_safe_bgm()
 	Run.reset()
 	get_tree().change_scene_to_file("res://UI/main_menu.tscn")
 
@@ -1314,6 +1418,7 @@ func _begin_boss_transition() -> void:
 
 	boss_transitioning = true
 	_stop_combat_bgm()
+	_stop_safe_bgm()
 	_cleanup_shop_portal()
 	_despawn_terminal()
 	_cleanup_boss_terminal()

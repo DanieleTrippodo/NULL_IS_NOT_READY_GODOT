@@ -40,6 +40,7 @@ extends Control
 @onready var credits_name_3: Label = $UI/CreditsPanel/CenterContainer/VBoxContainer/CreditsName3
 @onready var special_thanks_title: Label = $UI/CreditsPanel/CenterContainer/VBoxContainer/SpecialThanksTitle
 @onready var special_thanks_1: Label = $UI/CreditsPanel/CenterContainer/VBoxContainer/LaSpecialThanks1bel
+@onready var special_thanks_2: Label = $UI/CreditsPanel/CenterContainer/VBoxContainer/LaSpecialThanks2bel
 @onready var credits_back_value: Button = $UI/CreditsPanel/CenterContainer/VBoxContainer/BackValue
 
 @onready var settings_buttons: Array[Button] = [
@@ -124,6 +125,7 @@ func _setup_mouse_passthrough() -> void:
 		credits_name_3,
 		special_thanks_title,
 		special_thanks_1,
+		special_thanks_2,
 		$UI/CreditsPanel/CenterContainer/VBoxContainer/Spacer,
 		$UI/CreditsPanel/CenterContainer/VBoxContainer/Spacer2,
 		get_node("UI/CreditsPanel/GameJam info"),
@@ -490,6 +492,7 @@ func _refresh_credits_ui(selected_back: bool = true) -> void:
 	special_thanks_title.text = "SPECIAL THANKS"
 	special_thanks_title.modulate.a = 0.95
 	special_thanks_1.text = "  Playtesting: Adircas"
+	special_thanks_2.text = "  Playtesting: DunderBirb"
 
 	credits_back_value.text = ("> " if selected_back else "  ") + "BACK"
 	credits_back_value.modulate.a = 1.0 if selected_back else 0.75

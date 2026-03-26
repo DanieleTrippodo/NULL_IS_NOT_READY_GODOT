@@ -1,10 +1,20 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=4 format=3 uid="uid://cbmiul5f2aoea"]
 
-[ext_resource type="Script" path="res://UI/boss_transition.gd" id="1_boss_transition"]
+[ext_resource type="Script" uid="uid://dxg2g0t8st1s6" path="res://UI/boss_transition.gd" id="1_boss_transition"]
+[ext_resource type="Shader" uid="uid://cbyackngxcatx" path="res://UI/CRT.gdshader" id="2_32jgt"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_mev0h"]
+shader = ExtResource("2_32jgt")
+shader_parameter/warp_strength = 0.085
+shader_parameter/vignette_strength = 0.35
+shader_parameter/scanline_strength = 0.5
+shader_parameter/noise_strength = 0.025
+shader_parameter/flicker_strength = 0.02
+shader_parameter/edge_softness = 0.02
 
 [node name="BossTransition" type="CanvasLayer"]
-script = ExtResource("1_boss_transition")
 layer = 50
+script = ExtResource("1_boss_transition")
 
 [node name="Root" type="Control" parent="."]
 layout_mode = 3
@@ -48,14 +58,23 @@ alignment = 1
 
 [node name="MainLabel" type="Label" parent="Root/CenterContainer/VBoxContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 34
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-horizontal_alignment = 1
+theme_override_font_sizes/font_size = 34
 text = "THE BOX RELEASES THE FRAGMENT"
+horizontal_alignment = 1
 
 [node name="SubLabel" type="Label" parent="Root/CenterContainer/VBoxContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
 theme_override_colors/font_color = Color(1, 1, 1, 0.8)
-horizontal_alignment = 1
+theme_override_font_sizes/font_size = 18
 text = "BOX://FRAGMENT_RELEASE"
+horizontal_alignment = 1
+
+[node name="CrtOverlay" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_mev0h")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2

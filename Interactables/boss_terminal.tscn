@@ -14,6 +14,7 @@ size = Vector3(1, 1.8671875, 0.99050903)
 size = Vector3(1.1848145, 2.5705414, 1.2062988)
 
 [node name="BossTerminal" type="Node3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.34304744, 0)
 script = ExtResource("1_boss_term")
 
 [node name="TerminalSprite" type="Node3D" parent="."]

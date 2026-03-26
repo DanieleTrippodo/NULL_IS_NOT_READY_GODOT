@@ -57,6 +57,10 @@ enum BossState {
 @export var teleport_phase_3_interval: float = 5.2
 @export var teleport_min_time_remaining: float = 2.6
 
+@export_group("Boss Music")
+@export var boss_bgm_fade_in_duration: float = 1.8
+@export var boss_bgm_start_volume_db: float = -80.0
+
 @onready var player_spawn: Marker3D = $PlayerSpawn
 @onready var boss_anchor: Marker3D = $BossAnchor
 @onready var player_container: Node3D = $PlayerContainer
@@ -65,6 +69,7 @@ enum BossState {
 @onready var platform_mesh: MeshInstance3D = $ArenaPlatform/PlatformMesh
 @onready var ui_root: CanvasLayer = $UIRoot
 @onready var arena_darkness: ColorRect = get_node_or_null("UIRoot/ArenaDarkness") as ColorRect
+@onready var boss_bgm: AudioStreamPlayer = get_node_or_null("BossBgm") as AudioStreamPlayer
 
 var state: int = BossState.INTRO
 var state_time_left: float = 0.0
@@ -109,12 +114,15 @@ var _attack_pattern_time_left: float = 0.0
 var _current_attack_pattern: String = ""
 
 var _arena_darkness_tween: Tween = null
+var _boss_bgm_fade_tween: Tween = null
+var _boss_bgm_target_volume_db: float = -12.0
 var _boss_teleport_positions: Array[Vector3] = []
 var _boss_teleport_rotations: Array[Vector3] = []
 var _boss_current_teleport_index: int = 0
 var _attack_teleport_pending: bool = false
 var _attack_teleport_in_progress: bool = false
 var _attack_teleport_cooldown_left: float = 0.0
+
 
 func setup_embedded(shared_player: CharacterBody3D) -> void:
 	embedded_mode = true
@@ -162,6 +170,7 @@ func notify_external_player_died() -> void:
 	if boss != null and boss.has_method("stop_attack"):
 		boss.call("stop_attack")
 
+
 func _ready() -> void:
 	_rng.randomize()
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
@@ -169,10 +178,16 @@ func _ready() -> void:
 	_connect_signals()
 	_setup_ui()
 	_setup_intro_darkness()
+
+	if boss_bgm != null:
+		_boss_bgm_target_volume_db = boss_bgm.volume_db
+		_start_boss_bgm()
+
 	if embedded_mode:
 		_position_embedded_player()
 	else:
 		_spawn_player()
+
 	_spawn_boss()
 	_play_intro_darkness()
 
@@ -188,6 +203,7 @@ func _ready() -> void:
 func _exit_tree() -> void:
 	_disconnect_signals()
 	_kill_intro_darkness_tween()
+	_stop_boss_bgm()
 
 
 func _process(delta: float) -> void:
@@ -343,6 +359,39 @@ func _kill_intro_darkness_tween() -> void:
 	if _arena_darkness_tween != null:
 		_arena_darkness_tween.kill()
 		_arena_darkness_tween = null
+
+
+func _start_boss_bgm() -> void:
+	if boss_bgm == null:
+		return
+
+	if _boss_bgm_fade_tween != null:
+		_boss_bgm_fade_tween.kill()
+		_boss_bgm_fade_tween = null
+
+	boss_bgm.volume_db = boss_bgm_start_volume_db
+
+	if not boss_bgm.playing:
+		boss_bgm.play()
+
+	_boss_bgm_fade_tween = create_tween()
+	_boss_bgm_fade_tween.set_trans(Tween.TRANS_SINE)
+	_boss_bgm_fade_tween.set_ease(Tween.EASE_OUT)
+	_boss_bgm_fade_tween.tween_property(
+		boss_bgm,
+		"volume_db",
+		_boss_bgm_target_volume_db,
+		boss_bgm_fade_in_duration
+	)
+
+
+func _stop_boss_bgm() -> void:
+	if _boss_bgm_fade_tween != null:
+		_boss_bgm_fade_tween.kill()
+		_boss_bgm_fade_tween = null
+
+	if boss_bgm != null and boss_bgm.playing:
+		boss_bgm.stop()
 
 
 func _spawn_player() -> void:

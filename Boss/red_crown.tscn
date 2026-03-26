@@ -33,7 +33,7 @@ open_weak_point_sound = ExtResource("3_32wof")
 hit_sounds = Array[AudioStream]([ExtResource("4_kqn0o"), ExtResource("5_chsd2"), ExtResource("6_nfiwr"), ExtResource("7_yo4om")])
 death_sound = ExtResource("8_r2o2h")
 phase_3_pattern_interval = 0.79
-phase_3_bullet_speed_mult = 1.27
+phase_3_bullet_speed_mult = 1.15
 
 [node name="Visuals" type="Node3D" parent="."]
 

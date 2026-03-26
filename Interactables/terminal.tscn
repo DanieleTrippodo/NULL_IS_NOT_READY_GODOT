@@ -67,5 +67,5 @@ shape = SubResource("BoxShape3D_xss3u")
 stream = ExtResource("7_nhycj")
 volume_db = -22.0
 autoplay = true
-max_distance = 8.0
+max_distance = 6.0
 parameters/looping = true
