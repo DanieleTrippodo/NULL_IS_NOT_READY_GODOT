@@ -11,7 +11,8 @@ config_version=5
 [application]
 
 config/name="NULL: IS NOT READY"
-run/main_scene="uid://bgl0mee7xdlq5"
+config/version="0.1.0"
+run/main_scene="uid://bega21g25ktni"
 config/features=PackedStringArray("4.5", "Forward Plus")
 boot_splash/show_image=false
 boot_splash/fullsize=false

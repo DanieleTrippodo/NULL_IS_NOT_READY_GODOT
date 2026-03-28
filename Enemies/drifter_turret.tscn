@@ -13,6 +13,7 @@ radial_segments = 12
 rings = 8
 
 [node name="DrifterTurret" type="CharacterBody3D" groups=["enemy"]]
+transform = Transform3D(1.705, 0, 0, 0, 1.705, 0, 0, 0, 1.705, 0, 0, 0)
 script = ExtResource("1_drifter")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
