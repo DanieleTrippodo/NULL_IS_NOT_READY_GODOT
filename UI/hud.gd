@@ -10,6 +10,7 @@ extends Control
 @onready var perk_timer: Timer = $PerkTimer
 
 @onready var fade_rect: ColorRect = $FadeRect
+@onready var damage_flash: ColorRect = get_node_or_null("DamageFlash") as ColorRect
 @onready var downed_recovery_ui: Control = get_node_or_null("DownedRecoveryUI") as Control
 @onready var downed_recovery_label: Label = get_node_or_null("DownedRecoveryUI/DownedRecoveryLabel") as Label
 @onready var downed_recovery_bar: ProgressBar = get_node_or_null("DownedRecoveryUI/DownedRecoveryBar") as ProgressBar
@@ -40,12 +41,21 @@ extends Control
 
 var _last_ready: bool = true
 var _status_tween: Tween
+var _crosshair_feedback_tween: Tween
+var _damage_flash_tween: Tween
 
 # ------------------------------------------------------------
 # CROSSHAIR SIZES
 # ------------------------------------------------------------
 var base_crosshair_size: Vector2 = Vector2(32, 32)
 var not_ready_size: Vector2 = Vector2(22, 22)
+
+@export_range(0.0, 1.0, 0.01) var hit_flash_alpha: float = 0.04
+@export_range(0.0, 1.0, 0.01) var kill_flash_alpha: float = 0.08
+@export_range(0.0, 1.0, 0.01) var damage_flash_alpha: float = 0.18
+@export_range(0.5, 2.0, 0.01) var crosshair_hit_punch: float = 1.12
+@export_range(0.5, 2.0, 0.01) var crosshair_kill_punch: float = 1.28
+@export_range(0.5, 2.0, 0.01) var crosshair_damage_punch: float = 0.82
 
 # ------------------------------------------------------------
 # SURVIVAL / RECOVERY OVERLAY + GLITCH
@@ -98,6 +108,12 @@ func _ready() -> void:
 	if Signals.has_signal("downed_self_recovery_changed"):
 		Signals.downed_self_recovery_changed.connect(_on_downed_self_recovery_changed)
 
+	if Signals.has_signal("enemy_hit_feedback"):
+		Signals.enemy_hit_feedback.connect(_on_enemy_hit_feedback)
+
+	if Signals.has_signal("player_damage_feedback"):
+		Signals.player_damage_feedback.connect(_on_player_damage_feedback)
+
 	var cb := Callable(self, "_on_perk_timer_timeout")
 	if not perk_timer.timeout.is_connected(cb):
 		perk_timer.timeout.connect(cb)
@@ -129,6 +145,12 @@ func _post_ready_init() -> void:
 	if survival_overlay != null:
 		survival_overlay.visible = true
 		_set_survival_overlay_alpha(0.0)
+
+	if damage_flash != null:
+		damage_flash.visible = true
+		var flash_color: Color = damage_flash.color
+		flash_color.a = 0.0
+		damage_flash.color = flash_color
 
 	if downed_recovery_ui != null:
 		downed_recovery_ui.visible = false
@@ -183,6 +205,8 @@ func _on_null_ready_changed(is_ready: bool) -> void:
 	var s: Vector2 = base_crosshair_size if is_ready else not_ready_size
 	crosshair_tex.custom_minimum_size = s
 	crosshair_tex.size = s
+	crosshair_tex.pivot_offset = s * 0.5
+	crosshair_tex.scale = Vector2.ONE
 
 	if ready_pop_enabled and just_became_ready:
 		_play_ready_pop()
@@ -288,6 +312,48 @@ func _update_survival_glitch(delta: float) -> void:
 	# micro “desync” tra indicatori per feel glitch
 	status_icon.position = _status_base_pos + Vector2(ox, oy)
 	crosshair_tex.position = _cross_base_pos + Vector2(-ox, oy)
+
+func _flash_damage_overlay(alpha: float, duration: float) -> void:
+	if damage_flash == null:
+		return
+
+	if is_instance_valid(_damage_flash_tween):
+		_damage_flash_tween.kill()
+
+	var start_color: Color = damage_flash.color
+	start_color.a = maxf(start_color.a, alpha)
+	damage_flash.color = start_color
+
+	_damage_flash_tween = create_tween()
+	_damage_flash_tween.tween_property(damage_flash, "color:a", 0.0, duration)
+
+func _pulse_crosshair(mult: float, up_time: float, down_time: float) -> void:
+	if crosshair_tex == null:
+		return
+
+	if is_instance_valid(_crosshair_feedback_tween):
+		_crosshair_feedback_tween.kill()
+
+	crosshair_tex.scale = Vector2.ONE
+	_crosshair_feedback_tween = create_tween()
+	_crosshair_feedback_tween.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_crosshair_feedback_tween.tween_property(crosshair_tex, "scale", Vector2.ONE * mult, up_time)
+	_crosshair_feedback_tween.tween_property(crosshair_tex, "scale", Vector2.ONE, down_time)
+
+func _on_enemy_hit_feedback(_enemy: Node, killed: bool) -> void:
+	if killed:
+		_pulse_crosshair(crosshair_kill_punch, 0.04, 0.09)
+		return
+
+	_flash_damage_overlay(hit_flash_alpha, 0.05)
+	_pulse_crosshair(crosshair_hit_punch, 0.03, 0.06)
+
+func _on_player_damage_feedback(_knockback_dir: Vector3, fatal: bool) -> void:
+	var alpha: float = damage_flash_alpha
+	if fatal:
+		alpha *= 1.2
+	_flash_damage_overlay(alpha, 0.16 if not fatal else 0.22)
+	_pulse_crosshair(crosshair_damage_punch, 0.03, 0.12)
 
 func _on_downed_self_recovery_changed(active: bool, remaining: float, total: float) -> void:
 	_downed_recovery_active = active

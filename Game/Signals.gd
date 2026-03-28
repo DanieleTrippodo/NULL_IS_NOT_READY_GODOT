@@ -22,10 +22,14 @@ signal request_recovery_stop
 @warning_ignore("unused_signal")
 signal enemy_killed(enemy: Node)
 @warning_ignore("unused_signal")
+signal enemy_hit_feedback(enemy: Node, killed: bool)
+@warning_ignore("unused_signal")
 signal request_force_drop_null(pos: Vector3)
 
 @warning_ignore("unused_signal")
 signal player_hit(knockback_dir: Vector3)
+@warning_ignore("unused_signal")
+signal player_damage_feedback(knockback_dir: Vector3, fatal: bool)
 @warning_ignore("unused_signal")
 signal player_died()
 

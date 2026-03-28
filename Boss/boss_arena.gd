@@ -24,15 +24,15 @@ enum BossState {
 @export var post_hit_buffer: float = 0.9
 @export var attack_duration_phase_1: float = 20.0
 @export var attack_duration_phase_2: float = 24.0
-@export var attack_duration_phase_3: float = 28.0
+@export var attack_duration_phase_3: float = 23.5
 @export var vulnerable_time_phase_1: float = 4.0
 @export var vulnerable_time_phase_2: float = 3.4
-@export var vulnerable_time_phase_3: float = 3.0
+@export var vulnerable_time_phase_3: float = 4.0
 
 @export_group("Attack Chaining")
 @export var pattern_switch_phase_1: float = 4.4
 @export var pattern_switch_phase_2: float = 3.0
-@export var pattern_switch_phase_3: float = 2.1
+@export var pattern_switch_phase_3: float = 2.75
 @export var pattern_end_buffer: float = 1.0
 
 @export_group("Arena Darkness")
@@ -54,8 +54,8 @@ enum BossState {
 @export var teleport_during_attack: bool = true
 @export var teleport_phase_1_interval: float = 8.8
 @export var teleport_phase_2_interval: float = 6.8
-@export var teleport_phase_3_interval: float = 5.2
-@export var teleport_min_time_remaining: float = 2.6
+@export var teleport_phase_3_interval: float = 7.6
+@export var teleport_min_time_remaining: float = 3.1
 
 @export_group("Boss Music")
 @export var boss_bgm_fade_in_duration: float = 1.8

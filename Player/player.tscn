@@ -405,6 +405,9 @@ animation = &"idle"
 
 [node name="Head" type="Node3D" parent="."]
 
+[node name="AimTarget" type="Marker3D" parent="Head"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
+
 [node name="Camera" type="Camera3D" parent="Head"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
 

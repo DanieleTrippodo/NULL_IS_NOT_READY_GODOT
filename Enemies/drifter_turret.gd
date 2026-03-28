@@ -18,6 +18,11 @@ enum AIState {
 @export var bullet_speed: float = 16.0
 @export var view_distance: float = 24.0
 
+@export_group("Telegraph")
+@export var telegraph_time: float = 0.20
+@export var telegraph_flash_speed: float = 20.0
+@export var telegraph_flash_amount: float = 0.80
+
 @export_group("Drift")
 @export var drift_speed: float = 4.0
 @export var drift_response: float = 6.5
@@ -59,10 +64,13 @@ var _last_push_stun: float = 0.0
 var _bob_t: float = 0.0
 var _base_floor_y: float = 0.0
 var _hover_push_offset: float = 0.0
+var _telegraph_left: float = 0.0
+var _sprite_base_modulate: Color = Color(1, 1, 1, 1)
 
 @onready var body_mesh: Node3D = $Body
 @onready var muzzle: Marker3D = $Muzzle
 @onready var ray_origin: Marker3D = $RayOrigin
+@onready var sprite_visual: Sprite3D = $Sprite3D
 
 var _body_base_pos: Vector3 = Vector3.ZERO
 var _muzzle_base_pos: Vector3 = Vector3.ZERO
@@ -76,6 +84,8 @@ func _ready() -> void:
 		_muzzle_base_pos = muzzle.position
 	if is_instance_valid(ray_origin):
 		_ray_base_pos = ray_origin.position
+	if is_instance_valid(sprite_visual):
+		_sprite_base_modulate = sprite_visual.modulate
 
 	_base_floor_y = global_position.y
 	global_position.y = _base_floor_y + hover_height
@@ -153,6 +163,7 @@ func _physics_process(delta: float) -> void:
 	_hover_push_offset = move_toward(_hover_push_offset, 0.0, delta * 1.8)
 
 	if _stun_left > 0.0:
+		_cancel_telegraph()
 		_stun_left = maxf(_stun_left - delta, 0.0)
 		_update_motion(delta, Vector3.ZERO)
 		_try_push_enemy_collision()
@@ -198,21 +209,35 @@ func _update_ai(delta: float) -> void:
 			if _wander_change_left <= 0.0:
 				_pick_new_wander_dir()
 
-			_update_motion(delta, _wander_dir * drift_speed)
+			var engage_velocity: Vector3 = _wander_dir * drift_speed
+			if _telegraph_left > 0.0:
+				engage_velocity *= 0.35
+
+			_update_motion(delta, engage_velocity)
+
+			if _telegraph_left > 0.0:
+				_telegraph_left = maxf(_telegraph_left - delta, 0.0)
+				_update_telegraph_visual()
+				if _telegraph_left <= 0.0:
+					_shoot_at_target()
+					_after_shot()
+					_cancel_telegraph()
+				return
 
 			_fire_left -= delta
 			if _fire_left <= 0.0:
-				_shoot_at_target()
-				_after_shot()
+				_begin_telegraph()
 
 
 func _enter_wander() -> void:
+	_cancel_telegraph()
 	_state = AIState.WANDER
 	_state_timer = 0.0
 	_pick_new_wander_dir()
 
 
 func _enter_alert() -> void:
+	_cancel_telegraph()
 	_state = AIState.ALERT
 	_state_timer = alert_pause
 
@@ -232,6 +257,11 @@ func _after_shot() -> void:
 		_choose_new_fire_pattern()
 
 	_fire_left = _current_fire_interval
+
+
+func _begin_telegraph() -> void:
+	_telegraph_left = telegraph_time
+	_update_telegraph_visual()
 
 
 func _choose_new_fire_pattern() -> void:
@@ -290,7 +320,7 @@ func _can_see_target() -> bool:
 	if is_instance_valid(ray_origin):
 		origin = ray_origin.global_position
 
-	var target_pos: Vector3 = target.global_position + Vector3(0.0, 0.55, 0.0)
+	var target_pos: Vector3 = _get_target_aim_point()
 	var to_target: Vector3 = target_pos - origin
 
 	if to_target.length() > view_distance:
@@ -339,7 +369,7 @@ func _shoot_at_target() -> void:
 	if is_instance_valid(muzzle):
 		origin = muzzle.global_position
 
-	var target_pos: Vector3 = target.global_position + Vector3(0.0, 0.55, 0.0)
+	var target_pos: Vector3 = _get_target_aim_point()
 	var dir: Vector3 = target_pos - origin
 	if dir.length() <= 0.001:
 		dir = Vector3.FORWARD
@@ -404,3 +434,38 @@ func _try_push_enemy_collision() -> void:
 			)
 
 		break
+
+
+func _get_target_aim_point() -> Vector3:
+	if target == null or not is_instance_valid(target):
+		return global_position + Vector3(0.0, 0.55, 0.0)
+
+	var aim_target: Node3D = target.get_node_or_null("Head/AimTarget") as Node3D
+	if aim_target == null:
+		aim_target = target.get_node_or_null("AimTarget") as Node3D
+
+	if aim_target != null:
+		return aim_target.global_position
+
+	return target.global_position + Vector3(0.0, 0.55, 0.0)
+
+
+func _update_telegraph_visual() -> void:
+	if not is_instance_valid(sprite_visual):
+		return
+
+	var elapsed: float = maxf(telegraph_time - _telegraph_left, 0.0)
+	var pulse: float = 0.5 + 0.5 * sin(elapsed * telegraph_flash_speed * TAU)
+	var boost: float = 1.0 + pulse * telegraph_flash_amount
+	sprite_visual.modulate = Color(
+		_sprite_base_modulate.r * boost,
+		_sprite_base_modulate.g * boost,
+		_sprite_base_modulate.b * boost,
+		_sprite_base_modulate.a
+	)
+
+
+func _cancel_telegraph() -> void:
+	_telegraph_left = 0.0
+	if is_instance_valid(sprite_visual):
+		sprite_visual.modulate = _sprite_base_modulate

@@ -8,6 +8,11 @@ extends CharacterBody3D
 @export var muzzle_forward_offset: float = 0.6
 @export var target_height_offset: float = 0.55
 
+@export_group("Telegraph")
+@export var telegraph_time: float = 0.22
+@export var telegraph_flash_speed: float = 18.0
+@export var telegraph_flash_amount: float = 0.75
+
 @export_group("Push / Stun")
 @export var knock_decay: float = 22.0
 @export var push_collision_window: float = 0.28
@@ -26,6 +31,18 @@ var _stun_left: float = 0.0
 var _push_collision_time_left: float = 0.0
 var _push_collision_used: bool = false
 var _last_push_stun: float = 0.0
+
+var _telegraph_left: float = 0.0
+var _telegraph_origin: Vector3 = Vector3.ZERO
+var _telegraph_dir: Vector3 = Vector3.ZERO
+var _sprite_base_modulate: Color = Color(1, 1, 1, 1)
+
+@onready var turret_sprite: Sprite3D = $TurretSprite
+
+
+func _ready() -> void:
+	if is_instance_valid(turret_sprite):
+		_sprite_base_modulate = turret_sprite.modulate
 
 
 func set_target(t: Node3D) -> void:
@@ -122,6 +139,7 @@ func _physics_process(delta: float) -> void:
 
 	# STUN: niente sparo, solo knockback + gravità
 	if _stun_left > 0.0:
+		_cancel_telegraph()
 		_stun_left = maxf(_stun_left - delta, 0.0)
 
 		velocity.x = _knock.x
@@ -153,28 +171,84 @@ func _physics_process(delta: float) -> void:
 	_try_push_enemy_collision()
 
 	if target == null or not is_instance_valid(target):
+		_cancel_telegraph()
 		return
 	if bullet_scene == null:
+		_cancel_telegraph()
+		return
+
+	if _telegraph_left > 0.0:
+		_telegraph_left = maxf(_telegraph_left - delta, 0.0)
+		_update_telegraph_visual()
+		if _telegraph_left <= 0.0:
+			_fire_cached_bullet()
+			_cancel_telegraph()
 		return
 
 	timer += delta
 	if timer < fire_interval:
 		return
 	timer = 0.0
+	_begin_telegraph()
 
+
+func _begin_telegraph() -> void:
 	var origin: Vector3 = global_position + Vector3(0.0, muzzle_height, 0.0)
-	var aim_point: Vector3 = target.global_position + Vector3(0.0, target_height_offset, 0.0)
+	var aim_point: Vector3 = _get_target_aim_point()
 	var dir: Vector3 = aim_point - origin
 
 	if dir.length() <= 0.001:
 		return
-	
-	dir = dir.normalized()
+
+	_telegraph_origin = origin + dir.normalized() * muzzle_forward_offset
+	_telegraph_dir = dir.normalized()
+	_telegraph_left = telegraph_time
+	_update_telegraph_visual()
+
+
+func _fire_cached_bullet() -> void:
+	if bullet_scene == null:
+		return
 
 	var b: Node3D = bullet_scene.instantiate() as Node3D
-	get_tree().current_scene.get_node("World").add_child(b)
+	if b == null:
+		return
 
-	# spawn bullet leggermente avanti rispetto alla canna, ma ora con mira 3D completa
-	origin += dir * muzzle_forward_offset
+	get_tree().current_scene.get_node("World").add_child(b)
 	if b.has_method("fire"):
-		b.fire(origin, dir, bullet_speed, self)
+		b.fire(_telegraph_origin, _telegraph_dir, bullet_speed, self)
+
+
+func _get_target_aim_point() -> Vector3:
+	if target == null or not is_instance_valid(target):
+		return global_position + Vector3(0.0, target_height_offset, 0.0)
+
+	var aim_target: Node3D = target.get_node_or_null("Head/AimTarget") as Node3D
+	if aim_target == null:
+		aim_target = target.get_node_or_null("AimTarget") as Node3D
+
+	if aim_target != null:
+		return aim_target.global_position
+
+	return target.global_position + Vector3(0.0, target_height_offset, 0.0)
+
+
+func _update_telegraph_visual() -> void:
+	if not is_instance_valid(turret_sprite):
+		return
+
+	var elapsed: float = maxf(telegraph_time - _telegraph_left, 0.0)
+	var pulse: float = 0.5 + 0.5 * sin(elapsed * telegraph_flash_speed * TAU)
+	var boost: float = 1.0 + pulse * telegraph_flash_amount
+	turret_sprite.modulate = Color(
+		_sprite_base_modulate.r * boost,
+		_sprite_base_modulate.g * boost,
+		_sprite_base_modulate.b * boost,
+		_sprite_base_modulate.a
+	)
+
+
+func _cancel_telegraph() -> void:
+	_telegraph_left = 0.0
+	if is_instance_valid(turret_sprite):
+		turret_sprite.modulate = _sprite_base_modulate

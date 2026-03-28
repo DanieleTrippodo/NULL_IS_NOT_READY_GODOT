@@ -48,22 +48,29 @@ signal teleport_sequence_finished
 @export var phase_2_bullet_speed_mult: float = 1.16
 
 @export_group("Phase 3")
-@export var phase_3_pattern_interval: float = 0.62
-@export var phase_3_bullet_speed_mult: float = 1.32
+@export var phase_3_pattern_interval: float = 0.78
+@export var phase_3_bullet_speed_mult: float = 1.18
+@export var phase_3_fan_side_count_bonus: int = 2
+@export var phase_3_center_pin_count: int = 4
+@export var phase_3_center_pin_speed_mult: float = 1.03
+@export var phase_3_rotating_inner_count: int = 5
+@export var phase_3_rotating_inner_speed_mult: float = 1.02
+@export var phase_3_extra_lane_burst_count: int = 4
+@export var phase_3_extra_lane_burst_speed_mult: float = 1.04
 
 @export_group("Fan Burst")
-@export var fan_burst_count: int = 13
+@export var fan_burst_count: int = 12
 @export var fan_burst_angle_deg: float = 76.0
 @export var fan_burst_speed: float = 16.8
 @export var fan_prediction: float = 0.30
 
 @export_group("Rotating Spread")
-@export var rotating_spread_count: int = 12
+@export var rotating_spread_count: int = 11
 @export var rotating_spread_speed: float = 14.8
 @export var rotating_offset_step_deg: float = 18.0
 
 @export_group("Lane Sweep")
-@export var lane_sweep_rows: int = 8
+@export var lane_sweep_rows: int = 7
 @export var lane_sweep_speed: float = 18.0
 
 @onready var visuals: Node3D = $Visuals
@@ -518,6 +525,8 @@ func _fire_fan_burst_pattern() -> void:
 
 	if current_phase >= 2:
 		var side_count: int = 7 + current_phase
+		if current_phase >= 3:
+			side_count = 7 + phase_3_fan_side_count_bonus
 		var side_angle: float = 34.0 + float(current_phase) * 4.0
 		_spawn_narrow_player_burst(
 			side_muzzle.global_position,
@@ -528,14 +537,14 @@ func _fire_fan_burst_pattern() -> void:
 		)
 
 	if current_phase >= 3:
-		var center_pin_count: int = 6
+		var center_pin_count: int = phase_3_center_pin_count
 		var center_pin_target: Vector3 = _get_player_future_position(0.10)
 		_spawn_narrow_player_burst(
 			muzzle_center.global_position,
 			center_pin_target,
 			center_pin_count,
 			12.0,
-			speed * 1.14
+			speed * phase_3_center_pin_speed_mult
 		)
 
 	fan_cycle_index += 1
@@ -584,7 +593,7 @@ func _fire_rotating_spread_pattern() -> void:
 		)
 
 	if current_phase >= 3:
-		var inner_count: int = 8
+		var inner_count: int = phase_3_rotating_inner_count
 		var inner_total: float = deg_to_rad(44.0)
 		var inner_start: float = -inner_total * 0.5 + deg_to_rad(9.0 * float(rotating_cycle_index % 2))
 		var inner_step: float = inner_total / float(maxi(inner_count - 1, 1))
@@ -597,13 +606,15 @@ func _fire_rotating_spread_pattern() -> void:
 				yaw,
 				0.0
 			)
-			_spawn_bullet(muzzle_center.global_position, dir, speed * 1.12)
+			_spawn_bullet(muzzle_center.global_position, dir, speed * phase_3_rotating_inner_speed_mult)
 
 	rotating_cycle_index += 1
 
 
 func _fire_lane_sweep_pattern() -> void:
 	var cols: int = maxi(lane_sweep_rows + current_phase - 1, 6)
+	if current_phase >= 3:
+		cols = maxi(cols - 1, 6)
 	var speed: float = lane_sweep_speed * current_bullet_speed_mult
 
 	var safe_lane_1: int = _pick_next_safe_lane(cols)
@@ -635,7 +646,7 @@ func _fire_lane_sweep_pattern() -> void:
 			_get_lane_target(cols, future_lane, 0.18),
 			6,
 			12.0,
-			speed * 1.16
+			speed * phase_3_extra_lane_burst_speed_mult
 		)
 
 	lane_cycle_index += 1

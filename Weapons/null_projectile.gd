@@ -300,7 +300,7 @@ func _apply_homing(delta: float) -> void:
 	if target == null:
 		return
 
-	var to: Vector3 = target.global_position - global_position
+	var to: Vector3 = _get_enemy_target_position(target) - global_position
 	if to.length_squared() <= 0.00001:
 		return
 	var desired_dir: Vector3 = to.normalized()
@@ -328,7 +328,8 @@ func _find_nearest_enemy(max_radius: float = INF) -> Node3D:
 		var iid: int = e.get_instance_id()
 		if _recent_hit.has(iid):
 			continue
-		var d2: float = e.global_position.distance_squared_to(global_position)
+		var aim_pos: Vector3 = _get_enemy_target_position(e)
+		var d2: float = aim_pos.distance_squared_to(global_position)
 		if d2 > radius_d2:
 			continue
 		if d2 < best_d2:
@@ -336,6 +337,27 @@ func _find_nearest_enemy(max_radius: float = INF) -> Node3D:
 			best = e
 
 	return best
+
+
+func _get_enemy_target_position(enemy: Node3D) -> Vector3:
+	if enemy == null or not is_instance_valid(enemy):
+		return global_position
+
+	for marker_name in ["AimTarget", "HomingTarget", "Target", "CenterTarget", "HitTarget"]:
+		var marker: Node = enemy.find_child(marker_name, true, false)
+		if marker != null and marker is Node3D:
+			return (marker as Node3D).global_position
+
+	var collision_node: Node = enemy.find_child("CollisionShape3D", true, false)
+	if collision_node != null and collision_node is CollisionShape3D:
+		return (collision_node as CollisionShape3D).global_position
+
+	for visual_name in ["AnimatedSprite3D", "Sprite3D", "TurretSprite", "MeshInstance3D", "Body"]:
+		var visual: Node = enemy.find_child(visual_name, true, false)
+		if visual != null and visual is Node3D:
+			return (visual as Node3D).global_position
+
+	return enemy.global_position
 
 
 func _compute_substeps(step_len: float) -> int:
@@ -423,9 +445,15 @@ func _handle_enemy_hit(enemy_node: Node) -> bool:
 
 		global_position += normal * HIT_NUDGE
 
+		if Signals.has_signal("enemy_hit_feedback"):
+			Signals.enemy_hit_feedback.emit(enemy_node, false)
+
 		_pending_drop_after_ricochet = true
 		_ricochet_drop_left = stealer_ricochet_time
 		return false
+
+	if Signals.has_signal("enemy_hit_feedback"):
+		Signals.enemy_hit_feedback.emit(enemy_node, true)
 
 	Signals.enemy_killed.emit(enemy_node)
 
@@ -443,7 +471,6 @@ func _handle_enemy_hit(enemy_node: Node) -> bool:
 	Signals.null_ready_changed.emit(true)
 	queue_free()
 	return true
-
 
 func _find_enemy_node(collider: Object) -> Node:
 	if collider == null or not (collider is Node):
@@ -585,7 +612,7 @@ func _try_second_chance_redirect() -> bool:
 	if target == null:
 		return false
 
-	var to_target: Vector3 = target.global_position - global_position
+	var to_target: Vector3 = _get_enemy_target_position(target) - global_position
 	if to_target.length_squared() <= 0.00001:
 		return false
 

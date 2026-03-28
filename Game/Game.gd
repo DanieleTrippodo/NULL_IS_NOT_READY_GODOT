@@ -96,7 +96,9 @@ const FLOOR_EPS: float = 0.03
 const FADE_TIME: float = 0.25
 const WAVE_FREEZE_TIME: float = 0.35
 
-const KILL_FLASH_TIME := 0.09
+const HIT_FLASH_TIME: float = 0.05
+const KILL_FLASH_TIME: float = 0.09
+const KILL_HITSTOP_TIME: float = 0.032
 const BOSS_UNLOCK_WAVE: int = 23
 
 func _ready() -> void:
@@ -131,6 +133,8 @@ func _ready() -> void:
 	Signals.null_dropped.connect(_on_null_dropped)
 
 	Signals.enemy_killed.connect(_on_enemy_killed)
+	if Signals.has_signal("enemy_hit_feedback"):
+		Signals.enemy_hit_feedback.connect(_on_enemy_hit_feedback)
 	Signals.player_died.connect(_on_player_died)
 
 	_spawn_arena(_get_arena_scene_for_depth(Run.depth))
@@ -254,32 +258,25 @@ func _play_kill_sfx() -> void:
 	kill_sfx.pitch_scale = rng.randf_range(0.92, 1.08)
 	kill_sfx.play()
 
-func _flash_enemy(enemy: Node) -> void:
-	if enemy == null or not (enemy is Node3D):
-		return
+func _collect_enemy_visual_nodes(root: Node) -> Array[Node]:
+	var visuals: Array[Node] = []
+	if root == null:
+		return visuals
 
-	var e := enemy as Node3D
-	var mesh_node := e.find_child("MeshInstance3D", true, false)
-	if mesh_node == null or not (mesh_node is MeshInstance3D):
-		return
+	var stack: Array[Node] = [root]
+	while not stack.is_empty():
+		var current: Node = stack.pop_back()
+		if current is MeshInstance3D or current is Sprite3D or current is AnimatedSprite3D:
+			visuals.append(current)
 
-	var mesh := mesh_node as MeshInstance3D
-	var prev_mat := mesh.material_override
+		for child in current.get_children():
+			if child is Node:
+				stack.append(child as Node)
 
-	var mat := StandardMaterial3D.new()
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.emission_enabled = true
-	mat.emission = Color(1, 1, 1)
-	mat.albedo_color = Color(1, 1, 1, 1)
+	return visuals
 
-	mesh.material_override = mat
-
-	var tw := get_tree().create_tween()
-	tw.tween_property(mat, "albedo_color:a", 0.0, KILL_FLASH_TIME)
-	tw.tween_callback(func():
-		if is_instance_valid(mesh):
-			mesh.material_override = prev_mat
-	)
+func _flash_enemy(enemy: Node, strong: bool = false) -> void:
+	return
 
 func _disable_enemy(enemy: Node) -> void:
 	if enemy == null:
@@ -1180,6 +1177,13 @@ func _on_null_dropped(_arg: Variant = null) -> void:
 # ------------------------------------------------------------
 # Enemy killed / wave end
 # ------------------------------------------------------------
+func _on_enemy_hit_feedback(enemy: Node, killed: bool) -> void:
+	if killed:
+		return
+	if enemy == null or not is_instance_valid(enemy):
+		return
+	_flash_enemy(enemy, false)
+
 func _on_enemy_killed(enemy: Node) -> void:
 	if Run.in_boss_fight and boss_arena_instance != null:
 		return
@@ -1196,11 +1200,8 @@ func _on_enemy_killed(enemy: Node) -> void:
 		_spawn_enemy_death_fx(death_pos)
 		_disable_enemy(enemy)
 		_play_kill_sfx()
-		_flash_enemy(enemy)
-
-		get_tree().create_timer(KILL_FLASH_TIME).timeout.connect(
-			Callable(self, "_queue_free_if_valid").bind(enemy)
-		)
+		_hitstop(KILL_HITSTOP_TIME)
+		_queue_free_if_valid(enemy)
 
 	if can_drop_money:
 		_spawn_enemy_money_drop(death_pos)

@@ -47,6 +47,13 @@ var _mobile_controls: Node = null
 @export var downed_invuln_seconds: float = 0.5
 @export var downed_self_revive_seconds: float = 7.0
 
+@export_group("Fairness")
+@export var clear_enemy_bullets_on_downed: bool = true
+@export var clear_enemy_bullets_on_revive: bool = true
+@export var bullet_clear_radius_downed: float = 2.2
+@export var bullet_clear_radius_revive: float = 2.6
+@export var revive_iframe_seconds: float = 0.45
+
 # -------------------------
 # PUSH (RMB)
 # -------------------------
@@ -748,6 +755,8 @@ func _on_player_hit(knockback_dir: Vector3) -> void:
 	if state == PState.DOWNED:
 		if _downed_invuln_t > 0.0:
 			return
+		if Signals.has_signal("player_damage_feedback"):
+			Signals.player_damage_feedback.emit(knockback_dir, true)
 		Signals.downed_self_recovery_changed.emit(false, 0.0, downed_self_revive_seconds)
 		Signals.player_died.emit()
 		return
@@ -768,6 +777,9 @@ func _on_player_hit(knockback_dir: Vector3) -> void:
 		dir = -global_transform.basis.z
 	dir = dir.normalized()
 
+	if Signals.has_signal("player_damage_feedback"):
+		Signals.player_damage_feedback.emit(dir, false)
+
 	velocity.x += dir.x * knockback_speed
 	velocity.z += dir.z * knockback_speed
 	velocity.y = maxf(velocity.y, knockback_lift)
@@ -781,6 +793,9 @@ func _enter_downed() -> void:
 	_downed_invuln_t = downed_invuln_seconds
 	_downed_self_revive_t = downed_self_revive_seconds
 
+	if clear_enemy_bullets_on_downed:
+		_clear_nearby_enemy_bullets(bullet_clear_radius_downed)
+
 	_set_body_downed(true)
 	Signals.survival_mode_changed.emit(true)
 	Signals.downed_self_recovery_changed.emit(true, _downed_self_revive_t, downed_self_revive_seconds)
@@ -790,6 +805,10 @@ func _exit_downed() -> void:
 	Run.survival_mode = false
 	_downed_invuln_t = 0.0
 	_downed_self_revive_t = 0.0
+	_recovery_iframe_t = maxf(_recovery_iframe_t, revive_iframe_seconds)
+
+	if clear_enemy_bullets_on_revive:
+		_clear_nearby_enemy_bullets(bullet_clear_radius_revive)
 
 	_set_body_downed(false)
 	Signals.survival_mode_changed.emit(false)
@@ -812,6 +831,30 @@ func _on_null_recovered(_pos: Vector3) -> void:
 	if not Run.recovery_iframe:
 		return
 	_recovery_iframe_t = maxf(_recovery_iframe_t, Run.recovery_iframe_seconds)
+
+
+func _clear_nearby_enemy_bullets(radius: float) -> void:
+	if radius <= 0.0:
+		return
+
+	var center: Vector3 = global_position
+	if is_instance_valid(head):
+		center = head.global_position
+
+	for bullet_node in get_tree().get_nodes_in_group("enemy_bullet"):
+		if not (bullet_node is Node3D):
+			continue
+
+		var bullet: Node3D = bullet_node as Node3D
+		if not is_instance_valid(bullet):
+			continue
+		if bullet.global_position.distance_to(center) > radius:
+			continue
+
+		if bullet.has_method("_consume"):
+			bullet.call("_consume")
+		else:
+			bullet.queue_free()
 
 
 func _on_enemy_killed(_enemy: Node) -> void:
