@@ -1,4 +1,4 @@
-[gd_scene load_steps=28 format=3 uid="uid://bmh5v3pstny5c"]
+[gd_scene load_steps=36 format=3 uid="uid://bmh5v3pstny5c"]
 
 [ext_resource type="Texture2D" uid="uid://b0yc6digipfue" path="res://Levels/Floor.jpg" id="1_c58mu"]
 [ext_resource type="PackedScene" uid="uid://cqkyne466bpru" path="res://Interactables/tutorial_spawn_button.tscn" id="2_h6fp6"]
@@ -20,6 +20,14 @@
 [ext_resource type="PackedScene" uid="uid://c8v7u0on5dem2" path="res://Props/tutorial_tips_game_2.tscn" id="16_xps8r"]
 [ext_resource type="PackedScene" uid="uid://bv6vks01pgrnx" path="res://Props/tutorial_tips_enemy_spike.tscn" id="17_t3lr3"]
 [ext_resource type="PackedScene" uid="uid://bnici476qbkoh" path="res://Props/tutorial_tips_enemy_exception.tscn" id="18_vybjl"]
+[ext_resource type="PackedScene" uid="uid://cwpicnx0i8uwk" path="res://Props/tutorial_tips_game_3.tscn" id="21_ilprr"]
+[ext_resource type="PackedScene" uid="uid://dicwisp0os6uc" path="res://Props/tutorial_tips_game_4.tscn" id="22_nlrrh"]
+[ext_resource type="PackedScene" uid="uid://orbbamun3k01" path="res://Props/tutorial_tips_game_5.tscn" id="23_kncoa"]
+[ext_resource type="PackedScene" uid="uid://q7n036hfa7kg" path="res://Props/tutorial_tips_game_6.tscn" id="24_q8wxc"]
+[ext_resource type="PackedScene" uid="uid://djfdeyabtm67h" path="res://Props/tutorial_tips_game_7.tscn" id="25_18a3a"]
+[ext_resource type="PackedScene" uid="uid://clbarjvcdsbm2" path="res://Props/tutorial_tips_game_8.tscn" id="26_wp33n"]
+[ext_resource type="PackedScene" uid="uid://bf7osrbyipwwr" path="res://Props/tutorial_tips_game_9.tscn" id="27_jgq1a"]
+[ext_resource type="PackedScene" uid="uid://djnn6v3hlsl0p" path="res://Props/tutorial_tips_game_10.tscn" id="28_t0dv2"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_h6fp6"]
 size = Vector3(30, 1, 30)
@@ -212,6 +220,41 @@ transform = Transform3D(0.08320915, 0, 0.034296334, 0, 0.09, 0, -0.034296334, 0,
 texture_filter = 0
 texture = ExtResource("7_lhwux")
 
+[node name="Direction4" type="Sprite3D" parent="Props_MAP"]
+transform = Transform3D(0.09, 0, 0, 0, 0.09, 0, 0, 0, 0.09, 4.0293, 1.1101493, -6.846506)
+texture_filter = 0
+texture = ExtResource("7_lhwux")
+
+[node name="Direction5" type="Sprite3D" parent="Props_MAP"]
+transform = Transform3D(0.09, 0, 0, 0, 0.09, 0, 0, 0, 0.09, 10.647012, 1.1101493, -6.846506)
+texture_filter = 0
+texture = ExtResource("7_lhwux")
+
+[node name="Direction6" type="Sprite3D" parent="Props_MAP"]
+transform = Transform3D(0.09, 0, 0, 0, 0.09, 0, 0, 0, 0.09, 16.813751, 1.1101493, -6.846506)
+texture_filter = 0
+texture = ExtResource("7_lhwux")
+
+[node name="Direction7" type="Sprite3D" parent="Props_MAP"]
+transform = Transform3D(0.09, 0, 0, 0, 0.09, 0, 0, 0, 0.09, 22.975864, 1.1101493, -6.846506)
+texture_filter = 0
+texture = ExtResource("7_lhwux")
+
+[node name="Direction8" type="Sprite3D" parent="Props_MAP"]
+transform = Transform3D(0.06383148, 0, 0.06344716, 0, 0.09000001, 0, -0.06344716, 0, 0.06383148, 29.418634, 1.1101493, -7.8391876)
+texture_filter = 0
+texture = ExtResource("7_lhwux")
+
+[node name="Direction9" type="Sprite3D" parent="Props_MAP"]
+transform = Transform3D(-0.08151385, 0, 0.038150914, 0, 0.09, 0, -0.038150914, 0, -0.08151385, 29.380133, 1.1101493, -10.310791)
+texture_filter = 0
+texture = ExtResource("7_lhwux")
+
+[node name="Direction10" type="Sprite3D" parent="Props_MAP"]
+transform = Transform3D(-0.09, 0, -7.86805e-09, 0, 0.09, 0, 7.86805e-09, 0, -0.09, 23.274914, 1.1101493, -12.4634)
+texture_filter = 0
+texture = ExtResource("7_lhwux")
+
 [node name="BOUND" type="CSGCombiner3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.33259964)
 use_collision = true
@@ -272,3 +315,27 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.251118, 0, 0.9424323)
 
 [node name="TutorialTipsEnemy_EXCEPTION" parent="." instance=ExtResource("18_vybjl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.43214, 0, -3.3408175)
+
+[node name="TutorialTipsGAME_3" parent="." instance=ExtResource("21_ilprr")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.63265145, 0, -20.867577)
+
+[node name="TutorialTipsGAME_4" parent="." instance=ExtResource("22_nlrrh")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.353503, 0, -20.792273)
+
+[node name="TutorialTipsGAME_5" parent="." instance=ExtResource("23_kncoa")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.71627, 0, -20.798018)
+
+[node name="TutorialTipsGAME_6" parent="." instance=ExtResource("24_q8wxc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19.950504, 0, -20.872463)
+
+[node name="TutorialTipsGAME_7" parent="." instance=ExtResource("25_18a3a")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26.157328, 0, -20.901112)
+
+[node name="TutorialTipsGAME_8" parent="." instance=ExtResource("26_wp33n")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32.268677, 0, -24.084433)
+
+[node name="TutorialTipsGAME_9" parent="." instance=ExtResource("27_jgq1a")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26.663467, 0, -26.425688)
+
+[node name="TutorialTipsGAME_10" parent="." instance=ExtResource("28_t0dv2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19.806385, 0, -26.407314)

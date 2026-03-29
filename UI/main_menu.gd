@@ -41,6 +41,7 @@ extends Control
 @onready var special_thanks_title: Label = $UI/CreditsPanel/CenterContainer/VBoxContainer/SpecialThanksTitle
 @onready var special_thanks_1: Label = $UI/CreditsPanel/CenterContainer/VBoxContainer/LaSpecialThanks1bel
 @onready var special_thanks_2: Label = $UI/CreditsPanel/CenterContainer/VBoxContainer/LaSpecialThanks2bel
+@onready var special_thanks_3: Label = $UI/CreditsPanel/CenterContainer/VBoxContainer/LaSpecialThanks3bel
 @onready var credits_back_value: Button = $UI/CreditsPanel/CenterContainer/VBoxContainer/BackValue
 
 @onready var settings_buttons: Array[Button] = [
@@ -493,6 +494,7 @@ func _refresh_credits_ui(selected_back: bool = true) -> void:
 	special_thanks_title.modulate.a = 0.95
 	special_thanks_1.text = "  Playtesting: Adircas"
 	special_thanks_2.text = "  Playtesting: DunderBirb"
+	special_thanks_3.text = "  Playtesting: AktOn1"
 
 	credits_back_value.text = ("> " if selected_back else "  ") + "BACK"
 	credits_back_value.modulate.a = 1.0 if selected_back else 0.75

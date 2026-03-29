@@ -132,6 +132,7 @@ theme_override_fonts/font = ExtResource("2")
 theme_override_font_sizes/font_size = 30
 text = "Playtester: Adircas
 Playtester: DunderBirb
+Playtester: AktOn1
 
 And to everyone who supported and survived the run."
 horizontal_alignment = 1
