@@ -49,12 +49,16 @@ var _last_push_stun: float = 0.0
 
 # Glitch visivo
 @onready var _mesh: MeshInstance3D = $MeshInstance3D
+@onready var sprite: AnimatedSprite3D = $AnimatedSprite3D
 var _glitch_t: float = 0.0
 
 # Flash (on hit)
 var _flash_mat: StandardMaterial3D
 var _orig_override: Material = null
 
+
+func _ready() -> void:
+	sprite.play("walk")
 
 func set_target(t: Node3D) -> void:
 	target = t

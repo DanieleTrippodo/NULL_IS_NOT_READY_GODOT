@@ -1,10 +1,256 @@
-[gd_scene load_steps=4 format=3 uid="uid://bivvuwcjgan2n"]
+[gd_scene load_steps=64 format=3 uid="uid://bivvuwcjgan2n"]
 
 [ext_resource type="Script" uid="uid://cry7j2wk67dvg" path="res://Enemies/spike.gd" id="1_wiyvp"]
+[ext_resource type="Texture2D" uid="uid://cu35kf7ms7ui0" path="res://Enemies/SpikeSprite/Timeline 10001.png" id="2_cfsjc"]
+[ext_resource type="Texture2D" uid="uid://4u4xuado47om" path="res://Enemies/SpikeSprite/Timeline 10002.png" id="3_on2ct"]
+[ext_resource type="Texture2D" uid="uid://bx0x6wjjt18k8" path="res://Enemies/SpikeSprite/Timeline 10003.png" id="4_kcoji"]
+[ext_resource type="Texture2D" uid="uid://djcv7eel687ds" path="res://Enemies/SpikeSprite/Timeline 10004.png" id="5_rxlr5"]
+[ext_resource type="Texture2D" uid="uid://db2c8um6dsi2w" path="res://Enemies/SpikeSprite/Timeline 10005.png" id="6_70tv6"]
+[ext_resource type="Texture2D" uid="uid://c2qyr83d2ggbp" path="res://Enemies/SpikeSprite/Timeline 10006.png" id="7_l5lx2"]
+[ext_resource type="Texture2D" uid="uid://xqup3n16xg1y" path="res://Enemies/SpikeSprite/Timeline 10007.png" id="8_aug75"]
+[ext_resource type="Texture2D" uid="uid://csedm6ei3uelj" path="res://Enemies/SpikeSprite/Timeline 10008.png" id="9_e20cd"]
+[ext_resource type="Texture2D" uid="uid://co0u023renadv" path="res://Enemies/SpikeSprite/Timeline 10009.png" id="10_h7ooh"]
+[ext_resource type="Texture2D" uid="uid://doilgaeigep8" path="res://Enemies/SpikeSprite/Timeline 10010.png" id="11_eg3i5"]
+[ext_resource type="Texture2D" uid="uid://cni71278wtfu5" path="res://Enemies/SpikeSprite/Timeline 10011.png" id="12_8hgql"]
+[ext_resource type="Texture2D" uid="uid://8upa5rk4r160" path="res://Enemies/SpikeSprite/Timeline 10012.png" id="13_gy4rx"]
+[ext_resource type="Texture2D" uid="uid://d1cv4y8k5ucng" path="res://Enemies/SpikeSprite/Timeline 10013.png" id="14_0fe5f"]
+[ext_resource type="Texture2D" uid="uid://cok0j0fe5odow" path="res://Enemies/SpikeSprite/Timeline 10014.png" id="15_yt1sk"]
+[ext_resource type="Texture2D" uid="uid://bui3mbhyvggh6" path="res://Enemies/SpikeSprite/Timeline 10015.png" id="16_4sesv"]
+[ext_resource type="Texture2D" uid="uid://b2rs72hci7nbd" path="res://Enemies/SpikeSprite/Timeline 10016.png" id="17_ktrm6"]
+[ext_resource type="Texture2D" uid="uid://bi0482afhiytb" path="res://Enemies/SpikeSprite/Timeline 10017.png" id="18_i3nco"]
+[ext_resource type="Texture2D" uid="uid://pl73awjwrncn" path="res://Enemies/SpikeSprite/Timeline 10018.png" id="19_6sqid"]
+[ext_resource type="Texture2D" uid="uid://bf315kbg0hjs6" path="res://Enemies/SpikeSprite/Timeline 10019.png" id="20_4a7kq"]
+[ext_resource type="Texture2D" uid="uid://ikrcnvn57hu2" path="res://Enemies/SpikeSprite/Timeline 10020.png" id="21_6fenw"]
+[ext_resource type="Texture2D" uid="uid://bh5f2bbn0vk8r" path="res://Enemies/SpikeSprite/Timeline 10021.png" id="22_hr0ya"]
+[ext_resource type="Texture2D" uid="uid://5irxf0p7daor" path="res://Enemies/SpikeSprite/Timeline 10022.png" id="23_5vjdd"]
+[ext_resource type="Texture2D" uid="uid://b1wq8qhlmim7" path="res://Enemies/SpikeSprite/Timeline 10023.png" id="24_ct7up"]
+[ext_resource type="Texture2D" uid="uid://cjrfg1oop35kb" path="res://Enemies/SpikeSprite/Timeline 10024.png" id="25_c50wq"]
+[ext_resource type="Texture2D" uid="uid://dhln5ppbddr8h" path="res://Enemies/SpikeSprite/Timeline 10025.png" id="26_5up0c"]
+[ext_resource type="Texture2D" uid="uid://cwbll2lltxj71" path="res://Enemies/SpikeSprite/Timeline 10026.png" id="27_2lcxp"]
+[ext_resource type="Texture2D" uid="uid://brukaq73gbmqs" path="res://Enemies/SpikeSprite/Timeline 10027.png" id="28_1aylp"]
+[ext_resource type="Texture2D" uid="uid://d2rqmoijsqph7" path="res://Enemies/SpikeSprite/Timeline 10028.png" id="29_tg7gv"]
+[ext_resource type="Texture2D" uid="uid://81kbixvs10bl" path="res://Enemies/SpikeSprite/Timeline 10029.png" id="30_5pxn2"]
+[ext_resource type="Texture2D" uid="uid://dfi05e86mshvx" path="res://Enemies/SpikeSprite/Timeline 10030.png" id="31_1wtrh"]
+[ext_resource type="Texture2D" uid="uid://b3bgfrxnli51l" path="res://Enemies/SpikeSprite/Timeline 10031.png" id="32_3qe1o"]
+[ext_resource type="Texture2D" uid="uid://cfpuimi6f8fdh" path="res://Enemies/SpikeSprite/Timeline 10032.png" id="33_yjbg5"]
+[ext_resource type="Texture2D" uid="uid://c6byl7s1r70nn" path="res://Enemies/SpikeSprite/Timeline 10033.png" id="34_qtqe7"]
+[ext_resource type="Texture2D" uid="uid://l84g6adb3mqb" path="res://Enemies/SpikeSprite/Timeline 10034.png" id="35_yqh3g"]
+[ext_resource type="Texture2D" uid="uid://j688mkssbesa" path="res://Enemies/SpikeSprite/Timeline 10035.png" id="36_d4812"]
+[ext_resource type="Texture2D" uid="uid://8gcdgyo7qwsw" path="res://Enemies/SpikeSprite/Timeline 10036.png" id="37_vlcv0"]
+[ext_resource type="Texture2D" uid="uid://dnenajx48u8bg" path="res://Enemies/SpikeSprite/Timeline 10037.png" id="38_46kjx"]
+[ext_resource type="Texture2D" uid="uid://c37d2x3lom37n" path="res://Enemies/SpikeSprite/Timeline 10038.png" id="39_ykhoa"]
+[ext_resource type="Texture2D" uid="uid://ctmvnmel4h3ua" path="res://Enemies/SpikeSprite/Timeline 10039.png" id="40_qcxaj"]
+[ext_resource type="Texture2D" uid="uid://cr8cjp03824v7" path="res://Enemies/SpikeSprite/Timeline 10040.png" id="41_1f8qq"]
+[ext_resource type="Texture2D" uid="uid://c7ktdaxye1rob" path="res://Enemies/SpikeSprite/Timeline 10041.png" id="42_xegrf"]
+[ext_resource type="Texture2D" uid="uid://cvsjkirioevnr" path="res://Enemies/SpikeSprite/Timeline 10042.png" id="43_b4y4q"]
+[ext_resource type="Texture2D" uid="uid://dqsathk7wgev4" path="res://Enemies/SpikeSprite/Timeline 10043.png" id="44_686jm"]
+[ext_resource type="Texture2D" uid="uid://bbxqtipvvnmh0" path="res://Enemies/SpikeSprite/Timeline 10044.png" id="45_8lscb"]
+[ext_resource type="Texture2D" uid="uid://0thb1wpx5n6c" path="res://Enemies/SpikeSprite/Timeline 10045.png" id="46_c8lvi"]
+[ext_resource type="Texture2D" uid="uid://dk6nxy4ln1wk1" path="res://Enemies/SpikeSprite/Timeline 10046.png" id="47_igdt7"]
+[ext_resource type="Texture2D" uid="uid://cdfgfpdu5vk7f" path="res://Enemies/SpikeSprite/Timeline 10047.png" id="48_cy136"]
+[ext_resource type="Texture2D" uid="uid://c2tsndj6sdf6o" path="res://Enemies/SpikeSprite/Timeline 10048.png" id="49_l71jn"]
+[ext_resource type="Texture2D" uid="uid://uaypheb3j5w5" path="res://Enemies/SpikeSprite/Timeline 10049.png" id="50_cro0c"]
+[ext_resource type="Texture2D" uid="uid://cymi5lvhrmkya" path="res://Enemies/SpikeSprite/Timeline 10050.png" id="51_wv5c8"]
+[ext_resource type="Texture2D" uid="uid://cxhkrsf06d63p" path="res://Enemies/SpikeSprite/Timeline 10051.png" id="52_iak3t"]
+[ext_resource type="Texture2D" uid="uid://uurqwv4xpn3h" path="res://Enemies/SpikeSprite/Timeline 10052.png" id="53_ojjop"]
+[ext_resource type="Texture2D" uid="uid://c0hmf4edm4nw0" path="res://Enemies/SpikeSprite/Timeline 10053.png" id="54_wmvsj"]
+[ext_resource type="Texture2D" uid="uid://coketbjns2oba" path="res://Enemies/SpikeSprite/Timeline 10054.png" id="55_n8yjm"]
+[ext_resource type="Texture2D" uid="uid://btgy6cntd683m" path="res://Enemies/SpikeSprite/Timeline 10055.png" id="56_lo4jv"]
+[ext_resource type="Texture2D" uid="uid://c0xm7swh7glyp" path="res://Enemies/SpikeSprite/Timeline 10056.png" id="57_f2xx3"]
+[ext_resource type="Texture2D" uid="uid://ooo83g3xmrkd" path="res://Enemies/SpikeSprite/Timeline 10057.png" id="58_8mr60"]
+[ext_resource type="Texture2D" uid="uid://detpqgtnhibwb" path="res://Enemies/SpikeSprite/Timeline 10058.png" id="59_67snh"]
+[ext_resource type="Texture2D" uid="uid://crqdndm17ti08" path="res://Enemies/SpikeSprite/Timeline 10059.png" id="60_uv1lo"]
+[ext_resource type="Texture2D" uid="uid://xv4ilyvj0ofa" path="res://Enemies/SpikeSprite/Timeline 10060.png" id="61_fvnju"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_pfkvt"]
 
-[sub_resource type="CylinderMesh" id="CylinderMesh_wiyvp"]
+[sub_resource type="SpriteFrames" id="SpriteFrames_aqbvi"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_cfsjc")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_on2ct")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_kcoji")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_rxlr5")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_70tv6")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_l5lx2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_aug75")
+}, {
+"duration": 1.0,
+"texture": ExtResource("9_e20cd")
+}, {
+"duration": 1.0,
+"texture": ExtResource("10_h7ooh")
+}, {
+"duration": 1.0,
+"texture": ExtResource("11_eg3i5")
+}, {
+"duration": 1.0,
+"texture": ExtResource("12_8hgql")
+}, {
+"duration": 1.0,
+"texture": ExtResource("13_gy4rx")
+}, {
+"duration": 1.0,
+"texture": ExtResource("14_0fe5f")
+}, {
+"duration": 1.0,
+"texture": ExtResource("15_yt1sk")
+}, {
+"duration": 1.0,
+"texture": ExtResource("16_4sesv")
+}, {
+"duration": 1.0,
+"texture": ExtResource("17_ktrm6")
+}, {
+"duration": 1.0,
+"texture": ExtResource("18_i3nco")
+}, {
+"duration": 1.0,
+"texture": ExtResource("19_6sqid")
+}, {
+"duration": 1.0,
+"texture": ExtResource("20_4a7kq")
+}, {
+"duration": 1.0,
+"texture": ExtResource("21_6fenw")
+}, {
+"duration": 1.0,
+"texture": ExtResource("22_hr0ya")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_5vjdd")
+}, {
+"duration": 1.0,
+"texture": ExtResource("24_ct7up")
+}, {
+"duration": 1.0,
+"texture": ExtResource("25_c50wq")
+}, {
+"duration": 1.0,
+"texture": ExtResource("26_5up0c")
+}, {
+"duration": 1.0,
+"texture": ExtResource("27_2lcxp")
+}, {
+"duration": 1.0,
+"texture": ExtResource("28_1aylp")
+}, {
+"duration": 1.0,
+"texture": ExtResource("29_tg7gv")
+}, {
+"duration": 1.0,
+"texture": ExtResource("30_5pxn2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("31_1wtrh")
+}, {
+"duration": 1.0,
+"texture": ExtResource("32_3qe1o")
+}, {
+"duration": 1.0,
+"texture": ExtResource("33_yjbg5")
+}, {
+"duration": 1.0,
+"texture": ExtResource("34_qtqe7")
+}, {
+"duration": 1.0,
+"texture": ExtResource("35_yqh3g")
+}, {
+"duration": 1.0,
+"texture": ExtResource("36_d4812")
+}, {
+"duration": 1.0,
+"texture": ExtResource("37_vlcv0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("38_46kjx")
+}, {
+"duration": 1.0,
+"texture": ExtResource("39_ykhoa")
+}, {
+"duration": 1.0,
+"texture": ExtResource("40_qcxaj")
+}, {
+"duration": 1.0,
+"texture": ExtResource("41_1f8qq")
+}, {
+"duration": 1.0,
+"texture": ExtResource("42_xegrf")
+}, {
+"duration": 1.0,
+"texture": ExtResource("43_b4y4q")
+}, {
+"duration": 1.0,
+"texture": ExtResource("44_686jm")
+}, {
+"duration": 1.0,
+"texture": ExtResource("45_8lscb")
+}, {
+"duration": 1.0,
+"texture": ExtResource("46_c8lvi")
+}, {
+"duration": 1.0,
+"texture": ExtResource("47_igdt7")
+}, {
+"duration": 1.0,
+"texture": ExtResource("48_cy136")
+}, {
+"duration": 1.0,
+"texture": ExtResource("49_l71jn")
+}, {
+"duration": 1.0,
+"texture": ExtResource("50_cro0c")
+}, {
+"duration": 1.0,
+"texture": ExtResource("51_wv5c8")
+}, {
+"duration": 1.0,
+"texture": ExtResource("52_iak3t")
+}, {
+"duration": 1.0,
+"texture": ExtResource("53_ojjop")
+}, {
+"duration": 1.0,
+"texture": ExtResource("54_wmvsj")
+}, {
+"duration": 1.0,
+"texture": ExtResource("55_n8yjm")
+}, {
+"duration": 1.0,
+"texture": ExtResource("56_lo4jv")
+}, {
+"duration": 1.0,
+"texture": ExtResource("57_f2xx3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("58_8mr60")
+}, {
+"duration": 1.0,
+"texture": ExtResource("59_67snh")
+}, {
+"duration": 1.0,
+"texture": ExtResource("60_uv1lo")
+}, {
+"duration": 1.0,
+"texture": ExtResource("61_fvnju")
+}],
+"loop": true,
+"name": &"walk",
+"speed": 60.0
+}]
 
 [node name="Spike" type="CharacterBody3D" groups=["enemy"]]
 script = ExtResource("1_wiyvp")
@@ -12,5 +258,11 @@ script = ExtResource("1_wiyvp")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 shape = SubResource("CapsuleShape3D_pfkvt")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-mesh = SubResource("CylinderMesh_wiyvp")
+[node name="AnimatedSprite3D" type="AnimatedSprite3D" parent="."]
+transform = Transform3D(0.17, 0, 0, 0, 0.17, 0, 0, 0, 0.17, 0, 0.18014205, 0)
+billboard = 2
+sprite_frames = SubResource("SpriteFrames_aqbvi")
+animation = &"walk"
+autoplay = "walk"
+frame = 34
+frame_progress = 0.102030195
