@@ -1,98 +1,98 @@
-[gd_scene load_steps=97 format=3 uid="uid://c8uc2jlabtxn5"]
+[gd_scene format=3 uid="uid://c8uc2jlabtxn5"]
 
-[ext_resource type="Script" path="res://Player/player.gd" id="1_l8h54"]
-[ext_resource type="Texture2D" path="res://Player/NullabreastDARKER.png" id="2_c7st8"]
-[ext_resource type="Texture2D" path="res://Player/Body_Down.png" id="3_btcbx"]
-[ext_resource type="Texture2D" path="res://Player/leg Idle0001.png" id="4_c7st8"]
-[ext_resource type="Texture2D" path="res://Player/pushAnimation/Frame0.png" id="4_dkpta"]
-[ext_resource type="Texture2D" path="res://Player/pushAnimation/Frame1.png" id="5_lfmf2"]
-[ext_resource type="Texture2D" path="res://Player/pushAnimation/Frame2.png" id="6_pisgm"]
-[ext_resource type="Texture2D" path="res://Player/pushAnimation/Frame3.png" id="7_b1ygp"]
-[ext_resource type="Texture2D" path="res://Player/pushAnimation/Frame4.png" id="8_o28un"]
-[ext_resource type="Texture2D" path="res://Player/pushAnimation/Frame5.png" id="9_n471f"]
-[ext_resource type="Texture2D" path="res://Player/pushAnimation/Frame6.png" id="10_7emwf"]
-[ext_resource type="Texture2D" path="res://Player/pushAnimation/Frame7.png" id="11_hshwv"]
-[ext_resource type="Texture2D" path="res://Player/pushAnimation/Frame8.png" id="12_gpjlu"]
-[ext_resource type="Texture2D" path="res://Player/pushAnimation/Frame9.png" id="13_8mwp6"]
-[ext_resource type="Texture2D" path="res://Player/pushAnimation/Frame10.png" id="14_qemgg"]
-[ext_resource type="Texture2D" path="res://Player/pushAnimation/Frame11.png" id="15_8viyr"]
-[ext_resource type="Texture2D" path="res://Player/pushAnimation/Frame12.png" id="16_pisgm"]
-[ext_resource type="Texture2D" path="res://Player/pushAnimation/Frame13.png" id="17_b1ygp"]
-[ext_resource type="Texture2D" path="res://Player/RightHand.png" id="18_n471f"]
-[ext_resource type="Texture2D" path="res://Player/ShootRing.png" id="19_o28un"]
-[ext_resource type="Texture2D" path="res://Player/RecoveryHnads.png" id="20_n471f"]
-[ext_resource type="AudioStream" path="res://Audio/SFX/NullShoot.mp3" id="21_7emwf"]
-[ext_resource type="PackedScene" path="res://UI/mobile_controls.tscn" id="22_mobile"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0001.png" id="23_leg0001"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0002.png" id="23_leg0002"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0003.png" id="23_leg0003"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0004.png" id="23_leg0004"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0005.png" id="23_leg0005"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0006.png" id="23_leg0006"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0007.png" id="23_leg0007"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0008.png" id="23_leg0008"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0009.png" id="23_leg0009"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0010.png" id="23_leg0010"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0011.png" id="23_leg0011"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0012.png" id="23_leg0012"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0013.png" id="23_leg0013"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0014.png" id="23_leg0014"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0015.png" id="23_leg0015"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0016.png" id="23_leg0016"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0017.png" id="23_leg0017"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0018.png" id="23_leg0018"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0019.png" id="23_leg0019"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0020.png" id="23_leg0020"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0021.png" id="23_leg0021"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0022.png" id="23_leg0022"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0023.png" id="23_leg0023"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0024.png" id="23_leg0024"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0025.png" id="23_leg0025"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0026.png" id="23_leg0026"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0027.png" id="23_leg0027"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0028.png" id="23_leg0028"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0029.png" id="23_leg0029"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0030.png" id="23_leg0030"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0031.png" id="23_leg0031"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0032.png" id="23_leg0032"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0033.png" id="23_leg0033"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0034.png" id="23_leg0034"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0035.png" id="23_leg0035"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0036.png" id="23_leg0036"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0037.png" id="23_leg0037"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0038.png" id="23_leg0038"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0039.png" id="23_leg0039"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0040.png" id="23_leg0040"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0041.png" id="23_leg0041"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0042.png" id="23_leg0042"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0043.png" id="23_leg0043"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0044.png" id="23_leg0044"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0045.png" id="23_leg0045"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0046.png" id="23_leg0046"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0047.png" id="23_leg0047"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0048.png" id="23_leg0048"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0049.png" id="23_leg0049"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0050.png" id="23_leg0050"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0051.png" id="23_leg0051"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0052.png" id="23_leg0052"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0053.png" id="23_leg0053"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0054.png" id="23_leg0054"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0055.png" id="23_leg0055"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0056.png" id="23_leg0056"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0057.png" id="23_leg0057"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0058.png" id="23_leg0058"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0059.png" id="23_leg0059"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0060.png" id="23_leg0060"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0061.png" id="23_leg0061"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0062.png" id="23_leg0062"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0063.png" id="23_leg0063"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0064.png" id="23_leg0064"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0065.png" id="23_leg0065"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0066.png" id="23_leg0066"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0067.png" id="23_leg0067"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0068.png" id="23_leg0068"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0069.png" id="23_leg0069"]
-[ext_resource type="Texture2D" path="res://Player/LegAnimationRUN/leg run0070.png" id="23_leg0070"]
+[ext_resource type="Script" uid="uid://dhtpslx53p3b5" path="res://Player/player.gd" id="1_l8h54"]
+[ext_resource type="Texture2D" uid="uid://baung4bs6nir7" path="res://Player/NullabreastDARKER.png" id="2_c7st8"]
+[ext_resource type="Texture2D" uid="uid://ck42bify45vkc" path="res://Player/Body_Down.png" id="3_btcbx"]
+[ext_resource type="Texture2D" uid="uid://cl1w7i8bpj523" path="res://Player/leg Idle0001.png" id="4_c7st8"]
+[ext_resource type="Texture2D" uid="uid://b04yl61hoqrjn" path="res://Player/pushAnimation/Frame0.png" id="4_dkpta"]
+[ext_resource type="Texture2D" uid="uid://clvlpki0s7b8d" path="res://Player/pushAnimation/Frame1.png" id="5_lfmf2"]
+[ext_resource type="Texture2D" uid="uid://cw1e0pir0idc4" path="res://Player/pushAnimation/Frame2.png" id="6_pisgm"]
+[ext_resource type="Texture2D" uid="uid://dto40o3s0411u" path="res://Player/pushAnimation/Frame3.png" id="7_b1ygp"]
+[ext_resource type="Texture2D" uid="uid://brs6yo7xjxhye" path="res://Player/pushAnimation/Frame4.png" id="8_o28un"]
+[ext_resource type="Texture2D" uid="uid://u3fg0vx2iwwe" path="res://Player/pushAnimation/Frame5.png" id="9_n471f"]
+[ext_resource type="Texture2D" uid="uid://b6qx6wk6b6g08" path="res://Player/pushAnimation/Frame6.png" id="10_7emwf"]
+[ext_resource type="Texture2D" uid="uid://cpu4w5qtsnk1j" path="res://Player/pushAnimation/Frame7.png" id="11_hshwv"]
+[ext_resource type="Texture2D" uid="uid://bo8mxawqnmhy5" path="res://Player/pushAnimation/Frame8.png" id="12_gpjlu"]
+[ext_resource type="Texture2D" uid="uid://d4fv3x5qqeqeu" path="res://Player/pushAnimation/Frame9.png" id="13_8mwp6"]
+[ext_resource type="Texture2D" uid="uid://c0kb20ptwgt8w" path="res://Player/pushAnimation/Frame10.png" id="14_qemgg"]
+[ext_resource type="Texture2D" uid="uid://c3fpbcv1s842r" path="res://Player/pushAnimation/Frame11.png" id="15_8viyr"]
+[ext_resource type="Texture2D" uid="uid://dodmu4nv3yp52" path="res://Player/pushAnimation/Frame12.png" id="16_pisgm"]
+[ext_resource type="Texture2D" uid="uid://d23i2gw17tmi5" path="res://Player/pushAnimation/Frame13.png" id="17_b1ygp"]
+[ext_resource type="Texture2D" uid="uid://dghif7tb6g2is" path="res://Player/RightHand.png" id="18_n471f"]
+[ext_resource type="Texture2D" uid="uid://bnitp82n0jibx" path="res://Player/ShootRing.png" id="19_o28un"]
+[ext_resource type="Texture2D" uid="uid://br10bb5ejfw30" path="res://Player/RecoveryHnads.png" id="20_n471f"]
+[ext_resource type="AudioStream" uid="uid://df0namkmn60if" path="res://Audio/SFX/NullShoot.mp3" id="21_7emwf"]
+[ext_resource type="PackedScene" uid="uid://beyv4icrdglx2" path="res://UI/mobile_controls.tscn" id="22_mobile"]
+[ext_resource type="Texture2D" uid="uid://bq5uwevypd6lr" path="res://Player/LegAnimationRUN/leg run0001.png" id="23_leg0001"]
+[ext_resource type="Texture2D" uid="uid://dhui4if5vfieh" path="res://Player/LegAnimationRUN/leg run0002.png" id="23_leg0002"]
+[ext_resource type="Texture2D" uid="uid://c65u41brr468m" path="res://Player/LegAnimationRUN/leg run0003.png" id="23_leg0003"]
+[ext_resource type="Texture2D" uid="uid://c12xsjflql0q3" path="res://Player/LegAnimationRUN/leg run0004.png" id="23_leg0004"]
+[ext_resource type="Texture2D" uid="uid://bg3ihl18a13rh" path="res://Player/LegAnimationRUN/leg run0005.png" id="23_leg0005"]
+[ext_resource type="Texture2D" uid="uid://bxwxk4mrmndou" path="res://Player/LegAnimationRUN/leg run0006.png" id="23_leg0006"]
+[ext_resource type="Texture2D" uid="uid://bwi6l3rqtcam6" path="res://Player/LegAnimationRUN/leg run0007.png" id="23_leg0007"]
+[ext_resource type="Texture2D" uid="uid://ddnsno1emvd6u" path="res://Player/LegAnimationRUN/leg run0008.png" id="23_leg0008"]
+[ext_resource type="Texture2D" uid="uid://d1r3kyci0lpcf" path="res://Player/LegAnimationRUN/leg run0009.png" id="23_leg0009"]
+[ext_resource type="Texture2D" uid="uid://bcyd0t28t5jbr" path="res://Player/LegAnimationRUN/leg run0010.png" id="23_leg0010"]
+[ext_resource type="Texture2D" uid="uid://dhvhs0uqdr2h" path="res://Player/LegAnimationRUN/leg run0011.png" id="23_leg0011"]
+[ext_resource type="Texture2D" uid="uid://brbpjg37swfct" path="res://Player/LegAnimationRUN/leg run0012.png" id="23_leg0012"]
+[ext_resource type="Texture2D" uid="uid://bw7oeja8xmuvn" path="res://Player/LegAnimationRUN/leg run0013.png" id="23_leg0013"]
+[ext_resource type="Texture2D" uid="uid://cjqwhqiop0nlx" path="res://Player/LegAnimationRUN/leg run0014.png" id="23_leg0014"]
+[ext_resource type="Texture2D" uid="uid://bayx0pedwvvre" path="res://Player/LegAnimationRUN/leg run0015.png" id="23_leg0015"]
+[ext_resource type="Texture2D" uid="uid://djjtw67ruuyv7" path="res://Player/LegAnimationRUN/leg run0016.png" id="23_leg0016"]
+[ext_resource type="Texture2D" uid="uid://craq6eolj3my8" path="res://Player/LegAnimationRUN/leg run0017.png" id="23_leg0017"]
+[ext_resource type="Texture2D" uid="uid://c32184617vbcu" path="res://Player/LegAnimationRUN/leg run0018.png" id="23_leg0018"]
+[ext_resource type="Texture2D" uid="uid://b0tvkneu4yyvk" path="res://Player/LegAnimationRUN/leg run0019.png" id="23_leg0019"]
+[ext_resource type="Texture2D" uid="uid://bda5wbx2nti2e" path="res://Player/LegAnimationRUN/leg run0020.png" id="23_leg0020"]
+[ext_resource type="Texture2D" uid="uid://cskljql7h8hv0" path="res://Player/LegAnimationRUN/leg run0021.png" id="23_leg0021"]
+[ext_resource type="Texture2D" uid="uid://ss0gpv7x7aqg" path="res://Player/LegAnimationRUN/leg run0022.png" id="23_leg0022"]
+[ext_resource type="Texture2D" uid="uid://58o8g08v6m15" path="res://Player/LegAnimationRUN/leg run0023.png" id="23_leg0023"]
+[ext_resource type="Texture2D" uid="uid://daaqpqo08txd5" path="res://Player/LegAnimationRUN/leg run0024.png" id="23_leg0024"]
+[ext_resource type="Texture2D" uid="uid://bhir85xlqyse1" path="res://Player/LegAnimationRUN/leg run0025.png" id="23_leg0025"]
+[ext_resource type="Texture2D" uid="uid://mylqgks0dyl4" path="res://Player/LegAnimationRUN/leg run0026.png" id="23_leg0026"]
+[ext_resource type="Texture2D" uid="uid://ntp4khacleug" path="res://Player/LegAnimationRUN/leg run0027.png" id="23_leg0027"]
+[ext_resource type="Texture2D" uid="uid://dqxnygs0t1xi" path="res://Player/LegAnimationRUN/leg run0028.png" id="23_leg0028"]
+[ext_resource type="Texture2D" uid="uid://cj1u2qdicqiy4" path="res://Player/LegAnimationRUN/leg run0029.png" id="23_leg0029"]
+[ext_resource type="Texture2D" uid="uid://cg1lltdy306i6" path="res://Player/LegAnimationRUN/leg run0030.png" id="23_leg0030"]
+[ext_resource type="Texture2D" uid="uid://bhp5nrdp841sw" path="res://Player/LegAnimationRUN/leg run0031.png" id="23_leg0031"]
+[ext_resource type="Texture2D" uid="uid://dgibata2ttug" path="res://Player/LegAnimationRUN/leg run0032.png" id="23_leg0032"]
+[ext_resource type="Texture2D" uid="uid://cgajag6ksgt2h" path="res://Player/LegAnimationRUN/leg run0033.png" id="23_leg0033"]
+[ext_resource type="Texture2D" uid="uid://blnfqn80ftwur" path="res://Player/LegAnimationRUN/leg run0034.png" id="23_leg0034"]
+[ext_resource type="Texture2D" uid="uid://bps16tx8q1cfj" path="res://Player/LegAnimationRUN/leg run0035.png" id="23_leg0035"]
+[ext_resource type="Texture2D" uid="uid://b4wjmiuldm0c1" path="res://Player/LegAnimationRUN/leg run0036.png" id="23_leg0036"]
+[ext_resource type="Texture2D" uid="uid://caty2aqxrd5l1" path="res://Player/LegAnimationRUN/leg run0037.png" id="23_leg0037"]
+[ext_resource type="Texture2D" uid="uid://1raomskuvd66" path="res://Player/LegAnimationRUN/leg run0038.png" id="23_leg0038"]
+[ext_resource type="Texture2D" uid="uid://d0j8i8rpacrbt" path="res://Player/LegAnimationRUN/leg run0039.png" id="23_leg0039"]
+[ext_resource type="Texture2D" uid="uid://dw08t7f2hwx1w" path="res://Player/LegAnimationRUN/leg run0040.png" id="23_leg0040"]
+[ext_resource type="Texture2D" uid="uid://cfucdyg3b3ig3" path="res://Player/LegAnimationRUN/leg run0041.png" id="23_leg0041"]
+[ext_resource type="Texture2D" uid="uid://dmkq0dmx7wbeh" path="res://Player/LegAnimationRUN/leg run0042.png" id="23_leg0042"]
+[ext_resource type="Texture2D" uid="uid://cbdbj8m64m5vs" path="res://Player/LegAnimationRUN/leg run0043.png" id="23_leg0043"]
+[ext_resource type="Texture2D" uid="uid://bs6to4bg1jr7m" path="res://Player/LegAnimationRUN/leg run0044.png" id="23_leg0044"]
+[ext_resource type="Texture2D" uid="uid://b63t1cict8oun" path="res://Player/LegAnimationRUN/leg run0045.png" id="23_leg0045"]
+[ext_resource type="Texture2D" uid="uid://fclbk0un0mt6" path="res://Player/LegAnimationRUN/leg run0046.png" id="23_leg0046"]
+[ext_resource type="Texture2D" uid="uid://b1n0nbm4gp3yg" path="res://Player/LegAnimationRUN/leg run0047.png" id="23_leg0047"]
+[ext_resource type="Texture2D" uid="uid://7gvxybk0ing8" path="res://Player/LegAnimationRUN/leg run0048.png" id="23_leg0048"]
+[ext_resource type="Texture2D" uid="uid://cy1g08flcuh6b" path="res://Player/LegAnimationRUN/leg run0049.png" id="23_leg0049"]
+[ext_resource type="Texture2D" uid="uid://cy2afiy3mp54q" path="res://Player/LegAnimationRUN/leg run0050.png" id="23_leg0050"]
+[ext_resource type="Texture2D" uid="uid://cmbdy46s2aslp" path="res://Player/LegAnimationRUN/leg run0051.png" id="23_leg0051"]
+[ext_resource type="Texture2D" uid="uid://c8qjp4ooe6rs3" path="res://Player/LegAnimationRUN/leg run0052.png" id="23_leg0052"]
+[ext_resource type="Texture2D" uid="uid://cdeubcfskprow" path="res://Player/LegAnimationRUN/leg run0053.png" id="23_leg0053"]
+[ext_resource type="Texture2D" uid="uid://bkx3wugvhbilb" path="res://Player/LegAnimationRUN/leg run0054.png" id="23_leg0054"]
+[ext_resource type="Texture2D" uid="uid://c7mcptkp782ay" path="res://Player/LegAnimationRUN/leg run0055.png" id="23_leg0055"]
+[ext_resource type="Texture2D" uid="uid://dxnuhj7rx6ejb" path="res://Player/LegAnimationRUN/leg run0056.png" id="23_leg0056"]
+[ext_resource type="Texture2D" uid="uid://b6p10pw1hsk13" path="res://Player/LegAnimationRUN/leg run0057.png" id="23_leg0057"]
+[ext_resource type="Texture2D" uid="uid://dx7vdwui7kaxk" path="res://Player/LegAnimationRUN/leg run0058.png" id="23_leg0058"]
+[ext_resource type="Texture2D" uid="uid://s0cbhpdxfqyo" path="res://Player/LegAnimationRUN/leg run0059.png" id="23_leg0059"]
+[ext_resource type="Texture2D" uid="uid://c4cknvmi654oc" path="res://Player/LegAnimationRUN/leg run0060.png" id="23_leg0060"]
+[ext_resource type="Texture2D" uid="uid://eci6vb74qx2c" path="res://Player/LegAnimationRUN/leg run0061.png" id="23_leg0061"]
+[ext_resource type="Texture2D" uid="uid://chbmc7554scdh" path="res://Player/LegAnimationRUN/leg run0062.png" id="23_leg0062"]
+[ext_resource type="Texture2D" uid="uid://coxjgwajk4m32" path="res://Player/LegAnimationRUN/leg run0063.png" id="23_leg0063"]
+[ext_resource type="Texture2D" uid="uid://cb4blq5mpfh2r" path="res://Player/LegAnimationRUN/leg run0064.png" id="23_leg0064"]
+[ext_resource type="Texture2D" uid="uid://chb075s4uxapw" path="res://Player/LegAnimationRUN/leg run0065.png" id="23_leg0065"]
+[ext_resource type="Texture2D" uid="uid://co20knbvp5uxp" path="res://Player/LegAnimationRUN/leg run0066.png" id="23_leg0066"]
+[ext_resource type="Texture2D" uid="uid://bfep5qyjyhpdq" path="res://Player/LegAnimationRUN/leg run0067.png" id="23_leg0067"]
+[ext_resource type="Texture2D" uid="uid://e26t1frcam0i" path="res://Player/LegAnimationRUN/leg run0068.png" id="23_leg0068"]
+[ext_resource type="Texture2D" uid="uid://dwp3ijclocm2w" path="res://Player/LegAnimationRUN/leg run0069.png" id="23_leg0069"]
+[ext_resource type="Texture2D" uid="uid://2jhgtt6ku3vy" path="res://Player/LegAnimationRUN/leg run0070.png" id="23_leg0070"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_hvfyp"]
 
@@ -372,49 +372,49 @@ animations = [{
 "speed": 20.0
 }]
 
-[node name="Player" type="CharacterBody3D" groups=["player"]]
+[node name="Player" type="CharacterBody3D" unique_id=764434850 groups=["player"]]
 script = ExtResource("1_l8h54")
 knockback_lift = 120.0
 knockback_speed = 60.0
 downed_cam_offset_y = -0.95
 downed_invuln_seconds = 0.8
 
-[node name="Body" type="Sprite3D" parent="."]
+[node name="Body" type="Sprite3D" parent="." unique_id=1168476285]
 transform = Transform3D(0.059, 0, 0, 0, -2.578972e-09, 0.059, 0, -0.059, -2.578972e-09, 0, -0.2685532, -0.43808374)
 visible = false
 texture_filter = 0
 render_priority = 1
 texture = ExtResource("2_c7st8")
 
-[node name="Body_Down" type="Sprite3D" parent="."]
+[node name="Body_Down" type="Sprite3D" parent="." unique_id=445165764]
 transform = Transform3D(0.135, 0, 0, 0, 0.135, 0, 0, 0, 0.135, -0.19245908, -0.66381145, -0.3018834)
 visible = false
 billboard = 1
 texture_filter = 0
 texture = ExtResource("3_btcbx")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1082302795]
 shape = SubResource("CapsuleShape3D_hvfyp")
 
-[node name="Leg" type="AnimatedSprite3D" parent="."]
+[node name="Leg" type="AnimatedSprite3D" parent="." unique_id=1854685249]
 transform = Transform3D(0.065, 0, 0, 0, -2.8412401e-09, 0.065, 0, -0.065, -2.8412401e-09, 0.04296112, -0.74339414, -0.51458484)
 visible = false
 texture_filter = 0
 sprite_frames = SubResource("SpriteFrames_leg")
 animation = &"idle"
 
-[node name="Head" type="Node3D" parent="."]
+[node name="Head" type="Node3D" parent="." unique_id=833167873]
 
-[node name="AimTarget" type="Marker3D" parent="Head"]
+[node name="AimTarget" type="Marker3D" parent="Head" unique_id=744204289]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
 
-[node name="Camera" type="Camera3D" parent="Head"]
+[node name="Camera" type="Camera3D" parent="Head" unique_id=339926559]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
 
-[node name="ViewModel" type="Node3D" parent="Head/Camera"]
+[node name="ViewModel" type="Node3D" parent="Head/Camera" unique_id=1157207026]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.26720208, -0.20390713, -0.46859902)
 
-[node name="LeftArmPush" type="AnimatedSprite3D" parent="Head/Camera/ViewModel"]
+[node name="LeftArmPush" type="AnimatedSprite3D" parent="Head/Camera/ViewModel" unique_id=891388621]
 transform = Transform3D(0.08, 0, 0, 0, 0.08, 0, 0, 0, 0.08, -0.037247002, 0, 0.06386602)
 visible = false
 billboard = 1
@@ -425,33 +425,33 @@ animation = &"push"
 frame = 13
 frame_progress = 1.0
 
-[node name="Hand" type="Sprite3D" parent="Head/Camera/ViewModel"]
+[node name="Hand" type="Sprite3D" parent="Head/Camera/ViewModel" unique_id=1343401852]
 transform = Transform3D(0.085, 0, 0, 0, 0.085, 0, 0, 0, 0.085, 0.5873836, -0.030905247, 0.067738324)
 billboard = 1
 texture_filter = 0
 render_priority = 1
 texture = ExtResource("18_n471f")
 
-[node name="ShootRing" type="Sprite3D" parent="Head/Camera/ViewModel"]
+[node name="ShootRing" type="Sprite3D" parent="Head/Camera/ViewModel" unique_id=1090176162]
 transform = Transform3D(0.004, 0, 0, 0, 0.004, 0, 0, 0, 0.004, 0.5839122, 0.039703667, 0.071623564)
 visible = false
 texture = ExtResource("19_o28un")
 
-[node name="HandRecovery" type="Sprite3D" parent="Head/Camera/ViewModel"]
+[node name="HandRecovery" type="Sprite3D" parent="Head/Camera/ViewModel" unique_id=750785602]
 transform = Transform3D(0.035, 0, 0, 0, 0.035, 0, 0, 0, 0.035, 0.24883556, 0.059785366, 0.1170969)
 visible = false
 texture_filter = 0
 texture = ExtResource("20_n471f")
 
-[node name="ShootSfx" type="AudioStreamPlayer" parent="Head/Camera/ViewModel"]
+[node name="ShootSfx" type="AudioStreamPlayer" parent="Head/Camera/ViewModel" unique_id=1524036696]
 stream = ExtResource("21_7emwf")
 volume_db = -9.0
 pitch_scale = 3.0
 
-[node name="ShootRay" type="RayCast3D" parent="Head" groups=["player"]]
+[node name="ShootRay" type="RayCast3D" parent="Head" unique_id=399509538 groups=["player"]]
 target_position = Vector3(0, 0, -100)
 
-[node name="PushSfx" type="AudioStreamPlayer3D" parent="."]
+[node name="PushSfx" type="AudioStreamPlayer3D" parent="." unique_id=1381272489]
 max_distance = 12.0
 
-[node name="MobileControls" parent="." instance=ExtResource("22_mobile")]
+[node name="MobileControls" parent="." unique_id=186116100 instance=ExtResource("22_mobile")]

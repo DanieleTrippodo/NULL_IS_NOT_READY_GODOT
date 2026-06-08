@@ -130,6 +130,33 @@ const SLIDE_DURATION: float = 0.34
 const SLIDE_COOLDOWN: float = 1.0
 const SLIDE_STRENGTH: float = 16.0
 
+@export_group("Schmovement 2.0")
+@export var schmovement_enabled: bool = true
+@export var ground_acceleration: float = 46.0
+@export var ground_friction: float = 14.0
+@export var air_acceleration: float = 18.0
+@export var air_friction: float = 1.2
+@export var ground_momentum_cap_mult: float = 1.55
+@export var air_momentum_cap_mult: float = 1.90
+@export var hard_horizontal_speed_cap: float = 38.0
+@export var coyote_time_seconds: float = 0.10
+@export var jump_buffer_seconds: float = 0.10
+@export var bunnyhop_grace_seconds: float = 0.12
+@export var bunnyhop_keep_mult: float = 0.96
+@export var slide_jump_boost_mult: float = 1.10
+@export var dash_momentum_keep_mult: float = 0.55
+@export var not_ready_speed_bonus_mult: float = 1.12
+@export var not_ready_accel_bonus_mult: float = 1.18
+@export var not_ready_dash_cooldown_mult: float = 0.75
+@export var recovery_allows_movement: bool = true
+@export_range(0.2, 1.2, 0.05) var recovery_move_mult: float = 0.90
+
+@export_group("Velocity FOV")
+@export var dynamic_fov_enabled: bool = true
+@export_range(0.0, 20.0, 0.1) var dynamic_fov_max_bonus: float = 10.0
+@export_range(0.0, 2.0, 0.01) var dynamic_fov_speed_gain: float = 0.55
+@export_range(0.0, 30.0, 0.1) var dynamic_fov_lerp_speed: float = 9.0
+
 @export_group("Hand Bob")
 @export var hand_bob_enabled: bool = true
 @export_range(0.0, 20.0, 0.1) var hand_bob_speed: float = 10.0
@@ -193,6 +220,12 @@ var _leg_base_rot: Vector3 = Vector3.ZERO
 var _shoot_ring_base_scale: Vector3 = Vector3.ONE
 var _shoot_ring_tween: Tween
 var _camera_base_rot: Vector3 = Vector3.ZERO
+var _camera_base_fov: float = 75.0
+
+var _jump_buffer_t: float = 0.0
+var _coyote_t: float = 0.0
+var _bunnyhop_grace_t: float = 0.0
+var _was_on_floor: bool = false
 
 
 func _get_mobile_controls() -> Node:
@@ -267,6 +300,7 @@ func _ready() -> void:
 	_cam_normal_pos = camera.position
 	_cam_base_pos = camera.position
 	_camera_base_rot = camera.rotation
+	_camera_base_fov = camera.fov
 
 	has_dash = InputMap.has_action("dash")
 
@@ -305,14 +339,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if mb.button_index == MOUSE_BUTTON_LEFT or mb.button_index == MOUSE_BUTTON_RIGHT:
 			return
 
-	if is_recovering_null:
-		if event.is_action_released("swap"):
-			is_recovering_null = false
-			_update_hand_mode_visual()
-			Signals.request_recovery_stop.emit()
-		return
-
-	# mouse look sempre abilitato (anche in downed)
+	# mouse look sempre abilitato (anche in downed e durante il recovery)
 	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
 		_hand_look_input = event.relative
 
@@ -326,6 +353,15 @@ func _unhandled_input(event: InputEvent) -> void:
 
 		rotation.y = yaw
 		head.rotation.x = pitch
+
+	if is_recovering_null:
+		if event.is_action_released("swap"):
+			is_recovering_null = false
+			_update_hand_mode_visual()
+			Signals.request_recovery_stop.emit()
+		if event.is_action_pressed("interact"):
+			Signals.request_pickup.emit()
+		return
 
 	if event.is_action_pressed("ui_cancel"):
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
@@ -494,6 +530,7 @@ func _process(delta: float) -> void:
 	_update_body_effects(delta)
 	_update_leg_effects(delta)
 	_update_camera_tilt(delta)
+	_update_speed_fov(delta)
 	_update_upgrade_feedback_visuals()
 
 func _physics_process(delta: float) -> void:
@@ -512,7 +549,14 @@ func _physics_process(delta: float) -> void:
 	slide_time_left = maxf(slide_time_left - delta, 0.0)
 	_push_cd_left = maxf(_push_cd_left - delta, 0.0)
 
-	if is_recovering_null:
+	if state == PState.NORMAL and not input_locked and Input.is_action_just_pressed("jump"):
+		_jump_buffer_t = jump_buffer_seconds
+	else:
+		_jump_buffer_t = maxf(_jump_buffer_t - delta, 0.0)
+
+	_bunnyhop_grace_t = maxf(_bunnyhop_grace_t - delta, 0.0)
+
+	if is_recovering_null and (not recovery_allows_movement or state != PState.NORMAL):
 		velocity.x = _external_push.x
 		velocity.z = _external_push.z
 
@@ -555,6 +599,79 @@ func _physics_process(delta: float) -> void:
 	_update_downed_camera(delta)
 
 func _physics_normal(delta: float) -> void:
+	if not schmovement_enabled:
+		_physics_normal_legacy(delta)
+		return
+
+	var floor_before: bool = is_on_floor()
+	if floor_before:
+		_coyote_t = coyote_time_seconds
+	else:
+		_coyote_t = maxf(_coyote_t - delta, 0.0)
+
+	var move_input: Vector2 = _get_move_input_planar()
+	var input_dir: Vector3 = Vector3(move_input.x, 0.0, -move_input.y)
+	if input_dir.length() > 1.0:
+		input_dir = input_dir.normalized()
+
+	var dir: Vector3 = transform.basis * input_dir
+	dir.y = 0.0
+	if dir.length() > 0.001:
+		dir = dir.normalized()
+
+	if slide_time_left <= 0.0 and _can_start_slide(input_dir, dir):
+		_start_slide(dir)
+
+	if dash_time_left <= 0.0 and slide_time_left <= 0.0 and Run.dash_enabled and has_dash and dash_cd <= 0.0 and Input.is_action_just_pressed("dash"):
+		_start_dash(dir)
+
+	if slide_time_left > 0.0:
+		_physics_slide(delta, dir)
+		return
+
+	if dash_time_left > 0.0:
+		_physics_dash(delta)
+		return
+
+	var speed: float = _get_current_target_speed()
+	var max_speed: float = speed * (ground_momentum_cap_mult if floor_before else air_momentum_cap_mult)
+	var accel: float = ground_acceleration if floor_before else air_acceleration
+	if _is_null_flow_active():
+		accel *= not_ready_accel_bonus_mult
+
+	if is_recovering_null:
+		speed *= recovery_move_mult
+		max_speed *= recovery_move_mult
+
+	var hvel: Vector3 = Vector3(velocity.x, 0.0, velocity.z) - _external_push
+
+	if floor_before and _jump_buffer_t <= 0.0 and _bunnyhop_grace_t <= 0.0:
+		hvel = _apply_ground_friction(hvel, delta)
+	elif not floor_before and dir.length() <= 0.001:
+		hvel = hvel.move_toward(Vector3.ZERO, air_friction * delta)
+
+	if dir.length() > 0.001:
+		hvel = _accelerate(hvel, dir, speed, accel, delta)
+
+	hvel += _external_push
+	hvel = _soft_cap_horizontal(hvel, max_speed, delta)
+
+	velocity.x = hvel.x
+	velocity.z = hvel.z
+
+	var jumped: bool = _handle_buffered_jump(floor_before)
+	if not floor_before:
+		velocity.y -= GRAVITY * delta
+	elif not jumped:
+		velocity.y = -1.0
+
+	var push_decay: float = external_push_decay_ground if floor_before else external_push_decay_air
+	_external_push = _external_push.move_toward(Vector3.ZERO, push_decay * delta)
+
+	move_and_slide()
+	_update_landing_state(floor_before)
+
+func _physics_normal_legacy(delta: float) -> void:
 	var move_input: Vector2 = _get_move_input_planar()
 	var input_dir: Vector3 = Vector3(move_input.x, 0.0, -move_input.y)
 	if input_dir.length() > 1.0:
@@ -568,7 +685,7 @@ func _physics_normal(delta: float) -> void:
 		_start_slide(dir)
 
 	if dash_time_left <= 0.0 and slide_time_left <= 0.0 and Run.dash_enabled and has_dash and dash_cd <= 0.0 and Input.is_action_just_pressed("dash"):
-		_start_dash()
+		_start_dash(dir)
 
 	if slide_time_left > 0.0:
 		velocity.x = slide_vel.x + _external_push.x
@@ -589,6 +706,8 @@ func _physics_normal(delta: float) -> void:
 	var speed: float = Constants.PLAYER_SPEED * Run.move_speed_mult
 	if not is_on_floor():
 		speed *= Run.air_speed_mult
+	if _is_null_flow_active():
+		speed *= Run.panic_speed_mult
 
 	velocity.x = dir.x * speed + _external_push.x
 	velocity.z = dir.z * speed + _external_push.z
@@ -610,6 +729,57 @@ func _physics_normal(delta: float) -> void:
 
 	move_and_slide()
 
+func _physics_slide(delta: float, dir: Vector3) -> void:
+	var floor_before: bool = is_on_floor()
+	var hvel: Vector3 = Vector3(velocity.x, 0.0, velocity.z) - _external_push
+	if hvel.length() < slide_vel.length():
+		hvel = slide_vel
+	else:
+		hvel = hvel.move_toward(slide_vel, ground_friction * 0.35 * delta)
+
+	if dir.length() > 0.001:
+		hvel = _accelerate(hvel, dir, _get_current_target_speed(), ground_acceleration * 0.35, delta)
+
+	if Run.jump_enabled and _jump_buffer_t > 0.0 and (floor_before or _coyote_t > 0.0):
+		velocity.y = Run.jump_velocity
+		hvel *= slide_jump_boost_mult
+		slide_time_left = 0.0
+		_jump_buffer_t = 0.0
+		_coyote_t = 0.0
+	else:
+		if floor_before:
+			velocity.y = -1.0
+		else:
+			velocity.y -= GRAVITY * delta
+
+	hvel += _external_push
+	hvel = _hard_cap_horizontal(hvel)
+	velocity.x = hvel.x
+	velocity.z = hvel.z
+
+	var slide_push_decay: float = external_push_decay_ground if floor_before else external_push_decay_air
+	_external_push = _external_push.move_toward(Vector3.ZERO, slide_push_decay * delta)
+
+	move_and_slide()
+	_apply_slide_enemy_pushes()
+	_update_landing_state(floor_before)
+
+func _physics_dash(delta: float) -> void:
+	var floor_before: bool = is_on_floor()
+	velocity.x = dash_vel.x + _external_push.x
+	velocity.z = dash_vel.z + _external_push.z
+
+	if floor_before:
+		velocity.y = -1.0
+	else:
+		velocity.y -= GRAVITY * delta
+
+	var push_decay: float = external_push_decay_ground if floor_before else external_push_decay_air
+	_external_push = _external_push.move_toward(Vector3.ZERO, push_decay * delta)
+
+	move_and_slide()
+	_update_landing_state(floor_before)
+
 func _can_start_slide(input_dir: Vector3, dir: Vector3) -> bool:
 	if not Run.slide_dodge:
 		return false
@@ -625,16 +795,24 @@ func _can_start_slide(input_dir: Vector3, dir: Vector3) -> bool:
 		return false
 	return true
 
-func _start_dash() -> void:
-	var fwd: Vector3 = -global_transform.basis.z
-	fwd.y = 0.0
-	if fwd.length() < 0.001:
-		fwd = Vector3.FORWARD
-	fwd = fwd.normalized()
+func _start_dash(preferred_dir: Vector3 = Vector3.ZERO) -> void:
+	var dash_dir: Vector3 = preferred_dir
+	if dash_dir.length() < 0.001:
+		dash_dir = -global_transform.basis.z
+		dash_dir.y = 0.0
+	if dash_dir.length() < 0.001:
+		dash_dir = Vector3.FORWARD
+	dash_dir = dash_dir.normalized()
 
-	dash_vel = fwd * (DASH_STRENGTH * Run.dash_strength_mult)
+	var current_hvel := Vector3(velocity.x, 0.0, velocity.z) - _external_push
+	var dash_speed: float = DASH_STRENGTH * Run.dash_strength_mult
+	dash_vel = dash_dir * dash_speed + current_hvel * dash_momentum_keep_mult
+	dash_vel = _hard_cap_horizontal(dash_vel)
+
 	dash_time_left = DASH_DURATION * Run.dash_duration_mult
 	dash_cd = DASH_COOLDOWN * Run.dash_cooldown_mult
+	if _is_null_flow_active():
+		dash_cd *= not_ready_dash_cooldown_mult
 
 func _start_slide(dir: Vector3) -> void:
 	var slide_dir: Vector3 = dir
@@ -645,7 +823,14 @@ func _start_slide(dir: Vector3) -> void:
 		return
 
 	slide_dir = slide_dir.normalized()
-	slide_vel = slide_dir * (SLIDE_STRENGTH * Run.slide_speed_mult)
+	var current_hvel := Vector3(velocity.x, 0.0, velocity.z) - _external_push
+	var target_slide_speed: float = SLIDE_STRENGTH * Run.slide_speed_mult
+	if _is_null_flow_active():
+		target_slide_speed *= not_ready_speed_bonus_mult
+
+	var carried_speed: float = maxf(current_hvel.length() * 1.04, target_slide_speed)
+	slide_vel = slide_dir * carried_speed
+	slide_vel = _hard_cap_horizontal(slide_vel)
 	slide_time_left = maxf(Run.slide_duration, SLIDE_DURATION)
 	slide_cd = maxf(Run.slide_cooldown, SLIDE_COOLDOWN)
 	_slide_hit_ids.clear()
@@ -654,42 +839,110 @@ func _start_slide(dir: Vector3) -> void:
 func _apply_slide_enemy_pushes() -> void:
 	if slide_time_left <= 0.0:
 		return
+	if get_slide_collision_count() <= 0:
+		return
+
+	var horizontal_velocity: Vector3 = Vector3(velocity.x, 0.0, velocity.z)
+	if horizontal_velocity.length() < 3.0:
+		return
+
+	var push_dir: Vector3 = horizontal_velocity.normalized()
+	var slide_strength: float = push_strength * 0.85
+	var slide_lift: float = push_lift * 0.45
+	var slide_stun: float = push_stun_seconds * 0.65
 
 	for i in range(get_slide_collision_count()):
-		var col: KinematicCollision3D = get_slide_collision(i)
-		if col == null:
+		var collision: KinematicCollision3D = get_slide_collision(i)
+		if collision == null:
 			continue
 
-		var other := col.get_collider()
-		if not (other is Node):
+		var collider: Object = collision.get_collider()
+		if collider == null or not (collider is Node):
 			continue
 
-		var other_node: Node = other as Node
-		if not other_node.is_in_group("enemy"):
+		var enemy: Node = collider as Node
+		if not enemy.is_in_group("enemy"):
 			continue
 
-		var other_id: int = other_node.get_instance_id()
-		if _slide_hit_ids.has(other_id):
+		var enemy_id: int = enemy.get_instance_id()
+		if _slide_hit_ids.has(enemy_id):
 			continue
 
-		_slide_hit_ids[other_id] = true
+		_slide_hit_ids[enemy_id] = true
 
-		var push_dir: Vector3 = slide_vel
-		push_dir.y = 0.0
-		if push_dir.length() < 0.001:
-			push_dir = -global_transform.basis.z
-			push_dir.y = 0.0
-		if push_dir.length() < 0.001:
-			continue
-		push_dir = push_dir.normalized()
+		if enemy.has_method("apply_push"):
+			enemy.call("apply_push", push_dir, slide_strength, slide_lift, slide_stun)
+		elif enemy.has_method("apply_impact_stun"):
+			enemy.call("apply_impact_stun", slide_stun, push_dir, slide_strength)
 
-		var slide_push_strength: float = push_strength * Run.slide_push_mult
-		var slide_impact_knock: float = slide_push_strength * 0.65
 
-		if other_node.has_method("apply_push"):
-			other_node.apply_push(push_dir, slide_push_strength, push_lift, push_stun_seconds)
-		elif other_node.has_method("apply_impact_stun"):
-			other_node.apply_impact_stun(push_stun_seconds, push_dir, slide_impact_knock)
+func _get_current_target_speed() -> float:
+	var speed: float = Constants.PLAYER_SPEED * Run.move_speed_mult
+	if not is_on_floor():
+		speed *= Run.air_speed_mult
+	if _is_null_flow_active():
+		if Run.panic_boost:
+			speed *= Run.panic_speed_mult
+		else:
+			speed *= not_ready_speed_bonus_mult
+	return speed
+
+func _is_null_flow_active() -> bool:
+	return not Run.null_ready
+
+func _accelerate(hvel: Vector3, wish_dir: Vector3, wish_speed: float, accel: float, delta: float) -> Vector3:
+	var current_speed: float = hvel.dot(wish_dir)
+	var add_speed: float = wish_speed - current_speed
+	if add_speed <= 0.0:
+		return hvel
+	var accel_speed: float = minf(accel * wish_speed * delta, add_speed)
+	return hvel + wish_dir * accel_speed
+
+func _apply_ground_friction(hvel: Vector3, delta: float) -> Vector3:
+	var speed: float = hvel.length()
+	if speed <= 0.001:
+		return Vector3.ZERO
+	var drop: float = speed * ground_friction * delta
+	var new_speed: float = maxf(speed - drop, 0.0)
+	return hvel * (new_speed / speed)
+
+func _soft_cap_horizontal(hvel: Vector3, target_cap: float, delta: float) -> Vector3:
+	if hvel.length() <= target_cap:
+		return _hard_cap_horizontal(hvel)
+	var cap_target := hvel.normalized() * target_cap
+	var cap_lerp_speed: float = ground_friction if is_on_floor() else air_friction
+	return _hard_cap_horizontal(hvel.move_toward(cap_target, cap_lerp_speed * delta))
+
+func _hard_cap_horizontal(hvel: Vector3) -> Vector3:
+	if hvel.length() > hard_horizontal_speed_cap:
+		return hvel.normalized() * hard_horizontal_speed_cap
+	return hvel
+
+func _handle_buffered_jump(floor_before: bool) -> bool:
+	if not Run.jump_enabled:
+		return false
+	if _jump_buffer_t <= 0.0:
+		return false
+	if not floor_before and _coyote_t <= 0.0:
+		return false
+
+	var hvel := Vector3(velocity.x, 0.0, velocity.z)
+	velocity.y = Run.jump_velocity
+	_jump_buffer_t = 0.0
+	_coyote_t = 0.0
+
+	if _bunnyhop_grace_t > 0.0:
+		hvel *= bunnyhop_keep_mult
+		velocity.x = hvel.x
+		velocity.z = hvel.z
+
+	return true
+
+func _update_landing_state(was_floor: bool) -> void:
+	var now_floor: bool = is_on_floor()
+	if now_floor and not was_floor:
+		_bunnyhop_grace_t = bunnyhop_grace_seconds
+	_was_on_floor = now_floor
 
 func _physics_knockback(delta: float) -> void:
 	_external_push = _external_push.move_toward(Vector3.ZERO, knockback_drag_ground * delta)
@@ -1180,6 +1433,24 @@ func _update_camera_tilt(delta: float) -> void:
 	target_rot.x += deg_to_rad(-input_z * camera_tilt_forward_deg)
 
 	camera.rotation = camera.rotation.lerp(target_rot, delta * camera_tilt_lerp_speed)
+
+func _update_speed_fov(delta: float) -> void:
+	if not dynamic_fov_enabled:
+		return
+	if not is_instance_valid(camera):
+		return
+
+	var target_fov: float = _camera_base_fov
+	if state == PState.NORMAL and not input_locked:
+		var horizontal_speed: float = Vector2(velocity.x, velocity.z).length()
+		var bonus: float = clamp(horizontal_speed * dynamic_fov_speed_gain, 0.0, dynamic_fov_max_bonus)
+		target_fov += bonus
+		if dash_time_left > 0.0:
+			target_fov += 2.0
+		if slide_time_left > 0.0:
+			target_fov += 1.0
+
+	camera.fov = lerpf(camera.fov, target_fov, delta * dynamic_fov_lerp_speed)
 
 func _update_upgrade_feedback_visuals() -> void:
 	var intensity: float = 1.0
