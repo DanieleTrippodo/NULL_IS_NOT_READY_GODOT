@@ -6,6 +6,7 @@ extends CharacterBody3D
 
 @onready var body_sprite: Sprite3D = $Body
 @onready var body_down_sprite: Sprite3D = $Body_Down
+@onready var body_slide_sprite: Sprite3D = $Body_Slide
 @onready var leg_sprite: AnimatedSprite3D = $Leg
 @onready var left_arm_push: AnimatedSprite3D = $Head/Camera/ViewModel/LeftArmPush
 @onready var hand_recovery: Sprite3D = $Head/Camera/ViewModel/HandRecovery
@@ -43,6 +44,13 @@ var _mobile_controls: Node = null
 @export var downed_cam_offset_y: float = -0.75
 @export var downed_cam_lerp_speed: float = 10.0
 @export var downed_cam_return_speed: float = 12.0
+
+@export_group("Slide Camera")
+@export var slide_cam_offset_y: float = -0.68
+@export var slide_cam_lerp_speed: float = 15.0
+@export var slide_cam_return_speed: float = 13.0
+
+@export_group("Knockback Timing")
 @export var knockback_min_time: float = 0.22
 @export var downed_invuln_seconds: float = 0.5
 @export var downed_self_revive_seconds: float = 7.0
@@ -110,10 +118,10 @@ var _recovery_iframe_t: float = 0.0
 
 const GRAVITY: float = 20.0
 
-# Perk-based inputs presence
+# Movimento speciale: usa l'azione "dash" per slide base e, se sbloccato, dash upgrade.
 var has_dash: bool = false
 
-# Dash / Slide (perk)
+# Dash upgrade / Slide base
 var dash_cd: float = 0.0
 var dash_time_left: float = 0.0
 var dash_vel: Vector3 = Vector3.ZERO
@@ -121,17 +129,29 @@ var dash_vel: Vector3 = Vector3.ZERO
 var slide_cd: float = 0.0
 var slide_time_left: float = 0.0
 var slide_vel: Vector3 = Vector3.ZERO
+var _slide_locked_dir: Vector3 = Vector3.ZERO
 var _slide_hit_ids: Dictionary = {}
 
 const DASH_DURATION: float = 0.12
 const DASH_COOLDOWN: float = 0.9
 const DASH_STRENGTH: float = 14.0
-const SLIDE_DURATION: float = 0.34
-const SLIDE_COOLDOWN: float = 1.0
-const SLIDE_STRENGTH: float = 16.0
+const SLIDE_COOLDOWN: float = 0.05
 
 @export_group("Schmovement 2.0")
 @export var schmovement_enabled: bool = true
+@export_group("Slide Inertia")
+@export var slide_min_start_speed: float = 2.6
+@export var slide_buffer_seconds: float = 0.18
+@export var slide_stop_speed: float = 2.0
+@export var slide_entry_boost_mult: float = 1.18
+@export var slide_max_entry_bonus: float = 3.8
+@export var slide_ground_deceleration: float = 8.2
+@export var slide_air_deceleration: float = 1.6
+@export_range(0.0, 1.0, 0.01) var slide_steer_strength: float = 0.0 # deprecated: lo slide ora blocca la direzione iniziale
+@export var slide_alive_min_deceleration_speed: float = 7.5
+@export_range(0.1, 1.0, 0.01) var slide_hold_forward_decel_mult: float = 0.82
+@export var slide_floor_snap_velocity: float = -2.8
+@export_group("Schmovement 2.0")
 @export var ground_acceleration: float = 46.0
 @export var ground_friction: float = 14.0
 @export var air_acceleration: float = 18.0
@@ -143,7 +163,10 @@ const SLIDE_STRENGTH: float = 16.0
 @export var jump_buffer_seconds: float = 0.10
 @export var bunnyhop_grace_seconds: float = 0.12
 @export var bunnyhop_keep_mult: float = 0.96
-@export var slide_jump_boost_mult: float = 1.10
+@export var slide_jump_boost_mult: float = 1.22
+@export_range(0.0, 1.0, 0.05) var slide_air_control_mult: float = 0.45
+@export_range(0.0, 1.0, 0.05) var slide_ground_friction_mult: float = 0.30
+@export_range(0.0, 1.0, 0.05) var slide_enemy_push_mult: float = 0.95
 @export var dash_momentum_keep_mult: float = 0.55
 @export var not_ready_speed_bonus_mult: float = 1.12
 @export var not_ready_accel_bonus_mult: float = 1.18
@@ -223,6 +246,7 @@ var _camera_base_rot: Vector3 = Vector3.ZERO
 var _camera_base_fov: float = 75.0
 
 var _jump_buffer_t: float = 0.0
+var _slide_buffer_t: float = 0.0
 var _coyote_t: float = 0.0
 var _bunnyhop_grace_t: float = 0.0
 var _was_on_floor: bool = false
@@ -309,7 +333,7 @@ func _ready() -> void:
 	Signals.null_recovered.connect(_on_null_recovered)
 	Signals.downed_self_recovery_changed.emit(false, 0.0, downed_self_revive_seconds)
 
-	_set_body_downed(false)
+	_update_body_pose_visibility()
 
 	if is_instance_valid(hand):
 		_hand_base_pos = hand.position
@@ -525,6 +549,7 @@ func _process(delta: float) -> void:
 		_charge_time += delta
 
 	_recovery_iframe_t = maxf(_recovery_iframe_t - delta, 0.0)
+	_update_body_pose_visibility()
 
 	_update_hand_effects(delta)
 	_update_body_effects(delta)
@@ -545,14 +570,26 @@ func _physics_process(delta: float) -> void:
 
 	dash_cd = maxf(dash_cd - delta, 0.0)
 	dash_time_left = maxf(dash_time_left - delta, 0.0)
+	# slide_time_left non viene decrementato a timer: lo slide resta attivo finché SHIFT resta premuto
+	# e finché il momentum rimane sopra la soglia minima.
 	slide_cd = maxf(slide_cd - delta, 0.0)
-	slide_time_left = maxf(slide_time_left - delta, 0.0)
 	_push_cd_left = maxf(_push_cd_left - delta, 0.0)
+	_update_body_pose_visibility()
 
 	if state == PState.NORMAL and not input_locked and Input.is_action_just_pressed("jump"):
 		_jump_buffer_t = jump_buffer_seconds
 	else:
 		_jump_buffer_t = maxf(_jump_buffer_t - delta, 0.0)
+
+	# Buffer dello slide: se premi SHIFT poco prima di atterrare,
+	# lo slide parte appena il player tocca terra.
+	# Resta comunque hold-based: se rilasci SHIFT, il buffer viene cancellato.
+	if state == PState.NORMAL and not input_locked and Input.is_action_just_pressed("dash"):
+		_slide_buffer_t = slide_buffer_seconds
+	else:
+		_slide_buffer_t = maxf(_slide_buffer_t - delta, 0.0)
+	if not Input.is_action_pressed("dash"):
+		_slide_buffer_t = 0.0
 
 	_bunnyhop_grace_t = maxf(_bunnyhop_grace_t - delta, 0.0)
 
@@ -688,19 +725,7 @@ func _physics_normal_legacy(delta: float) -> void:
 		_start_dash(dir)
 
 	if slide_time_left > 0.0:
-		velocity.x = slide_vel.x + _external_push.x
-		velocity.z = slide_vel.z + _external_push.z
-
-		if is_on_floor():
-			velocity.y = -1.0
-		else:
-			velocity.y -= GRAVITY * delta
-
-		var slide_push_decay: float = external_push_decay_ground if is_on_floor() else external_push_decay_air
-		_external_push = _external_push.move_toward(Vector3.ZERO, slide_push_decay * delta)
-
-		move_and_slide()
-		_apply_slide_enemy_pushes()
+		_physics_slide(delta, dir)
 		return
 
 	var speed: float = Constants.PLAYER_SPEED * Run.move_speed_mult
@@ -729,45 +754,13 @@ func _physics_normal_legacy(delta: float) -> void:
 
 	move_and_slide()
 
-func _physics_slide(delta: float, dir: Vector3) -> void:
-	var floor_before: bool = is_on_floor()
-	var hvel: Vector3 = Vector3(velocity.x, 0.0, velocity.z) - _external_push
-	if hvel.length() < slide_vel.length():
-		hvel = slide_vel
-	else:
-		hvel = hvel.move_toward(slide_vel, ground_friction * 0.35 * delta)
-
-	if dir.length() > 0.001:
-		hvel = _accelerate(hvel, dir, _get_current_target_speed(), ground_acceleration * 0.35, delta)
-
-	if Run.jump_enabled and _jump_buffer_t > 0.0 and (floor_before or _coyote_t > 0.0):
-		velocity.y = Run.jump_velocity
-		hvel *= slide_jump_boost_mult
-		slide_time_left = 0.0
-		_jump_buffer_t = 0.0
-		_coyote_t = 0.0
-	else:
-		if floor_before:
-			velocity.y = -1.0
-		else:
-			velocity.y -= GRAVITY * delta
-
-	hvel += _external_push
-	hvel = _hard_cap_horizontal(hvel)
-	velocity.x = hvel.x
-	velocity.z = hvel.z
-
-	var slide_push_decay: float = external_push_decay_ground if floor_before else external_push_decay_air
-	_external_push = _external_push.move_toward(Vector3.ZERO, slide_push_decay * delta)
-
-	move_and_slide()
-	_apply_slide_enemy_pushes()
-	_update_landing_state(floor_before)
-
 func _physics_dash(delta: float) -> void:
 	var floor_before: bool = is_on_floor()
-	velocity.x = dash_vel.x + _external_push.x
-	velocity.z = dash_vel.z + _external_push.z
+	var hvel: Vector3 = dash_vel + _external_push
+	hvel = _hard_cap_horizontal(hvel)
+
+	velocity.x = hvel.x
+	velocity.z = hvel.z
 
 	if floor_before:
 		velocity.y = -1.0
@@ -780,19 +773,112 @@ func _physics_dash(delta: float) -> void:
 	move_and_slide()
 	_update_landing_state(floor_before)
 
-func _can_start_slide(input_dir: Vector3, dir: Vector3) -> bool:
-	if not Run.slide_dodge:
-		return false
+func _physics_slide(delta: float, dir: Vector3) -> void:
+	var floor_before: bool = is_on_floor()
+	var hvel: Vector3 = slide_vel
+	var slide_speed: float = hvel.length()
+
+	if _slide_locked_dir.length() < 0.001:
+		if slide_speed > 0.001:
+			_slide_locked_dir = hvel.normalized()
+		else:
+			_slide_locked_dir = -global_transform.basis.z
+			_slide_locked_dir.y = 0.0
+			_slide_locked_dir = _slide_locked_dir.normalized()
+
+	# Lo slide è hold-based: appena lasci SHIFT, lo stato slide si disattiva subito.
+	# La velocità residua resta al player, ma posa/camera/push da slide si spengono immediatamente.
+	if not Input.is_action_pressed("dash"):
+		_finish_slide(delta, hvel, floor_before)
+		return
+
+	if slide_speed <= slide_stop_speed:
+		_finish_slide(delta, hvel, floor_before)
+		return
+
+	# Direzione bloccata: niente steering laterale tipo macchinina.
+	# Lo slide conserva solo il vettore di partenza e perde velocità progressivamente.
+	hvel = _slide_locked_dir * slide_speed
+
+	if Run.jump_enabled and _jump_buffer_t > 0.0 and (floor_before or _coyote_t > 0.0):
+		velocity.y = Run.jump_velocity
+		hvel *= slide_jump_boost_mult
+		_jump_buffer_t = 0.0
+		_coyote_t = 0.0
+		_end_slide()
+	else:
+		if floor_before:
+			velocity.y = slide_floor_snap_velocity
+		else:
+			velocity.y -= GRAVITY * delta
+
+	var deceleration: float = slide_ground_deceleration if floor_before else slide_air_deceleration
+
+	# Tenere input in avanti rispetto alla direzione iniziale riduce l'attrito.
+	# A/D non sterzano più: possono solo accompagnare lo slide se sono allineati al vettore iniziale.
+	if dir.length() > 0.001 and slide_speed > 0.001:
+		var alignment: float = _slide_locked_dir.dot(dir.normalized())
+		if alignment > 0.35:
+			deceleration *= lerpf(1.0, slide_hold_forward_decel_mult, alignment)
+
+	# Alle velocità alte l'attrito resta appena più morbido, ma senza trasformare lo slide in una pista di pattinaggio.
+	if slide_speed > slide_alive_min_deceleration_speed:
+		deceleration *= 0.92
+
+	hvel = hvel.move_toward(Vector3.ZERO, deceleration * delta)
+
+	if hvel.length() <= slide_stop_speed and floor_before:
+		_finish_slide(delta, hvel, floor_before)
+		return
+
+	slide_vel = hvel
+	hvel += _external_push
+	hvel = _hard_cap_horizontal(hvel)
+	velocity.x = hvel.x
+	velocity.z = hvel.z
+
+	var slide_push_decay: float = external_push_decay_ground if floor_before else external_push_decay_air
+	_external_push = _external_push.move_toward(Vector3.ZERO, slide_push_decay * delta)
+
+	move_and_slide()
+	_apply_slide_enemy_pushes()
+	_update_landing_state(floor_before)
+
+func _finish_slide(delta: float, hvel: Vector3, floor_before: bool) -> void:
+	hvel += _external_push
+	hvel = _hard_cap_horizontal(hvel)
+	velocity.x = hvel.x
+	velocity.z = hvel.z
+
+	if floor_before:
+		velocity.y = -1.0
+	else:
+		velocity.y -= GRAVITY * delta
+
+	var push_decay: float = external_push_decay_ground if floor_before else external_push_decay_air
+	_external_push = _external_push.move_toward(Vector3.ZERO, push_decay * delta)
+
+	_end_slide()
+	move_and_slide()
+	_update_landing_state(floor_before)
+
+func _can_start_slide(_input_dir: Vector3, _dir: Vector3) -> bool:
 	if not has_dash:
 		return false
 	if not is_on_floor():
 		return false
 	if slide_cd > 0.0 or dash_time_left > 0.0 or slide_time_left > 0.0:
 		return false
-	if not Input.is_action_just_pressed("dash"):
+	# Prima richiedeva is_action_just_pressed(): se premevi SHIFT
+	# un attimo prima di atterrare, l'input veniva perso.
+	# Ora accetta il buffer, ma solo se SHIFT è ancora premuto.
+	if _slide_buffer_t <= 0.0 or not Input.is_action_pressed("dash"):
 		return false
-	if input_dir.length() < 0.1 or dir.length() < 0.1:
+
+	var current_hvel: Vector3 = Vector3(velocity.x, 0.0, velocity.z) - _external_push
+	if current_hvel.length() < slide_min_start_speed:
 		return false
+
 	return true
 
 func _start_dash(preferred_dir: Vector3 = Vector3.ZERO) -> void:
@@ -814,27 +900,44 @@ func _start_dash(preferred_dir: Vector3 = Vector3.ZERO) -> void:
 	if _is_null_flow_active():
 		dash_cd *= not_ready_dash_cooldown_mult
 
-func _start_slide(dir: Vector3) -> void:
-	var slide_dir: Vector3 = dir
-	if slide_dir.length() < 0.001:
-		slide_dir = -global_transform.basis.z
-		slide_dir.y = 0.0
+func _start_slide(_dir: Vector3) -> void:
+	var current_hvel: Vector3 = Vector3(velocity.x, 0.0, velocity.z) - _external_push
+	var current_speed: float = current_hvel.length()
+
+	# Da fermo non genera boost: lo slide usa solo il momentum già accumulato.
+	if current_speed < slide_min_start_speed:
+		return
+
+	var slide_dir: Vector3 = current_hvel.normalized()
 	if slide_dir.length() < 0.001:
 		return
 
-	slide_dir = slide_dir.normalized()
-	var current_hvel := Vector3(velocity.x, 0.0, velocity.z) - _external_push
-	var target_slide_speed: float = SLIDE_STRENGTH * Run.slide_speed_mult
-	if _is_null_flow_active():
-		target_slide_speed *= not_ready_speed_bonus_mult
+	var boosted_speed: float = current_speed * slide_entry_boost_mult
+	boosted_speed = minf(boosted_speed, current_speed + slide_max_entry_bonus)
 
-	var carried_speed: float = maxf(current_hvel.length() * 1.04, target_slide_speed)
-	slide_vel = slide_dir * carried_speed
+	if _is_null_flow_active():
+		boosted_speed *= not_ready_speed_bonus_mult
+
+	_slide_locked_dir = slide_dir
+	slide_vel = slide_dir * boosted_speed
 	slide_vel = _hard_cap_horizontal(slide_vel)
-	slide_time_left = maxf(Run.slide_duration, SLIDE_DURATION)
-	slide_cd = maxf(Run.slide_cooldown, SLIDE_COOLDOWN)
+	# Valore sentinella: non è una durata, indica solo che lo slide è attivo.
+	slide_time_left = 1.0
+	slide_cd = SLIDE_COOLDOWN
+	_slide_buffer_t = 0.0
 	_slide_hit_ids.clear()
 	dash_time_left = 0.0
+	_update_body_pose_visibility()
+
+func _end_slide() -> void:
+	if slide_time_left <= 0.0:
+		return
+	slide_time_left = 0.0
+	_slide_buffer_t = 0.0
+	slide_vel = Vector3.ZERO
+	_slide_locked_dir = Vector3.ZERO
+	_slide_hit_ids.clear()
+	_update_body_pose_visibility()
 
 func _apply_slide_enemy_pushes() -> void:
 	if slide_time_left <= 0.0:
@@ -847,7 +950,7 @@ func _apply_slide_enemy_pushes() -> void:
 		return
 
 	var push_dir: Vector3 = horizontal_velocity.normalized()
-	var slide_strength: float = push_strength * 0.85
+	var slide_strength: float = push_strength * slide_enemy_push_mult
 	var slide_lift: float = push_lift * 0.45
 	var slide_stun: float = push_stun_seconds * 0.65
 
@@ -1063,22 +1166,34 @@ func _exit_downed() -> void:
 	if clear_enemy_bullets_on_revive:
 		_clear_nearby_enemy_bullets(bullet_clear_radius_revive)
 
-	_set_body_downed(false)
+	_update_body_pose_visibility()
 	Signals.survival_mode_changed.emit(false)
 	Signals.downed_self_recovery_changed.emit(false, 0.0, downed_self_revive_seconds)
 
-func _set_body_downed(downed: bool) -> void:
-	if body_sprite:
-		body_sprite.visible = not downed
-	if body_down_sprite:
+func _is_sliding() -> bool:
+	return state == PState.NORMAL and slide_time_left > 0.0
+
+func _update_body_pose_visibility() -> void:
+	var downed: bool = state == PState.DOWNED
+	var sliding: bool = _is_sliding()
+
+	if is_instance_valid(body_sprite):
+		body_sprite.visible = not downed and not sliding
+	if is_instance_valid(body_down_sprite):
 		body_down_sprite.visible = downed
-	if leg_sprite:
-		leg_sprite.visible = not downed
-		if downed:
+	if is_instance_valid(body_slide_sprite):
+		body_slide_sprite.visible = sliding
+
+	if is_instance_valid(leg_sprite):
+		leg_sprite.visible = not downed and not sliding
+		if downed or sliding:
 			leg_sprite.stop()
-		else:
+		elif not leg_sprite.is_playing():
 			leg_sprite.play(&"idle")
 			leg_sprite.speed_scale = 1.0
+
+func _set_body_downed(_downed: bool) -> void:
+	_update_body_pose_visibility()
 
 func _on_null_recovered(_pos: Vector3) -> void:
 	if not Run.recovery_iframe:
@@ -1472,6 +1587,8 @@ func _update_upgrade_feedback_visuals() -> void:
 		body_sprite.modulate = mod
 	if is_instance_valid(body_down_sprite):
 		body_down_sprite.modulate = mod
+	if is_instance_valid(body_slide_sprite):
+		body_slide_sprite.modulate = mod
 	if is_instance_valid(hand):
 		hand.modulate = mod
 	if is_instance_valid(hand_recovery):
@@ -1545,10 +1662,14 @@ func _update_downed_camera(delta: float) -> void:
 		return
 
 	var target_y: float = _camera_base_y
-	var speed: float = downed_cam_return_speed
+	var speed: float = slide_cam_return_speed
 
 	if state == PState.DOWNED:
 		target_y = _camera_base_y + downed_cam_offset_y
 		speed = downed_cam_lerp_speed
+	elif _is_sliding():
+		target_y = _camera_base_y + slide_cam_offset_y
+		speed = slide_cam_lerp_speed
 
-	camera.position.y = lerpf(camera.position.y, target_y, speed * delta)
+	var t: float = clampf(speed * delta, 0.0, 1.0)
+	camera.position.y = lerpf(camera.position.y, target_y, t)

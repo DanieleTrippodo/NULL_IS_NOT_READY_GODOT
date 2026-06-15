@@ -88,11 +88,6 @@ func get_perk_preview_lines(id: String) -> Array[String]:
 			lines.append("Range: +%d%%" % int(round((2.15 - 1.0) * 100.0)))
 			lines.append("Invulnerable: YES")
 
-		"SLIDE_DODGE":
-			lines.append("Slide: ON")
-			lines.append("Slide speed: +%d%%" % int(round((slide_speed_mult - 1.0) * 100.0)))
-			lines.append("Enemy push: YES")
-
 		"CHARGE_SHOT":
 			lines.append("Charge: ON")
 			lines.append("Charge time: %.1fs" % 1.15)
@@ -209,10 +204,11 @@ var dash_duration_mult: float = 1.0
 var dash_cooldown_mult: float = 1.0
 var dash_invulnerable: bool = false
 
-var slide_dodge: bool = false
+# Legacy: lo slide ora è movimento base nel Player, non più upgrade RAM.
+var slide_dodge: bool = true
 var slide_speed_mult: float = 1.0
-var slide_duration: float = 0.36
-var slide_cooldown: float = 1.10
+var slide_duration: float = 0.42
+var slide_cooldown: float = 0.72
 var slide_push_mult: float = 1.0
 
 # Charge shot
@@ -311,7 +307,6 @@ var perk_pool: Array[String] = [
 	"HOMING_NUDGE",
 
 	"DASH_UNLOCK",
-	"SLIDE_DODGE",
 
 	"CHARGE_SHOT",
 
@@ -451,10 +446,10 @@ func _reset_runtime_stats_to_base() -> void:
 	dash_cooldown_mult = 1.0
 	dash_invulnerable = false
 
-	slide_dodge = false
+	slide_dodge = true
 	slide_speed_mult = 1.0
-	slide_duration = 0.36
-	slide_cooldown = 1.10
+	slide_duration = 0.42
+	slide_cooldown = 0.72
 	slide_push_mult = 1.0
 
 	charge_shot_enabled = false
@@ -952,13 +947,6 @@ func _apply_equipped_update_effect(id: String) -> void:
 			dash_cooldown_mult = minf(dash_cooldown_mult, 0.95)
 			dash_invulnerable = true
 
-		"SLIDE_DODGE":
-			slide_dodge = true
-			slide_speed_mult = 1.75
-			slide_duration = 0.42
-			slide_cooldown = 1.20
-			slide_push_mult = 1.0
-
 		"CHARGE_SHOT":
 			charge_shot_enabled = true
 			charge_shot_seconds = minf(charge_shot_seconds, 1.15)
@@ -1115,15 +1103,6 @@ func _apply(id: String) -> void:
 			dash_invulnerable = true
 			last_perk_title = "ENERGY DASH"
 			last_perk_desc = "Replaces the base dash with a much longer invulnerable burst."
-
-		"SLIDE_DODGE":
-			slide_dodge = true
-			slide_speed_mult = 1.75
-			slide_duration = 0.42
-			slide_cooldown = 1.20
-			slide_push_mult = 1.0
-			last_perk_title = "SLIDE DODGE"
-			last_perk_desc = "Press dash while moving to slide forward and push enemies you hit."
 
 		"CHARGE_SHOT":
 			charge_shot_enabled = true

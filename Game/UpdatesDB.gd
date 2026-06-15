@@ -21,7 +21,6 @@ const UPDATE_IDS: Array[String] = [
 	"PIERCE_1",
 	"HOMING_NUDGE",
 	"DASH_UNLOCK",
-	"SLIDE_DODGE",
 	"CHARGE_SHOT",
 	"PULL_TO_HAND",
 	"SLOWMO_RECOVERY",
@@ -209,18 +208,6 @@ const DATA := {
 		"icon_path": "res://Art/Cards/Icons/DASH_UNLOCK.png"
 	},
 
-	"SLIDE_DODGE": {
-		"title": "SLIDE DODGE",
-		"desc": "Press dash while moving on the ground to slide forward and push enemies you hit.",
-		"rarity": UpdateRarity.RARE,
-		"base_price_min": 5,
-		"base_price_max": 8,
-		"rotatable": true,
-		"size": Vector2i(3, 2),
-		"cells": [Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1), Vector2i(2, 0)],
-		"tradeoff_desc": "Great for making space, but it only works while grounded and moving.",
-		"icon_path": "res://Art/Cards/Icons/SLIDE_DODGE.png"
-	},
 
 	"CHARGE_SHOT": {
 		"title": "CHARGE SHOT",

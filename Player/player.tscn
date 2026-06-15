@@ -93,6 +93,7 @@
 [ext_resource type="Texture2D" uid="uid://e26t1frcam0i" path="res://Player/LegAnimationRUN/leg run0068.png" id="23_leg0068"]
 [ext_resource type="Texture2D" uid="uid://dwp3ijclocm2w" path="res://Player/LegAnimationRUN/leg run0069.png" id="23_leg0069"]
 [ext_resource type="Texture2D" uid="uid://2jhgtt6ku3vy" path="res://Player/LegAnimationRUN/leg run0070.png" id="23_leg0070"]
+[ext_resource type="Texture2D" uid="uid://bjta3m3syiyyi" path="res://Player/Body_Slide.png" id="24_slide"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_hvfyp"]
 
@@ -392,6 +393,14 @@ visible = false
 billboard = 1
 texture_filter = 0
 texture = ExtResource("3_btcbx")
+
+[node name="Body_Slide" type="Sprite3D" parent="." unique_id=1229322921]
+transform = Transform3D(0.165, 0, 0, 0, -7.212379e-09, 0.165, 0, -0.165, -7.212379e-09, -0.16318463, -0.36688942, -0.3701865)
+visible = false
+billboard = 1
+texture_filter = 0
+render_priority = 2
+texture = ExtResource("24_slide")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1082302795]
 shape = SubResource("CapsuleShape3D_hvfyp")
