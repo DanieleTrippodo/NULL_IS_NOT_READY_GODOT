@@ -1,5 +1,9 @@
 extends Node3D
 
+const EXPAND_SHOT_SCENE: PackedScene = preload("res://Weapons/expand_shot.tscn")
+const LASER_SHOT_SCENE: PackedScene = preload("res://Weapons/laser_shot.tscn")
+const BOMB_SHOT_SCENE: PackedScene = preload("res://Weapons/bomb_shot.tscn")
+
 signal boss_defeated
 signal victory_transition_finished
 
@@ -255,6 +259,8 @@ func _connect_signals() -> void:
 		Signals.request_recovery_stop.connect(_on_request_recovery_stop)
 	if not Signals.request_force_drop_null.is_connected(_on_request_force_drop_null):
 		Signals.request_force_drop_null.connect(_on_request_force_drop_null)
+	if not Signals.request_spawn_dropped_null.is_connected(_on_request_spawn_dropped_null):
+		Signals.request_spawn_dropped_null.connect(_on_request_spawn_dropped_null)
 	if not Signals.null_dropped.is_connected(_on_null_dropped):
 		Signals.null_dropped.connect(_on_null_dropped)
 	if not embedded_mode and not Signals.player_died.is_connected(_on_player_died):
@@ -276,6 +282,8 @@ func _disconnect_signals() -> void:
 		Signals.request_recovery_stop.disconnect(_on_request_recovery_stop)
 	if Signals.request_force_drop_null.is_connected(_on_request_force_drop_null):
 		Signals.request_force_drop_null.disconnect(_on_request_force_drop_null)
+	if Signals.request_spawn_dropped_null.is_connected(_on_request_spawn_dropped_null):
+		Signals.request_spawn_dropped_null.disconnect(_on_request_spawn_dropped_null)
 	if Signals.null_dropped.is_connected(_on_null_dropped):
 		Signals.null_dropped.disconnect(_on_null_dropped)
 	if Signals.player_died.is_connected(_on_player_died):
@@ -872,15 +880,28 @@ func _on_boss_teleport_sequence_finished() -> void:
 	_start_next_attack_pattern(false)
 
 
+func _get_current_shot_scene() -> PackedScene:
+	match Run.current_shot_type:
+		ShotCycle.EXPAND_SHOT:
+			return EXPAND_SHOT_SCENE
+		ShotCycle.LASER_SHOT:
+			return LASER_SHOT_SCENE
+		ShotCycle.BOMB_SHOT:
+			return BOMB_SHOT_SCENE
+		_:
+			return null_projectile_scene
+
+
 func _on_request_shoot(origin: Vector3, direction: Vector3, size_mult: float = 1.0) -> void:
 	if restarting or _victory_transitioning:
 		return
 	if not Run.null_ready and not Run.infinite_enabled:
 		return
-	if null_projectile_scene == null:
+	var shot_scene: PackedScene = _get_current_shot_scene()
+	if shot_scene == null:
 		return
 
-	var p: Node = null_projectile_scene.instantiate()
+	var p: Node = shot_scene.instantiate()
 	if not (p is Node3D):
 		if not Run.infinite_enabled:
 			Run.null_ready = true
@@ -952,6 +973,36 @@ func _on_request_recovery_stop() -> void:
 		null_instance.call("stop_remote_recovery")
 
 
+func _on_request_spawn_dropped_null(pos: Vector3) -> void:
+	if restarting or _victory_transitioning:
+		return
+	if null_projectile_scene == null:
+		Run.null_ready = true
+		Run.null_dropped = false
+		Signals.null_ready_changed.emit(true)
+		return
+
+	var p: Node = null_projectile_scene.instantiate()
+	if not (p is Node3D):
+		Run.null_ready = true
+		Run.null_dropped = false
+		Signals.null_ready_changed.emit(true)
+		return
+
+	null_instance = p as Node3D
+	add_child(null_instance)
+	null_instance.global_position = pos
+	Run.null_ready = false
+	Run.null_dropped = false
+
+	if null_instance.has_method("_drop"):
+		null_instance.call("_drop")
+	else:
+		null_instance.queue_free()
+		null_instance = null
+		Run.null_ready = true
+		Signals.null_ready_changed.emit(true)
+
 func _on_request_force_drop_null(pos: Vector3) -> void:
 	if restarting or _victory_transitioning:
 		return
@@ -984,6 +1035,8 @@ func _on_null_dropped(_pos: Variant = null) -> void:
 
 func _force_null_return() -> void:
 	if null_instance != null and is_instance_valid(null_instance):
+		if null_instance.has_method("blocks_forced_return") and bool(null_instance.call("blocks_forced_return")):
+			return
 		if null_instance.has_method("pickup"):
 			null_instance.call("pickup")
 		else:

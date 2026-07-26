@@ -177,6 +177,7 @@ var depth: int = 1
 var terminal_logs_read: Array[bool] = []
 var null_ready: bool = true
 var null_dropped: bool = false
+var current_shot_type: int = 0
 var survival_mode: bool = false
 var godmode: bool = false
 var boss_terminal_unlocked: bool = false

@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Weapons/bomb_shot.gd" id="1_bomb"]
+
+[node name="BombShot" type="Node3D"]
+script = ExtResource("1_bomb")

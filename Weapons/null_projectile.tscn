@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://dmowmk14plofq"]
+[gd_scene format=3 uid="uid://dmowmk14plofq"]
 
 [ext_resource type="Script" uid="uid://bu4dwpp8rbce3" path="res://Weapons/null_projectile.gd" id="1_5yk5j"]
 [ext_resource type="Texture2D" uid="uid://du6e75dm7sq1k" path="res://UI/PickUp.png" id="2_5n203"]
@@ -33,21 +33,21 @@ stencil_flags = 2
 stencil_color = Color(1, 1, 1, 1)
 stencil_outline_thickness = 0.091
 
-[node name="NullProjectile" type="Area3D"]
+[node name="NullProjectile" type="Area3D" unique_id=1000250202]
 script = ExtResource("1_5yk5j")
 recovery_pull_speed_min = 4.0
 recovery_pull_speed_max = 15.0
 recovery_accel_time = 8.0
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=748439596]
 shape = SubResource("SphereShape3D_f0lqa")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=286650967]
 transform = Transform3D(0.22, 0, 0, 0, 0.22, 0, 0, 0, 0.22, 0, 0, 0)
 mesh = SubResource("SphereMesh_f0lqa")
 surface_material_override/0 = SubResource("StandardMaterial3D_13oe7")
 
-[node name="PickupIndicator" type="Sprite3D" parent="."]
+[node name="PickupIndicator" type="Sprite3D" parent="." unique_id=137215298]
 transform = Transform3D(0.085, 0, 0, 0, 0.085, 0, 0, 0, 0.085, 0, 0.7492037, 0)
 visible = false
 billboard = 2

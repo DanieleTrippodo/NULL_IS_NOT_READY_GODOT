@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://c8uc2jlabtxn5"]
 
 [ext_resource type="Script" uid="uid://dhtpslx53p3b5" path="res://Player/player.gd" id="1_l8h54"]
-[ext_resource type="Script" path="res://Player/recovery_glitch_pulse.gd" id="25_recovery_glitch"]
 [ext_resource type="Texture2D" uid="uid://baung4bs6nir7" path="res://Player/NullabreastDARKER.png" id="2_c7st8"]
 [ext_resource type="Texture2D" uid="uid://ck42bify45vkc" path="res://Player/Body_Down.png" id="3_btcbx"]
 [ext_resource type="Texture2D" uid="uid://cl1w7i8bpj523" path="res://Player/leg Idle0001.png" id="4_c7st8"]
@@ -380,10 +379,6 @@ knockback_lift = 120.0
 knockback_speed = 60.0
 downed_cam_offset_y = -0.95
 downed_invuln_seconds = 0.8
-
-
-[node name="RecoveryGlitchPulse" type="Node3D" parent="."]
-script = ExtResource("25_recovery_glitch")
 
 [node name="Body" type="Sprite3D" parent="." unique_id=1168476285]
 transform = Transform3D(0.059, 0, 0, 0, -2.578972e-09, 0.059, 0, -0.059, -2.578972e-09, 0, -0.2685532, -0.43808374)

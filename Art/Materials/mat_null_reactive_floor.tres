@@ -1,0 +1,20 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://dmetapp6lg5jx"]
+
+[ext_resource type="Shader" uid="uid://iojqf8r7jwem" path="res://Art/Shaders/null_reactive_dots.gdshader" id="1_ytqxm"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_ytqxm")
+shader_parameter/base_color = Color(0.01, 0.01, 0.012, 1)
+shader_parameter/dot_color = Color(1, 1, 1, 1)
+shader_parameter/emission_strength = 3.0
+shader_parameter/dot_density = 8.0
+shader_parameter/dot_size = 0.07
+shader_parameter/dot_softness = 0.025
+shader_parameter/effect_radius = 4.0
+shader_parameter/repulsion_strength = 0.65
+shader_parameter/center_clear_radius = 0.65
+shader_parameter/idle_dot_visibility = 0.18
+shader_parameter/active_dot_visibility = 1.0
+shader_parameter/movement_speed = 2.0
+shader_parameter/vibration_strength = 0.08

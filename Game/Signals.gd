@@ -25,6 +25,8 @@ signal enemy_killed(enemy: Node)
 signal enemy_hit_feedback(enemy: Node, killed: bool)
 @warning_ignore("unused_signal")
 signal request_force_drop_null(pos: Vector3)
+@warning_ignore("unused_signal")
+signal request_spawn_dropped_null(pos: Vector3)
 
 @warning_ignore("unused_signal")
 signal player_hit(knockback_dir: Vector3)
@@ -40,6 +42,8 @@ signal null_ready_changed(is_ready: bool)
 signal null_dropped(pos: Vector3)
 @warning_ignore("unused_signal")
 signal null_recovered(pos: Vector3)
+@warning_ignore("unused_signal")
+signal shot_type_changed(shot_type: int)
 
 # UI / progression
 @warning_ignore("unused_signal")

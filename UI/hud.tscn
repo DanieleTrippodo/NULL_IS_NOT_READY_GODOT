@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://bhkaynd3qjg8j"]
+[gd_scene load_steps=12 format=3 uid="uid://bhkaynd3qjg8j"]
 
 [ext_resource type="Script" uid="uid://dt46fcsmdc2co" path="res://UI/hud.gd" id="1_ne75i"]
 [ext_resource type="Texture2D" uid="uid://r8m6r24rj04y" path="res://UI/Crosshair.png" id="2_bytes"]
@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://b62rky3munmod" path="res://UI/ram_overlay.tscn" id="6_0j753"]
 [ext_resource type="Shader" uid="uid://c8ot1uvrd8jxg" path="res://UI/hud.gdshader" id="6_1ui3w"]
 [ext_resource type="FontFile" path="res://fonts/VT323-Regular.ttf" id="7_vt323"]
+[ext_resource type="PackedScene" path="res://UI/shot_cycle_ui.tscn" id="8_cycle"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_0j753"]
 shader = ExtResource("6_1ui3w")
@@ -66,6 +67,10 @@ script = ExtResource("1_ne75i")
 status_ready_texture = ExtResource("2_rnl6m")
 status_not_ready_texture = ExtResource("3_1ui3w")
 status_rect_size = Vector2(600, 160)
+
+
+[node name="ShotCycleUI" parent="." instance=ExtResource("8_cycle")]
+layout_mode = 1
 
 [node name="StatusIcon" type="TextureRect" parent="."]
 custom_minimum_size = Vector2(320, 120)

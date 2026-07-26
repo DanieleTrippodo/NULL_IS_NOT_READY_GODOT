@@ -3,6 +3,7 @@ extends CharacterBody3D
 
 @onready var head: Node3D = $Head
 @onready var camera: Camera3D = $Head/Camera
+@onready var player_collision_shape: CollisionShape3D = $CollisionShape3D
 
 @onready var body_sprite: Sprite3D = $Body
 @onready var body_down_sprite: Sprite3D = $Body_Down
@@ -14,6 +15,11 @@ extends CharacterBody3D
 @onready var shoot_ring: Sprite3D = $Head/Camera/ViewModel/ShootRing
 @onready var shoot_sfx: AudioStreamPlayer = $Head/Camera/ViewModel/ShootSfx
 
+const HAND_SINGLE_TEXTURE: Texture2D = preload("res://Player/ShotHands/Hand_SingleShot.png")
+const HAND_EXPAND_TEXTURE: Texture2D = preload("res://Player/ShotHands/Hand_ExpandShot.png")
+const HAND_LASER_TEXTURE: Texture2D = preload("res://Player/ShotHands/Hand_LaserShot.png")
+const HAND_BOMB_TEXTURE: Texture2D = preload("res://Player/ShotHands/Hand_BombShot.png")
+
 enum PState { NORMAL, KNOCKBACK, DOWNED }
 
 # -------------------------
@@ -21,6 +27,7 @@ enum PState { NORMAL, KNOCKBACK, DOWNED }
 # -------------------------
 @export_range(0.0, 89.0, 0.5) var normal_pitch_limit_deg: float = 85.0
 @export_range(0.0, 89.0, 0.5) var downed_pitch_limit_deg: float = 25.0
+@export_range(0.0, 89.0, 0.5) var slide_pitch_limit_deg: float = 42.0
 
 @export_group("Mobile Look")
 @export_range(0.0005, 0.02, 0.0001) var touch_look_sensitivity: float = 0.0042
@@ -49,6 +56,15 @@ var _mobile_controls: Node = null
 @export var slide_cam_offset_y: float = -0.68
 @export var slide_cam_lerp_speed: float = 15.0
 @export var slide_cam_return_speed: float = 13.0
+
+@export_group("Dynamic Collision Stance")
+@export var dynamic_collision_stance_enabled: bool = true
+@export_range(0.25, 1.0, 0.01) var slide_collision_height_mult: float = 0.52
+@export_range(0.25, 1.0, 0.01) var downed_collision_height_mult: float = 0.46
+@export_range(0.5, 1.0, 0.01) var slide_collision_radius_mult: float = 0.92
+@export_range(0.5, 1.0, 0.01) var downed_collision_radius_mult: float = 0.90
+@export_range(1.0, 80.0, 0.5) var collision_stance_enter_speed: float = 42.0
+@export_range(1.0, 80.0, 0.5) var collision_stance_return_speed: float = 18.0
 
 @export_group("Knockback Timing")
 @export var knockback_min_time: float = 0.22
@@ -92,6 +108,11 @@ var _hand_recovery_tween: Tween
 var _external_push: Vector3 = Vector3.ZERO
 
 var _camera_base_y: float = 0.0
+
+var _collision_capsule: CapsuleShape3D = null
+var _collision_base_pos: Vector3 = Vector3.ZERO
+var _collision_base_height: float = 0.0
+var _collision_base_radius: float = 0.0
 
 var state: int = PState.NORMAL
 var input_locked: bool = false
@@ -171,7 +192,9 @@ const SLIDE_COOLDOWN: float = 0.05
 @export var not_ready_speed_bonus_mult: float = 1.12
 @export var not_ready_accel_bonus_mult: float = 1.18
 @export var not_ready_dash_cooldown_mult: float = 0.75
-@export var recovery_allows_movement: bool = true
+# Mantenute per compatibilità con eventuali scene salvate in versioni precedenti.
+# La Recovery Mode ora blocca sempre il movimento del player.
+@export var recovery_allows_movement: bool = false
 @export_range(0.2, 1.2, 0.05) var recovery_move_mult: float = 0.90
 
 @export_group("Velocity FOV")
@@ -289,14 +312,19 @@ func _apply_look_delta(relative: Vector2, sensitivity: float) -> void:
 
 	yaw -= relative.x * sensitivity
 	pitch -= relative.y * sensitivity
-
-	var limit_deg: float = normal_pitch_limit_deg
-	if state == PState.DOWNED:
-		limit_deg = downed_pitch_limit_deg
-	pitch = clamp(pitch, deg_to_rad(-limit_deg), deg_to_rad(limit_deg))
+	_clamp_pitch_for_state()
 
 	rotation.y = yaw
 	head.rotation.x = pitch
+
+func _clamp_pitch_for_state() -> void:
+	var limit_deg: float = normal_pitch_limit_deg
+	if state == PState.DOWNED:
+		limit_deg = downed_pitch_limit_deg
+	elif _is_sliding():
+		limit_deg = slide_pitch_limit_deg
+
+	pitch = clamp(pitch, deg_to_rad(-limit_deg), deg_to_rad(limit_deg))
 
 func apply_mobile_look_delta(relative: Vector2) -> void:
 	if input_locked:
@@ -331,6 +359,8 @@ func _ready() -> void:
 	Signals.player_hit.connect(_on_player_hit)
 	Signals.enemy_killed.connect(_on_enemy_killed)
 	Signals.null_recovered.connect(_on_null_recovered)
+	Signals.shot_type_changed.connect(_on_shot_type_changed)
+	_on_shot_type_changed(Run.current_shot_type)
 	Signals.downed_self_recovery_changed.emit(false, 0.0, downed_self_revive_seconds)
 
 	_update_body_pose_visibility()
@@ -354,6 +384,8 @@ func _ready() -> void:
 		shoot_ring.visible = false
 		shoot_ring.modulate = Color(1, 1, 1, 1)
 
+	_setup_dynamic_collision_stance()
+
 func _unhandled_input(event: InputEvent) -> void:
 	if input_locked:
 		return
@@ -369,11 +401,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 		yaw -= event.relative.x * Settings.mouse_sens
 		pitch -= event.relative.y * Settings.mouse_sens
-
-		var limit_deg: float = normal_pitch_limit_deg
-		if state == PState.DOWNED:
-			limit_deg = downed_pitch_limit_deg
-		pitch = clamp(pitch, deg_to_rad(-limit_deg), deg_to_rad(limit_deg))
+		_clamp_pitch_for_state()
 
 		rotation.y = yaw
 		head.rotation.x = pitch
@@ -404,10 +432,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if state == PState.DOWNED:
 		if event.is_action_pressed("swap"):
 			if Run.null_dropped:
-				dash_time_left = 0.0
-				slide_time_left = 0.0
-				_slide_hit_ids.clear()
 				is_recovering_null = true
+				_lock_movement_for_null_recovery()
 				_update_hand_mode_visual()
 				_play_hand_recovery_enter_anim()
 				Signals.request_recovery_start.emit()
@@ -433,7 +459,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	# NORMAL
-	if Run.charge_shot_enabled:
+	if Run.charge_shot_enabled and Run.current_shot_type == ShotCycle.SINGLE_SHOT:
 		if event.is_action_pressed("shoot"):
 			if Run.null_ready:
 				_charging = true
@@ -451,7 +477,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				_play_shoot_sfx()
 				Signals.request_shoot.emit(origin2, dir2, size_mult)
 	else:
-		if event.is_action_pressed("shoot"):
+		if event.is_action_pressed("shoot") and Run.null_ready:
 			var origin3: Vector3 = camera.global_transform.origin
 			var dir3: Vector3 = -camera.global_transform.basis.z
 			_play_hand_shoot_anim()
@@ -465,10 +491,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	# SWAP (perk)
 	if event.is_action_pressed("swap"):
 		if Run.null_dropped:
-			dash_time_left = 0.0
-			slide_time_left = 0.0
-			_slide_hit_ids.clear()
 			is_recovering_null = true
+			_lock_movement_for_null_recovery()
 			_update_hand_mode_visual()
 			_play_hand_recovery_enter_anim()
 			Signals.request_recovery_start.emit()
@@ -478,6 +502,19 @@ func _unhandled_input(event: InputEvent) -> void:
 			is_recovering_null = false
 			_update_hand_mode_visual()
 			Signals.request_recovery_stop.emit()
+
+func _lock_movement_for_null_recovery() -> void:
+	# Recovery Mode: il player può continuare a guardarsi intorno, ma non può
+	# camminare, saltare, scivolare o mantenere momentum orizzontale.
+	dash_time_left = 0.0
+	slide_time_left = 0.0
+	_slide_hit_ids.clear()
+	_jump_buffer_t = 0.0
+	_slide_buffer_t = 0.0
+	_bunnyhop_grace_t = 0.0
+	_external_push = Vector3.ZERO
+	velocity.x = 0.0
+	velocity.z = 0.0
 
 func set_input_locked(v: bool) -> void:
 	input_locked = v
@@ -520,6 +557,23 @@ func _play_hand_recovery_enter_anim() -> void:
 	if hand_recovery != null:
 		hand_recovery.visible = is_recovering_null
 
+func _on_shot_type_changed(shot_type: int) -> void:
+	if shot_type != ShotCycle.SINGLE_SHOT:
+		_charging = false
+		_charge_time = 0.0
+	if hand == null:
+		return
+
+	match shot_type:
+		ShotCycle.EXPAND_SHOT:
+			hand.texture = HAND_EXPAND_TEXTURE
+		ShotCycle.LASER_SHOT:
+			hand.texture = HAND_LASER_TEXTURE
+		ShotCycle.BOMB_SHOT:
+			hand.texture = HAND_BOMB_TEXTURE
+		_:
+			hand.texture = HAND_SINGLE_TEXTURE
+
 func force_drop_null() -> void:
 	if not Run.null_ready:
 		return
@@ -557,6 +611,8 @@ func _process(delta: float) -> void:
 	_update_camera_tilt(delta)
 	_update_speed_fov(delta)
 	_update_upgrade_feedback_visuals()
+	_update_reactive_shader_position()
+	
 
 func _physics_process(delta: float) -> void:
 	if state == PState.KNOCKBACK:
@@ -575,8 +631,9 @@ func _physics_process(delta: float) -> void:
 	slide_cd = maxf(slide_cd - delta, 0.0)
 	_push_cd_left = maxf(_push_cd_left - delta, 0.0)
 	_update_body_pose_visibility()
+	_update_dynamic_collision_stance(delta)
 
-	if state == PState.NORMAL and not input_locked and Input.is_action_just_pressed("jump"):
+	if state == PState.NORMAL and not input_locked and not is_recovering_null and Input.is_action_just_pressed("jump"):
 		_jump_buffer_t = jump_buffer_seconds
 	else:
 		_jump_buffer_t = maxf(_jump_buffer_t - delta, 0.0)
@@ -584,7 +641,7 @@ func _physics_process(delta: float) -> void:
 	# Buffer dello slide: se premi SHIFT poco prima di atterrare,
 	# lo slide parte appena il player tocca terra.
 	# Resta comunque hold-based: se rilasci SHIFT, il buffer viene cancellato.
-	if state == PState.NORMAL and not input_locked and Input.is_action_just_pressed("dash"):
+	if state == PState.NORMAL and not input_locked and not is_recovering_null and Input.is_action_just_pressed("dash"):
 		_slide_buffer_t = slide_buffer_seconds
 	else:
 		_slide_buffer_t = maxf(_slide_buffer_t - delta, 0.0)
@@ -593,17 +650,13 @@ func _physics_process(delta: float) -> void:
 
 	_bunnyhop_grace_t = maxf(_bunnyhop_grace_t - delta, 0.0)
 
-	if is_recovering_null and (not recovery_allows_movement or state != PState.NORMAL):
-		velocity.x = _external_push.x
-		velocity.z = _external_push.z
+	if is_recovering_null:
+		_lock_movement_for_null_recovery()
 
 		if is_on_floor():
 			velocity.y = -1.0
 		else:
 			velocity.y -= GRAVITY * delta
-
-		var push_decay_recovery: float = external_push_decay_ground if is_on_floor() else external_push_decay_air
-		_external_push = _external_push.move_toward(Vector3.ZERO, push_decay_recovery * delta)
 
 		move_and_slide()
 		_update_downed_camera(delta)
@@ -634,6 +687,67 @@ func _physics_process(delta: float) -> void:
 			_physics_downed(delta)
 
 	_update_downed_camera(delta)
+
+func _setup_dynamic_collision_stance() -> void:
+	if not is_instance_valid(player_collision_shape):
+		return
+
+	_collision_base_pos = player_collision_shape.position
+
+	if player_collision_shape.shape is CapsuleShape3D:
+		_collision_capsule = (player_collision_shape.shape as CapsuleShape3D).duplicate(true) as CapsuleShape3D
+		player_collision_shape.shape = _collision_capsule
+		_collision_base_height = _collision_capsule.height
+		_collision_base_radius = _collision_capsule.radius
+
+
+func _update_dynamic_collision_stance(delta: float) -> void:
+	if not dynamic_collision_stance_enabled:
+		return
+	if not is_instance_valid(player_collision_shape):
+		return
+	if _collision_capsule == null:
+		return
+	if _collision_base_height <= 0.0 or _collision_base_radius <= 0.0:
+		return
+
+	var height_mult: float = 1.0
+	var radius_mult: float = 1.0
+
+	if state == PState.DOWNED:
+		height_mult = downed_collision_height_mult
+		radius_mult = downed_collision_radius_mult
+	elif _is_sliding():
+		height_mult = slide_collision_height_mult
+		radius_mult = slide_collision_radius_mult
+
+	var target_radius: float = _collision_base_radius * radius_mult
+	var target_height: float = _collision_base_height * height_mult
+	target_height = maxf(target_height, target_radius * 2.0 + 0.01)
+
+	var current_height: float = _collision_capsule.height
+	var current_radius: float = _collision_capsule.radius
+	var speed: float = collision_stance_return_speed
+	if target_height < current_height or target_radius < current_radius:
+		speed = collision_stance_enter_speed
+
+	var weight: float = clampf(speed * delta, 0.0, 1.0)
+	var new_radius: float = lerpf(current_radius, target_radius, weight)
+	var new_height: float = lerpf(current_height, target_height, weight)
+	new_height = maxf(new_height, new_radius * 2.0 + 0.01)
+
+	_collision_capsule.radius = new_radius
+	_collision_capsule.height = new_height
+
+	# Mantiene il fondo della capsule allineato alla stance originale.
+	# Così durante slide/down si abbassa la parte alta della collisione,
+	# senza alzare il player dal pavimento.
+	var base_bottom_y: float = _collision_base_pos.y - (_collision_base_height * 0.5)
+	var target_pos: Vector3 = _collision_base_pos
+	target_pos.y = base_bottom_y + (new_height * 0.5)
+
+	player_collision_shape.position = player_collision_shape.position.lerp(target_pos, weight)
+
 
 func _physics_normal(delta: float) -> void:
 	if not schmovement_enabled:
@@ -676,9 +790,6 @@ func _physics_normal(delta: float) -> void:
 	if _is_null_flow_active():
 		accel *= not_ready_accel_bonus_mult
 
-	if is_recovering_null:
-		speed *= recovery_move_mult
-		max_speed *= recovery_move_mult
 
 	var hvel: Vector3 = Vector3(velocity.x, 0.0, velocity.z) - _external_push
 
@@ -1673,3 +1784,7 @@ func _update_downed_camera(delta: float) -> void:
 
 	var t: float = clampf(speed * delta, 0.0, 1.0)
 	camera.position.y = lerpf(camera.position.y, target_y, t)
+	
+
+func _update_reactive_shader_position() -> void:
+	RenderingServer.global_shader_parameter_set("null_player_world_position", global_position)

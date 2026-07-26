@@ -1,0 +1,42 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://UI/shot_cycle_ui.gd" id="1_cycle"]
+[ext_resource type="FontFile" path="res://fonts/VT323-Regular.ttf" id="2_font"]
+
+[node name="ShotCycleUI" type="Control"]
+process_mode = 3
+layout_mode = 1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -300.0
+offset_top = 12.0
+offset_right = 300.0
+offset_bottom = 112.0
+grow_horizontal = 2
+mouse_filter = 2
+clip_contents = true
+script = ExtResource("1_cycle")
+
+[node name="Track" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ActiveLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 78.0
+offset_bottom = 100.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.82)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "NULL // SINGLESHOT"
+horizontal_alignment = 1
+vertical_alignment = 1

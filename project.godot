@@ -28,6 +28,7 @@ config/icon="uid://bkqagku0q8lj0"
 Constants="*res://Game/Constants.gd"
 Signals="*res://Game/Signals.gd"
 Run="*res://Game/Run.gd"
+ShotCycle="*res://Game/ShotCycle.gd"
 Settings="*res://Game/Settings.gd"
 
 [display]
@@ -130,3 +131,10 @@ ram_toggle={
 [rendering]
 
 textures/vram_compression/import_etc2_astc=true
+
+[shader_globals]
+
+null_player_world_position={
+"type": "vec3",
+"value": Vector3(0, 0, 0)
+}

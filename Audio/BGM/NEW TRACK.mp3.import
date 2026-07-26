@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://2abp4wcll53s"
+path="res://.godot/imported/NEW TRACK.mp3-6b0d6c344286b6a9a9d3ce1e4f58184f.mp3str"
+
+[deps]
+
+source_file="res://Audio/BGM/NEW TRACK.mp3"
+dest_files=["res://.godot/imported/NEW TRACK.mp3-6b0d6c344286b6a9a9d3ce1e4f58184f.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

@@ -1,6 +1,10 @@
 # res://Game/Game.gd
 extends Node
 
+const EXPAND_SHOT_SCENE: PackedScene = preload("res://Weapons/expand_shot.tscn")
+const LASER_SHOT_SCENE: PackedScene = preload("res://Weapons/laser_shot.tscn")
+const BOMB_SHOT_SCENE: PackedScene = preload("res://Weapons/bomb_shot.tscn")
+
 @export var arena_scene: PackedScene
 @export var arena_wave_scenes: Array[PackedScene] = []
 @export var player_scene: PackedScene
@@ -130,6 +134,7 @@ func _ready() -> void:
 	Signals.request_recovery_start.connect(_on_request_recovery_start)
 	Signals.request_recovery_stop.connect(_on_request_recovery_stop)
 	Signals.request_force_drop_null.connect(_on_request_force_drop_null)
+	Signals.request_spawn_dropped_null.connect(_on_request_spawn_dropped_null)
 	Signals.null_dropped.connect(_on_null_dropped)
 
 	Signals.enemy_killed.connect(_on_enemy_killed)
@@ -1042,6 +1047,17 @@ func _spawn_enemy(scene: PackedScene, desired_pos: Vector3) -> Node3D:
 # ------------------------------------------------------------
 # NULL / player requests
 # ------------------------------------------------------------
+func _get_current_shot_scene() -> PackedScene:
+	match Run.current_shot_type:
+		ShotCycle.EXPAND_SHOT:
+			return EXPAND_SHOT_SCENE
+		ShotCycle.LASER_SHOT:
+			return LASER_SHOT_SCENE
+		ShotCycle.BOMB_SHOT:
+			return BOMB_SHOT_SCENE
+		_:
+			return null_projectile_scene
+
 func _on_request_shoot(origin: Vector3, direction: Vector3, extra: Variant = 1.0) -> void:
 	if Run.in_boss_fight and boss_arena_instance != null:
 		return
@@ -1056,7 +1072,11 @@ func _on_request_shoot(origin: Vector3, direction: Vector3, extra: Variant = 1.0
 	if typeof(extra) in [TYPE_FLOAT, TYPE_INT]:
 		size_mult = maxf(float(extra), 0.1)
 
-	var p := null_projectile_scene.instantiate()
+	var shot_scene: PackedScene = _get_current_shot_scene()
+	if shot_scene == null:
+		return
+
+	var p := shot_scene.instantiate()
 	if not (p is Node3D):
 		if not Run.infinite_enabled:
 			Run.null_ready = true
@@ -1077,6 +1097,46 @@ func _on_request_shoot(origin: Vector3, direction: Vector3, extra: Variant = 1.0
 		proj.call("fire", origin, direction, size_mult)
 	else:
 		proj.global_position = origin
+
+func _on_request_spawn_dropped_null(pos: Vector3) -> void:
+	# Durante il boss il segnale viene gestito direttamente da boss_arena.gd.
+	if Run.in_boss_fight and boss_arena_instance != null:
+		return
+	if restarting or wave_transitioning or boss_transitioning:
+		return
+	if world_frozen:
+		return
+
+	_spawn_real_dropped_null(pos)
+
+func _spawn_real_dropped_null(pos: Vector3) -> void:
+	if null_projectile_scene == null:
+		Run.null_ready = true
+		Run.null_dropped = false
+		Signals.null_ready_changed.emit(true)
+		return
+
+	var p := null_projectile_scene.instantiate()
+	if not (p is Node3D):
+		Run.null_ready = true
+		Run.null_dropped = false
+		Signals.null_ready_changed.emit(true)
+		return
+
+	var proj := p as Node3D
+	world.add_child(proj)
+	null_instance = proj
+	proj.global_position = pos
+	Run.null_ready = false
+	Run.null_dropped = false
+
+	if proj.has_method("_drop"):
+		proj.call("_drop")
+	else:
+		proj.queue_free()
+		null_instance = null
+		Run.null_ready = true
+		Signals.null_ready_changed.emit(true)
 
 func _on_request_force_drop_null(pos: Vector3) -> void:
 	if Run.in_boss_fight and boss_arena_instance != null:
@@ -1242,6 +1302,8 @@ func _on_enemy_killed(enemy: Node) -> void:
 
 func _force_null_return() -> void:
 	if null_instance != null and is_instance_valid(null_instance):
+		if null_instance.has_method("blocks_forced_return") and bool(null_instance.call("blocks_forced_return")):
+			return
 		if null_instance.has_method("pickup"):
 			null_instance.call("pickup")
 		else:
